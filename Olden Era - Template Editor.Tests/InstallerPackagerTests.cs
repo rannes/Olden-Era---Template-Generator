@@ -2,7 +2,7 @@ using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 using OldenEra.Generator.Models.Unfrozen;
-using OldenEra.Web.Services;
+using OldenEra.Generator.Services;
 using Xunit;
 
 namespace OldenEra.Tests;

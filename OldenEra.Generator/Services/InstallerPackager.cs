@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Text;
 using OldenEra.Generator.Constants;
 
-namespace OldenEra.Web.Services;
+namespace OldenEra.Generator.Services;
 
 public static class InstallerPackager
 {
@@ -42,7 +42,7 @@ public static class InstallerPackager
     private static byte[] LoadResource(string fileName, string templateName)
     {
         var asm = typeof(InstallerPackager).Assembly;
-        string resourceName = $"OldenEra.Web.Resources.Installer.{fileName}";
+        string resourceName = $"OldenEra.Generator.Resources.Installer.{fileName}";
         using var stream = asm.GetManifestResourceStream(resourceName)
             ?? throw new InvalidOperationException($"Embedded resource not found: {resourceName}");
         using var reader = new StreamReader(stream, Encoding.UTF8);
