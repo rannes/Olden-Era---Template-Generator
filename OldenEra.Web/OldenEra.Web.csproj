@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OldenEra.Generator\OldenEra.Generator.csproj" />
+    <ProjectReference Include="..\src\OldenEra.Generator\OldenEra.Generator.csproj" />
   </ItemGroup>
 
   <ItemGroup>
