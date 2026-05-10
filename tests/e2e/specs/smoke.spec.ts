@@ -49,3 +49,27 @@ test('Download map w/ installer produces a .zip', async ({ page }) => {
 
   expect(download.suggestedFilename()).toMatch(/-installer\.zip$/);
 });
+
+test('each top nav item is clickable without crashing', async ({ page }) => {
+  // Capture any uncaught Blazor errors so the test fails loudly instead of
+  // showing the generic red banner.
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(e.message));
+
+  await page.goto('/');
+
+  const navItems = page.locator('nav.oe-nav-list button.oe-nav-item');
+  // Wait for Blazor to hydrate before counting; count() itself doesn't auto-wait.
+  await expect(navItems.first()).toBeVisible();
+  const count = await navItems.count();
+  expect(count).toBeGreaterThanOrEqual(3); // sanity: a few tabs exist
+
+  for (let i = 0; i < count; i++) {
+    await navItems.nth(i).click();
+    // The active class is the one structural assertion we keep — if this
+    // changes the rest of the test should be reviewed too.
+    await expect(navItems.nth(i)).toHaveClass(/active/);
+  }
+
+  expect(errors).toEqual([]);
+});
