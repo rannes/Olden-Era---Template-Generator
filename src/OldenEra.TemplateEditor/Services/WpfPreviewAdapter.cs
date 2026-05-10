@@ -1,7 +1,7 @@
 using System.IO;
 using System.Windows.Media.Imaging;
 
-namespace Olden_Era___Template_Editor.Services;
+namespace OldenEra.TemplateEditor.Services;
 
 public static class WpfPreviewAdapter
 {

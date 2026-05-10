@@ -1,4 +1,4 @@
-<UserControl x:Class="Olden_Era___Template_Editor.Views.ExperimentalPanel"
+<UserControl x:Class="OldenEra.TemplateEditor.Views.ExperimentalPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <UserControl.Resources>

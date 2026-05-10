@@ -3,7 +3,7 @@ using OldenEra.Generator.Constants;
 using OldenEra.Generator.Models;
 using OldenEra.Generator.Services;
 using OldenEra.Generator.Models.Unfrozen;
-using Olden_Era___Template_Editor.Services;
+using OldenEra.TemplateEditor.Services;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,7 +14,7 @@ using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Olden_Era___Template_Editor
+namespace OldenEra.TemplateEditor
 {
     public partial class MainWindow : Window
     {

@@ -2,7 +2,7 @@
 using System.Data;
 using System.Windows;
 
-namespace Olden_Era___Template_Editor
+namespace OldenEra.TemplateEditor
 {
     /// <summary>
     /// Interaction logic for App.xaml

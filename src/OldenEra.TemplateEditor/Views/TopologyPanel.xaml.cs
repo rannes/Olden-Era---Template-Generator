@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 
-namespace Olden_Era___Template_Editor.Views;
+namespace OldenEra.TemplateEditor.Views;
 
 public partial class TopologyPanel : UserControl
 {

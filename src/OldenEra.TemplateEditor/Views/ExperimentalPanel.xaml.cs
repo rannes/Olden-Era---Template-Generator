@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using OldenEra.Generator.Models.Unfrozen;
 
-namespace Olden_Era___Template_Editor.Views;
+namespace OldenEra.TemplateEditor.Views;
 
 public partial class ExperimentalPanel : UserControl
 {

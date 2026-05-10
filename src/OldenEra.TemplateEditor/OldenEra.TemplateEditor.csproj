@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <RootNamespace>Olden_Era___Template_Editor</RootNamespace>
+    <RootNamespace>OldenEra.TemplateEditor</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\OldenEra.Generator\OldenEra.Generator.csproj" />
+    <ProjectReference Include="..\OldenEra.Generator\OldenEra.Generator.csproj" />
   </ItemGroup>
 
 </Project>
