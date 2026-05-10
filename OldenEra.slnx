@@ -3,4 +3,5 @@
   <Project Path="tests/OldenEra.TemplateEditor.Tests/OldenEra.TemplateEditor.Tests.csproj" />
   <Project Path="src/OldenEra.Generator/OldenEra.Generator.csproj" />
   <Project Path="src/OldenEra.Web/OldenEra.Web.csproj" />
+  <Project Path="tests/OldenEra.Generator.Tests/OldenEra.Generator.Tests.csproj" />
 </Solution>
