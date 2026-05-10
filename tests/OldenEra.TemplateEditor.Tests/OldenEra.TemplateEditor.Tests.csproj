@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <RootNamespace>Olden_Era___Template_Editor.Tests</RootNamespace>
+    <RootNamespace>OldenEra.TemplateEditor.Tests</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\OldenEra.TemplateEditor\OldenEra.TemplateEditor.csproj" />
-    <ProjectReference Include="..\src\OldenEra.Generator\OldenEra.Generator.csproj" />
+    <ProjectReference Include="..\..\src\OldenEra.TemplateEditor\OldenEra.TemplateEditor.csproj" />
+    <ProjectReference Include="..\..\src\OldenEra.Generator\OldenEra.Generator.csproj" />
   </ItemGroup>
 
   <ItemGroup>

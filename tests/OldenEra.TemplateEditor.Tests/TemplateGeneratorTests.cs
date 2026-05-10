@@ -1,14 +1,14 @@
 using OldenEra.Generator.Models;
 using OldenEra.Generator.Services;
 using OldenEra.Generator.Models.Unfrozen;
-using Olden_Era___Template_Editor.Services;
+using OldenEra.TemplateEditor.Services;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace Olden_Era___Template_Editor.Tests;
+namespace OldenEra.TemplateEditor.Tests;
 
 public class TemplateGeneratorTests
 {

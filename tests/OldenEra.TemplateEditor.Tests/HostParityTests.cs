@@ -4,7 +4,7 @@ using OldenEra.Generator.Services;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Olden_Era___Template_Editor.Tests;
+namespace OldenEra.TemplateEditor.Tests;
 
 /// <summary>
 /// Locks in the contract that WPF and Web hosts share: the same GeneratorSettings

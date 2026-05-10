@@ -2,7 +2,7 @@ using OldenEra.Generator.Models;
 using OldenEra.Generator.Models.Unfrozen;
 using OldenEra.Generator.Services;
 
-namespace Olden_Era___Template_Editor.Tests;
+namespace OldenEra.TemplateEditor.Tests;
 
 public class TemplatePreviewRendererTests
 {

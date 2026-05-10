@@ -1,6 +1,6 @@
 <Solution>
   <Project Path="src/OldenEra.TemplateEditor/OldenEra.TemplateEditor.csproj" />
-  <Project Path="Olden Era - Template Editor.Tests/Olden Era - Template Editor.Tests.csproj" />
+  <Project Path="tests/OldenEra.TemplateEditor.Tests/OldenEra.TemplateEditor.Tests.csproj" />
   <Project Path="src/OldenEra.Generator/OldenEra.Generator.csproj" />
   <Project Path="src/OldenEra.Web/OldenEra.Web.csproj" />
 </Solution>
