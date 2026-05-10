@@ -77,4 +77,34 @@ public class InstallerPackagerTests
         Assert.Contains(TemplateName, psText);
         Assert.Contains("3105440", psText);
     }
+
+    [Theory]
+    [InlineData("Foo/Bar", "Foo_Bar")]
+    [InlineData("a:b*c?d", "a_b_c_d")]
+    [InlineData("trailing.", "trailing")]
+    [InlineData("   ", "Custom Template")]
+    [InlineData("", "Custom Template")]
+    [InlineData("OK Name", "OK Name")]
+    public void SanitizeTemplateName_ScrubsHostileCharacters(string input, string expected)
+    {
+        Assert.Equal(expected, InstallerPackager.SanitizeTemplateName(input));
+    }
+
+    [Fact]
+    public void BuildInstallerZip_EscapesSingleQuoteForPowerShell()
+    {
+        var (json, png) = Fixture();
+        byte[] zip = InstallerPackager.BuildInstallerZip("O'Brien", json, png);
+
+        using var ms = new MemoryStream(zip);
+        using var archive = new ZipArchive(ms, ZipArchiveMode.Read);
+
+        Assert.NotNull(archive.GetEntry("O'Brien.rmg.json"));
+
+        var psEntry = archive.GetEntry("install.ps1")!;
+        using var sr = new StreamReader(psEntry.Open(), Encoding.UTF8);
+        string ps = sr.ReadToEnd();
+        // PowerShell single-quoted literal: ' must be doubled to embed safely.
+        Assert.Contains("'O''Brien'", ps);
+    }
 }
