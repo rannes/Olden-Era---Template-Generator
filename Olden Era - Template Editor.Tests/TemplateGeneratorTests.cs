@@ -765,10 +765,10 @@ public class TemplateGeneratorTests
     }
 
     [Fact]
-    public void WpfPreviewAdapter_UsesOfficialSidecarNaming()
+    public void PreviewSidecar_UsesOfficialSidecarNaming()
     {
-        Assert.Equal(@"C:\maps\My Template.png", WpfPreviewAdapter.GetSidecarPath(@"C:\maps\My Template.rmg.json"));
-        Assert.Equal(@"C:\maps\Other.png", WpfPreviewAdapter.GetSidecarPath(@"C:\maps\Other.json"));
+        Assert.Equal(@"C:\maps\My Template.png", PreviewSidecar.GetSidecarPath(@"C:\maps\My Template.rmg.json"));
+        Assert.Equal(@"C:\maps\Other.png", PreviewSidecar.GetSidecarPath(@"C:\maps\Other.json"));
     }
 
     [Fact]
