@@ -1,0 +1,10 @@
+{
+  "templateName": "Big Map FFA",
+  "playerCount": 8,
+  "topology": 4,
+  "mapSize": 160,
+  "neutralZoneCount": 6,
+  "playerCastles": 1,
+  "resourceDensity": 120,
+  "structureDensity": 120
+}

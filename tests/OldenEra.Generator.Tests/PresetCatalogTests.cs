@@ -9,21 +9,19 @@ public class PresetCatalogTests
     public void Entries_AreReadFromEmbeddedManifest()
     {
         var catalog = new PresetCatalog();
-
-        Assert.NotEmpty(catalog.Entries);
-        Assert.Contains(catalog.Entries, e => e.Id == "_test-stub");
+        Assert.Equal(3, catalog.Entries.Count);
+        Assert.Contains(catalog.Entries, e => e.Id == "jebus-like");
+        Assert.Contains(catalog.Entries, e => e.Id == "arcade-2v2");
+        Assert.Contains(catalog.Entries, e => e.Id == "big-map-ffa");
     }
 
     [Fact]
     public void Load_ReturnsDeserializedSettingsFile()
     {
         var catalog = new PresetCatalog();
-
-        var settings = catalog.Load("_test-stub");
-
+        var settings = catalog.Load("jebus-like");
         Assert.NotNull(settings);
-        Assert.Equal("Test Stub", settings.TemplateName);
-        Assert.Equal(42, settings.Seed);
+        Assert.Equal("Jebus-like", settings.TemplateName);
     }
 
     [Fact]
