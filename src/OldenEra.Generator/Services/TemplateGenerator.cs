@@ -2,6 +2,7 @@ using OldenEra.Generator.Models;
 using OldenEra.Generator.Models.Unfrozen;
 using System.Collections.Generic;
 using System.Linq;
+using ContentItem = OldenEra.Generator.Models.Unfrozen.ContentItem;
 
 namespace OldenEra.Generator.Services
 {
