@@ -14,11 +14,15 @@ public partial class HeroesPanel : UserControl
     // Per-faction ComboBox for pinned starting hero, keyed by faction id.
     private readonly Dictionary<string, ComboBox> _fixedHeroCombos = new();
 
+    // Per-school CheckBox map for spell bans, keyed by spell id.
+    private readonly Dictionary<string, CheckBox> _spellBanCheckBoxes = new();
+
     public HeroesPanel()
     {
         InitializeComponent();
         BuildHeroBanTabs();
         BuildFixedHeroRows();
+        BuildSpellBanTabs();
     }
 
     private void BuildHeroBanTabs()
@@ -145,5 +149,59 @@ public partial class HeroesPanel : UserControl
             }
             combo.SelectedIndex = idx;
         }
+    }
+
+    private void BuildSpellBanTabs()
+    {
+        TcSpellBans.Items.Clear();
+        _spellBanCheckBoxes.Clear();
+
+        foreach (var school in CommunityCatalog.Default.SpellSchools)
+        {
+            var stack = new StackPanel { Margin = new Thickness(6) };
+            var spells = CommunityCatalog.Default.SpellsBySchool(school)
+                .OrderBy(s => s.Tier)
+                .ThenBy(s => s.Name, System.StringComparer.OrdinalIgnoreCase);
+
+            foreach (var spell in spells)
+            {
+                var cb = new CheckBox
+                {
+                    Content = $"T{spell.Tier}. {spell.Name}",
+                    Margin = new Thickness(2),
+                    ToolTip = string.IsNullOrWhiteSpace(spell.Description)
+                        ? $"T{spell.Tier} · {CommunityCatalog.FriendlySpellSchool(spell.School)}"
+                        : spell.Description,
+                    Tag = spell.Id,
+                };
+                _spellBanCheckBoxes[spell.Id] = cb;
+                stack.Children.Add(cb);
+            }
+            var scroll = new ScrollViewer
+            {
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                MaxHeight = 240,
+                Content = stack,
+            };
+            TcSpellBans.Items.Add(new TabItem { Header = CommunityCatalog.FriendlySpellSchool(school), Content = scroll });
+        }
+    }
+
+    /// <summary>Read the UI state into a flat list of banned spell ids.</summary>
+    public List<string> GetBannedSpells()
+    {
+        var bans = new List<string>();
+        foreach (var (id, cb) in _spellBanCheckBoxes)
+            if (cb.IsChecked == true) bans.Add(id);
+        return bans;
+    }
+
+    /// <summary>Apply persisted spell bans to the UI state.</summary>
+    public void ApplyBannedSpells(IEnumerable<string>? bannedSpells)
+    {
+        var bans = new HashSet<string>(bannedSpells ?? System.Array.Empty<string>(),
+                                       System.StringComparer.OrdinalIgnoreCase);
+        foreach (var (id, cb) in _spellBanCheckBoxes)
+            cb.IsChecked = bans.Contains(id);
     }
 }
