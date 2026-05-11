@@ -9,7 +9,10 @@ namespace OldenEra.Generator.Services.ZoneContent
             NeutralZoneTier tier,
             string zoneLetter)
         {
-            return new ZoneContentList();
+            var result = new ZoneContentList();
+            foreach (var item in cfg.Global.Items)
+                result.Items.Add(item);
+            return result;
         }
     }
 }
