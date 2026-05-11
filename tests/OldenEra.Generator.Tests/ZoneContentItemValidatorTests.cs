@@ -7,7 +7,7 @@ namespace OldenEra.Generator.Tests;
 public class ZoneContentItemValidatorTests
 {
     [Fact]
-    public void Default_item_is_valid_except_empty_sid()
+    public void Default_item_reports_empty_sid()
     {
         var item = new ZoneContentItem();
         var issues = ZoneContentItemValidator.Validate(item);
@@ -48,5 +48,13 @@ public class ZoneContentItemValidatorTests
         };
         var issues = ZoneContentItemValidator.Validate(item);
         Assert.Contains(issues, i => i.Contains("NearCastle") && i.Contains("Far"));
+    }
+
+    [Fact]
+    public void Unknown_road_distance_string_fails()
+    {
+        var item = new ZoneContentItem { Sid = "name_x", RoadDistance = "Distant" };
+        var issues = ZoneContentItemValidator.Validate(item);
+        Assert.Contains(issues, i => i.Contains("RoadDistance") && i.Contains("Distant"));
     }
 }
