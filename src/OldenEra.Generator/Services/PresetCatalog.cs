@@ -16,7 +16,7 @@ public sealed class PresetCatalog
 
     private static readonly JsonSerializerOptions SettingsOptions = new()
     {
-        WriteIndented = true,
+        PropertyNameCaseInsensitive = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
