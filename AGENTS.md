@@ -42,6 +42,13 @@ Use those examples as the primary local reference for the `.rmg.json` shape and 
 
 When porting a new feature: implement the core in the library, expose it through public API, then wire up each host.
 
+## Tracking Upstream
+
+This is a fork of `KhanDevelopsGames/Olden-Era---Template-Generator`. The current sync
+state — last reviewed upstream commit, per-commit triage, and the sync workflow — lives
+in [`UPSTREAM.md`](UPSTREAM.md) at the repo root. Update it whenever you classify or
+port new upstream commits.
+
 ## Discovering Olden Era `.rmg.json` Files
 
 Olden Era map templates are almost always located under the game's install directory:
