@@ -877,6 +877,113 @@ public class TemplateGeneratorTests
     }
 
     [Fact]
+    public void BordersAndRoads_DefaultSettings_KeepsHardcodedBorderAndRoadValues()
+    {
+        var settings = new GeneratorSettings
+        {
+            PlayerCount = 2,
+            MapSize = 160,
+            Topology = MapTopology.Random
+        };
+
+        var template = TemplateGenerator.Generate(settings);
+
+        Assert.NotNull(template.Variants);
+        foreach (var variant in template.Variants!)
+        {
+            Assert.NotNull(variant.Border);
+            Assert.Equal(0.0, variant.Border!.CornerRadius);
+            Assert.Equal(3, variant.Border.ObstaclesWidth);
+            Assert.Equal(0, variant.Border.WaterWidth);
+            Assert.Equal("water grass", variant.Border.WaterType);
+
+            Assert.NotNull(variant.Zones);
+            foreach (var zone in variant.Zones!)
+            {
+                if (zone.Roads is null) continue;
+                foreach (var road in zone.Roads)
+                    Assert.Null(road.Type);
+            }
+        }
+    }
+
+    [Fact]
+    public void BordersAndRoads_CornerRadiusOverride_AppliedToEveryVariant()
+    {
+        var settings = new GeneratorSettings
+        {
+            PlayerCount = 2,
+            MapSize = 160,
+            Topology = MapTopology.Random,
+            BordersRoads = { CornerRadius = 0.5 }
+        };
+
+        var template = TemplateGenerator.Generate(settings);
+
+        foreach (var variant in template.Variants!)
+            Assert.Equal(0.5, variant.Border!.CornerRadius);
+    }
+
+    [Fact]
+    public void BordersAndRoads_ObstaclesWidthOverride_Applied()
+    {
+        var settings = new GeneratorSettings
+        {
+            PlayerCount = 2, MapSize = 160, Topology = MapTopology.Random,
+            BordersRoads = { ObstaclesWidth = 7 }
+        };
+        var template = TemplateGenerator.Generate(settings);
+        foreach (var v in template.Variants!) Assert.Equal(7, v.Border!.ObstaclesWidth);
+    }
+
+    [Fact]
+    public void BordersAndRoads_WaterEnabled_AppliesWidthAndKeepsWaterType()
+    {
+        var settings = new GeneratorSettings
+        {
+            PlayerCount = 2, MapSize = 160, Topology = MapTopology.Random,
+            BordersRoads = { WaterBorderEnabled = true, WaterWidth = 6 }
+        };
+        var template = TemplateGenerator.Generate(settings);
+        foreach (var v in template.Variants!)
+        {
+            Assert.Equal(6, v.Border!.WaterWidth);
+            Assert.Equal("water grass", v.Border.WaterType);
+        }
+    }
+
+    [Fact]
+    public void BordersAndRoads_WaterDisabled_IgnoresWidthSlider()
+    {
+        var settings = new GeneratorSettings
+        {
+            PlayerCount = 2, MapSize = 160, Topology = MapTopology.Random,
+            BordersRoads = { WaterBorderEnabled = false, WaterWidth = 6 }
+        };
+        var template = TemplateGenerator.Generate(settings);
+        foreach (var v in template.Variants!) Assert.Equal(0, v.Border!.WaterWidth);
+    }
+
+    [Theory]
+    [InlineData(MapTopology.Random)]
+    [InlineData(MapTopology.HubAndSpoke)]
+    public void BordersAndRoads_RoadTypeStone_AppliedToEveryRoad(MapTopology topology)
+    {
+        var settings = new GeneratorSettings
+        {
+            PlayerCount = 2, MapSize = 160, Topology = topology,
+            BordersRoads = { RoadType = "Stone" }
+        };
+        var template = TemplateGenerator.Generate(settings);
+        int roadCount = 0;
+        foreach (var v in template.Variants!)
+        foreach (var z in v.Zones!)
+            if (z.Roads is not null)
+                foreach (var r in z.Roads) { Assert.Equal("Stone", r.Type); roadCount++; }
+        Assert.True(roadCount > 0, "expected at least one road");
+    }
+
+    [Fact]
     public void Generate_ConnectionsReferToGeneratedZones()
     {
         var settings = new GeneratorSettings
