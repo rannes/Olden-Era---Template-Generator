@@ -237,8 +237,6 @@ namespace OldenEra.Generator.Models
         public ContentControlSettings Content { get; set; } = new ContentControlSettings();
         public StartingBonusSettings Bonuses { get; set; } = new StartingBonusSettings();
         public BordersRoadsSettings BordersRoads { get; set; } = new BordersRoadsSettings();
-
-        // ── Zone content (experimental) ─────────────────────────────────────────
         public ZoneContentList PlayerZoneContent { get; set; } = new();
         public NeutralZoneContent NeutralZoneContent { get; set; } = new();
         public List<ContentConnectionRule> ContentConnectionRules { get; set; } = new();
