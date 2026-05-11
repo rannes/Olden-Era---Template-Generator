@@ -10,6 +10,8 @@
 
 **Companion design:** `docs/plans/2026-05-11-customizable-zone-content-design.md`. Read it before starting.
 
+**Naming correction (post Task 1.2):** the new DTO/file is named `ZoneContentItem`, NOT `ContentItem`, to avoid a collision with the existing `OldenEra.Generator.Models.Unfrozen.ContentItem` used by `TemplateGenerator`. Wherever this plan says `ContentItem` (file, class, parameter type, generic type argument), substitute `ZoneContentItem`. Same rule applies to `ContentItemValidator` → `ZoneContentItemValidator`, `ContentItemTests` → `ZoneContentItemTests`. The validator inside `ContentPresets` and `ContentConnectionRule` types are unchanged (no collision). Done in commit `abedc9f`.
+
 **Build & test commands:**
 
 ```bash
