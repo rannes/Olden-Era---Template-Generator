@@ -3,12 +3,12 @@ using Xunit;
 
 namespace OldenEra.Generator.Tests;
 
-public class ContentItemTests
+public class ZoneContentItemTests
 {
     [Fact]
     public void Defaults_match_design_spec()
     {
-        var item = new ContentItem();
+        var item = new ZoneContentItem();
         Assert.Equal("", item.Sid);
         Assert.False(item.IsGroup);
         Assert.Equal(1, item.MinCount);
