@@ -57,4 +57,27 @@ public class ZoneContentResolverTests
         var resolved = ZoneContentResolver.Resolve(cfg, NeutralZoneTier.Poor, "Red-A");
         Assert.Empty(resolved.Items);
     }
+
+    [Fact]
+    public void Letter_replaces_tier_for_that_zone()
+    {
+        var cfg = new NeutralZoneContent();
+        cfg.ByTier[NeutralZoneTier.Normal] = new ZoneContentList();
+        cfg.ByTier[NeutralZoneTier.Normal].Items.Add(new ZoneContentItem { Sid = "name_mana_well", MaxCount = 1 });
+        cfg.ByZoneLetter["Red-A"] = new ZoneContentList();
+        cfg.ByZoneLetter["Red-A"].Items.Add(new ZoneContentItem { Sid = "name_mana_well", MaxCount = 7 });
+        var resolved = ZoneContentResolver.Resolve(cfg, NeutralZoneTier.Normal, "Red-A");
+        Assert.Single(resolved.Items);
+        Assert.Equal(7, resolved.Items[0].MaxCount);
+    }
+
+    [Fact]
+    public void Letter_only_applies_to_that_letter()
+    {
+        var cfg = new NeutralZoneContent();
+        cfg.ByZoneLetter["Red-A"] = new ZoneContentList();
+        cfg.ByZoneLetter["Red-A"].Items.Add(new ZoneContentItem { Sid = "name_mana_well" });
+        var resolved = ZoneContentResolver.Resolve(cfg, NeutralZoneTier.Normal, "Orange-A");
+        Assert.Empty(resolved.Items);
+    }
 }
