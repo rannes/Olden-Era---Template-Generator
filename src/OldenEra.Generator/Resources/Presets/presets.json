@@ -1,0 +1,8 @@
+[
+  {
+    "id": "_test-stub",
+    "name": "Test Stub",
+    "description": "Used by unit tests; not surfaced in production builds.",
+    "file": "_test-stub.oetgs"
+  }
+]
