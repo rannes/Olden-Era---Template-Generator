@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace OldenEra.Generator.Models
 {
-    public sealed class ContentItem
+    public sealed class ZoneContentItem
     {
         public string Sid { get; set; } = "";
         public bool IsGroup { get; set; }
