@@ -5,6 +5,6 @@
   "mapSize": 80,
   "neutralZoneCount": 2,
   "playerCastles": 1,
-  "resourceDensity": 90,
-  "structureDensity": 90
+  "resourceDensity": 110,
+  "structureDensity": 110
 }
