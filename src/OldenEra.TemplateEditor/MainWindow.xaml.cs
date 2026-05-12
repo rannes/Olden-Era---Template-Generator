@@ -1062,27 +1062,34 @@ namespace OldenEra.TemplateEditor
             UpdateTitle();
         }
 
-        private void MnuLoadPreset_SubmenuOpened(object sender, RoutedEventArgs e)
-        {
-            if (MnuLoadPreset.Items.Count > 0) return;
+        private ContextMenu? _presetContextMenu;
 
-            foreach (var entry in _presetCatalog.Entries)
+        private void BtnLoadPreset_Click(object sender, RoutedEventArgs e)
+        {
+            if (_presetContextMenu is null)
             {
-                var item = new MenuItem
+                _presetContextMenu = new ContextMenu();
+                foreach (var entry in _presetCatalog.Entries)
                 {
-                    Header = entry.Name,
-                    ToolTip = entry.Description,
-                    Tag = entry.Id,
-                };
-                item.Click += MnuPresetEntry_Click;
-                MnuLoadPreset.Items.Add(item);
+                    var item = new MenuItem
+                    {
+                        Header = entry.Name,
+                        ToolTip = entry.Description,
+                    };
+                    var id = entry.Id;
+                    var name = entry.Name;
+                    item.Click += (_, _) => LoadPresetById(id, name);
+                    _presetContextMenu.Items.Add(item);
+                }
             }
+
+            _presetContextMenu.PlacementTarget = BtnLoadPreset;
+            _presetContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            _presetContextMenu.IsOpen = true;
         }
 
-        private void MnuPresetEntry_Click(object sender, RoutedEventArgs e)
+        private void LoadPresetById(string id, string name)
         {
-            if (sender is not MenuItem item || item.Tag is not string id) return;
-
             try
             {
                 var settings = _presetCatalog.Load(id);
@@ -1093,7 +1100,7 @@ namespace OldenEra.TemplateEditor
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to load preset:\n{ex.Message}", "Preset Error",
+                MessageBox.Show($"Failed to load preset '{name}':\n{ex.Message}", "Preset Error",
                                 MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

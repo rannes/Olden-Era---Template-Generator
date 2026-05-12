@@ -89,9 +89,7 @@
                         <Button Content="Open…" Click="BtnOpen_Click" Style="{StaticResource OeGhostButton}" ToolTip="Open settings (Ctrl+O)"/>
                         <Button Content="Save" Click="BtnSave_Click" Style="{StaticResource OeGhostButton}" ToolTip="Save settings (Ctrl+S)"/>
                         <Button Content="Save as…" Click="BtnSaveAs_Click" Style="{StaticResource OeGhostButton}" ToolTip="Save settings as (Ctrl+Shift+S)"/>
-                        <Menu Background="Transparent" VerticalAlignment="Center">
-                            <MenuItem Header="Load preset…" x:Name="MnuLoadPreset" SubmenuOpened="MnuLoadPreset_SubmenuOpened" />
-                        </Menu>
+                        <Button x:Name="BtnLoadPreset" Content="Load preset…" Click="BtnLoadPreset_Click" Style="{StaticResource OeGhostButton}" ToolTip="Load a built-in template preset"/>
                     </StackPanel>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                         <CheckBox x:Name="ChkAdvancedEnabled"
