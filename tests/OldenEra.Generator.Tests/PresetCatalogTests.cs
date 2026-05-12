@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using OldenEra.Generator.Models;
 using OldenEra.Generator.Services;
 using Xunit;
 
@@ -41,6 +44,28 @@ public class PresetCatalogTests
         {
             var settings = catalog.Load(entry.Id);
             Assert.NotNull(settings);
+        }
+    }
+
+    [Fact]
+    public void EveryPreset_RoundTripsThroughJson()
+    {
+        var catalog = new PresetCatalog();
+        var opts = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        };
+
+        foreach (var entry in catalog.Entries)
+        {
+            var loaded = catalog.Load(entry.Id);
+            var json = JsonSerializer.Serialize(loaded, opts);
+            var roundTripped = JsonSerializer.Deserialize<SettingsFile>(json, opts);
+
+            Assert.NotNull(roundTripped);
+            Assert.Equal(loaded.TemplateName, roundTripped!.TemplateName);
+            Assert.Equal(loaded.Seed, roundTripped.Seed);
         }
     }
 }
