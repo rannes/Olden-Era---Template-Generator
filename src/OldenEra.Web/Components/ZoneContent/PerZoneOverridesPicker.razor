@@ -3,7 +3,7 @@
 <div class="oe-stacked">
     <label class="oe-label">Zone letter</label>
     <div class="oe-row" style="grid-template-columns: 1fr 100px;">
-        <select @bind="_localSelected" @bind:after="NotifyLetter" disabled="@(!HasOverrides)">
+        <select @bind="_localSelected" @bind:after="NotifyLetter" disabled="@(ReadOnly || !HasOverrides)">
             @if (!HasOverrides)
             {
                 <option value="">(none yet)</option>
@@ -13,9 +13,9 @@
                 <option value="@letter">@letter</option>
             }
         </select>
-        <button type="button" class="oe-btn ghost" @onclick="AddLetter">+ Add letter</button>
+        <button type="button" class="oe-btn ghost" disabled="@ReadOnly" @onclick="AddLetter">+ Add letter</button>
     </div>
-    <input type="text" placeholder="New letter (e.g. A)" @bind="PendingLetter" />
+    <input type="text" placeholder="New letter (e.g. A)" disabled="@ReadOnly" @bind="PendingLetter" />
 </div>
 
 @code {
@@ -23,6 +23,7 @@
     [Parameter] public string SelectedLetter { get; set; } = "";
     [Parameter] public EventCallback<string> SelectedLetterChanged { get; set; }
     [Parameter] public EventCallback OnNeutralChanged { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
 
     private string _localSelected = "";
     private string PendingLetter { get; set; } = "";

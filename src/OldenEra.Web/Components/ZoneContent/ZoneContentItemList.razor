@@ -1,9 +1,17 @@
 @using OldenEra.Generator.Models
+@using OldenEra.Generator.Services.ZoneContent
+@using OldenEra.Web.Services
 
 <div class="oe-zc-list">
     <div class="oe-zc-list-toolbar">
         <button type="button" class="oe-btn ghost" disabled="@ReadOnly" @onclick="AddBlank">+ Add</button>
-        @* Preset insertion lands in Task 6. *@
+        <select disabled="@ReadOnly" value="" @onchange="OnPresetChosen">
+            <option value="">+ Add from preset…</option>
+            @foreach (var preset in ZoneContentPresets.All())
+            {
+                <option value="@preset.Name">@preset.Name</option>
+            }
+        </select>
     </div>
     @if (Items.Count == 0)
     {
@@ -52,4 +60,17 @@
     }
 
     private Task SelectKey(string key) => SelectedKeyChanged.InvokeAsync(key);
+
+    private async Task OnPresetChosen(ChangeEventArgs e)
+    {
+        var name = e.Value?.ToString();
+        if (string.IsNullOrEmpty(name)) return;
+        var preset = ZoneContentPresets.All().FirstOrDefault(p => p.Name == name);
+        if (preset is null) return;
+        var clone = ZoneContentCloning.CloneItem(preset.Item);
+        Items.Add(clone);
+        var newKey = clone.Handle is { Length: > 0 } h ? h : $"#{Items.Count - 1}";
+        await SelectedKeyChanged.InvokeAsync(newKey);
+        await OnItemsChanged.InvokeAsync();
+    }
 }

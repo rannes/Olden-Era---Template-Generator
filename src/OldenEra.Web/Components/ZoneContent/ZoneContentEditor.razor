@@ -2,6 +2,17 @@
 @using OldenEra.Web.Services
 
 <div class="oe-zone-content-editor">
+    <div class="oe-zc-toolbar">
+        <label class="oe-checkbox">
+            <input type="checkbox" @bind="CompareDefaultsOnLocal" @bind:after="OnCompareToggled" />
+            Compare against defaults (read-only)
+        </label>
+        @if (CompareDefaultsOn)
+        {
+            <span class="oe-banner">Showing defaults — editing paused.</span>
+        }
+    </div>
+
     <ZoneContentScopeTabs Selected="@_selected"
                           SelectedChanged="@OnScopeChanged" />
 
@@ -10,7 +21,8 @@
         <PerZoneOverridesPicker Neutral="@Settings.NeutralZoneContent"
                                 SelectedLetter="@_selectedLetter"
                                 SelectedLetterChanged="@OnLetterChanged"
-                                OnNeutralChanged="@NotifyChanged" />
+                                OnNeutralChanged="@NotifyChanged"
+                                ReadOnly="@CompareDefaultsOn" />
     }
 
     <div class="oe-zone-content-body">
@@ -19,7 +31,7 @@
         {
             <ZoneRoadDecorationsEditor Decorations="@Settings.ZoneRoadDecorations"
                                        OnChanged="@NotifyChanged"
-                                       ReadOnly="@false" />
+                                       ReadOnly="@CompareDefaultsOn" />
         }
         else
         {
@@ -35,10 +47,10 @@
                                          SelectedKey="@_selectedKey"
                                          SelectedKeyChanged="@OnItemSelected"
                                          OnItemsChanged="@NotifyChanged"
-                                         ReadOnly="@false" />
+                                         ReadOnly="@CompareDefaultsOn" />
                     <ZoneContentItemDetail Item="@ResolveSelectedItem(items)"
                                            OnChanged="@NotifyChanged"
-                                           ReadOnly="@false" />
+                                           ReadOnly="@CompareDefaultsOn" />
                 </div>
             }
         }
@@ -48,10 +60,24 @@
 @code {
     [Parameter, EditorRequired] public GeneratorSettings Settings { get; set; } = default!;
     [Parameter] public EventCallback OnChanged { get; set; }
+    [Parameter] public bool CompareDefaultsOn { get; set; }
+    [Parameter] public EventCallback<bool> CompareDefaultsOnChanged { get; set; }
+
+    private bool CompareDefaultsOnLocal { get; set; }
 
     private ZoneContentScopeKey _selected = new(ZoneContentScopeKind.Player);
     private string _selectedLetter = "";
     private string? _selectedKey;
+
+    protected override void OnParametersSet()
+    {
+        CompareDefaultsOnLocal = CompareDefaultsOn;
+    }
+
+    private async Task OnCompareToggled()
+    {
+        await CompareDefaultsOnChanged.InvokeAsync(CompareDefaultsOnLocal);
+    }
 
     private Task OnScopeChanged(ZoneContentScopeKey next)
     {

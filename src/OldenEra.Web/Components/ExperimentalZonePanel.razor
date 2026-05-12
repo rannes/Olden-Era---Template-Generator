@@ -103,12 +103,17 @@
         Author the zone-content surface (player zones, neutral tiers,
         per-zone overrides, road decorations).
     </div>
-    <ZoneContentEditor Settings="Settings" OnChanged="OnChanged" />
+    <ZoneContentEditor Settings="Settings"
+                       OnChanged="OnChanged"
+                       CompareDefaultsOn="@ZoneContentCompareDefaults"
+                       CompareDefaultsOnChanged="@ZoneContentCompareDefaultsChanged" />
 </ExperimentalCard>
 
 @code {
     [Parameter, EditorRequired] public GeneratorSettings Settings { get; set; } = default!;
     [Parameter] public EventCallback OnChanged { get; set; }
+    [Parameter] public bool ZoneContentCompareDefaults { get; set; }
+    [Parameter] public EventCallback<bool> ZoneContentCompareDefaultsChanged { get; set; }
 
     private Task NotifyChanged() => OnChanged.InvokeAsync();
 
