@@ -34,7 +34,6 @@ namespace OldenEra.Generator.Services.ZoneContent
                 occurrenceBySid[item.Sid] = occurrence + 1;
 
                 string? name = ResolveName(item, zoneName, occurrence, referencedNames);
-                var rules = BuildPlacementRules(item);
 
                 for (int copy = 0; copy < item.MaxCount; copy++)
                 {
@@ -45,7 +44,10 @@ namespace OldenEra.Generator.Services.ZoneContent
                     };
                     if (item.IsGroup) row.IncludeLists = new List<string> { item.Sid };
                     else row.Sid = item.Sid;
+
+                    var rules = BuildPlacementRules(item);
                     if (rules.Count > 0) row.Rules = rules;
+
                     group.Content.Add(row);
                 }
             }

@@ -129,6 +129,25 @@ public class ZoneContentEmitterTests
     }
 
     [Fact]
+    public void ApplyToMandatoryGroup_MaxCountGreaterThanOne_ProducesIndependentRulesLists()
+    {
+        var group = new MandatoryContentGroup { Name = "side_red", Content = new() };
+        var item = new ZoneContentItem
+        {
+            Sid = "mana_well",
+            Pool = ZoneContentPool.Mandatory,
+            MaxCount = 2,
+            NearCastle = true,
+        };
+
+        ZoneContentEmitter.ApplyToMandatoryGroup(group, new[] { item }, "side_red", new HashSet<string>());
+
+        Assert.Equal(2, group.Content!.Count);
+        Assert.NotSame(group.Content[0].Rules, group.Content[1].Rules);
+        Assert.NotSame(group.Content[0].Rules![0], group.Content[1].Rules![0]);
+    }
+
+    [Fact]
     public void ApplyToMandatoryGroup_PoolGuarded_SkipsRowAndWarns()
     {
         var group = NewGroup();
