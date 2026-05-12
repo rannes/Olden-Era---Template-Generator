@@ -2855,8 +2855,9 @@ namespace OldenEra.Generator.Services
         private static NeutralZoneTier MapQualityToTier(NeutralZoneQuality quality) => quality switch
         {
             NeutralZoneQuality.Low => NeutralZoneTier.Poor,
+            NeutralZoneQuality.Medium => NeutralZoneTier.Normal,
             NeutralZoneQuality.High => NeutralZoneTier.Rich,
-            _ => NeutralZoneTier.Normal,
+            _ => throw new System.ArgumentOutOfRangeException(nameof(quality), quality, null),
         };
 
         private static MandatoryContentGroup BuildSpawnMandatoryContent(string letter, int castleCount, bool spawnFootholds)
