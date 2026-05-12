@@ -79,32 +79,36 @@ namespace OldenEra.Generator.Services
                 ContentLists = []
             };
 
-            // Apply user-authored road decorations to each zone. Done as a post-pass
-            // here (rather than inside BuildSpawnZone / BuildNeutralZone) because those
-            // builders don't take GeneratorSettings and are called from many topology-
-            // specific call sites; threading settings through every call site would be
-            // invasive without changing behavior. Mutating the zones list referenced by
-            // the variant has the same effect as wiring per-builder.
-            if (settings.ZoneRoadDecorations.Count > 0 && template.Variants is not null)
-            {
-                var byZoneName = settings.ZoneRoadDecorations
-                    .GroupBy(d => d.Zone, System.StringComparer.Ordinal)
-                    .ToDictionary(g => g.Key, g => (IReadOnlyList<ZoneRoadDecoration>)g.ToList(), System.StringComparer.Ordinal);
-
-                foreach (var variant in template.Variants)
-                {
-                    if (variant.Zones is null) continue;
-                    foreach (var zone in variant.Zones)
-                    {
-                        if (zone.Name is { } name && byZoneName.TryGetValue(name, out var decorationsForThisZone))
-                            ZoneRoadDecorationEmitter.ApplyToZone(zone, decorationsForThisZone);
-                    }
-                }
-            }
+            ApplyZoneRoadDecorations(template, settings);
 
             var tierByLetter = neutralZones.ToDictionary(p => p.Letter, p => p.Quality);
             ApplyExperimentalSettings(template, settings, tierByLetter);
             return template;
+        }
+
+        // Apply user-authored road decorations to each zone. Done as a post-pass
+        // here (rather than inside BuildSpawnZone / BuildNeutralZone) because those
+        // builders don't take GeneratorSettings and are called from many topology-
+        // specific call sites; threading settings through every call site would be
+        // invasive without changing behavior. Mutating the zones list referenced by
+        // the variant has the same effect as wiring per-builder.
+        private static void ApplyZoneRoadDecorations(RmgTemplate template, GeneratorSettings settings)
+        {
+            if (settings.ZoneRoadDecorations.Count == 0 || template.Variants is null) return;
+
+            var byZoneName = settings.ZoneRoadDecorations
+                .GroupBy(d => d.Zone, System.StringComparer.Ordinal)
+                .ToDictionary(g => g.Key, g => (IReadOnlyList<ZoneRoadDecoration>)g.ToList(), System.StringComparer.Ordinal);
+
+            foreach (var variant in template.Variants)
+            {
+                if (variant.Zones is null) continue;
+                foreach (var zone in variant.Zones)
+                {
+                    if (zone.Name is { } name && byZoneName.TryGetValue(name, out var decorationsForThisZone))
+                        ZoneRoadDecorationEmitter.ApplyToZone(zone, decorationsForThisZone);
+                }
+            }
         }
 
         // ── Experimental settings post-processor ────────────────────────────────

@@ -9,6 +9,16 @@ namespace OldenEra.Generator.Services.ZoneContent
 {
     public static class ZoneContentEmitter
     {
+        // Ranges grounded in docs/plans/2026-05-12-zone-content-schema-research.md "Common ranges" section.
+        private const double NearCastleTargetMin = 0.05;
+        private const double NearCastleTargetMax = 0.25;
+        private const double RoadCloseTargetMin = 0.10;
+        private const double RoadCloseTargetMax = 0.20;
+        private const double RoadMidTargetMin = 0.30;
+        private const double RoadMidTargetMax = 0.50;
+        private const double RoadFarTargetMin = 0.60;
+        private const double RoadFarTargetMax = 0.85;
+
         public sealed record EmitResult(IReadOnlyList<EmitWarning> Warnings);
 
         public static EmitResult ApplyToMandatoryGroup(
@@ -73,8 +83,8 @@ namespace OldenEra.Generator.Services.ZoneContent
                 {
                     Type = "MainObject",
                     Args = new List<string> { "0" },
-                    TargetMin = 0.05,
-                    TargetMax = 0.25,
+                    TargetMin = NearCastleTargetMin,
+                    TargetMax = NearCastleTargetMax,
                     Weight = 1
                 });
 
@@ -82,9 +92,9 @@ namespace OldenEra.Generator.Services.ZoneContent
             {
                 var (min, max) = rd switch
                 {
-                    RoadDistance.Close => (0.10, 0.20),
-                    RoadDistance.Mid   => (0.30, 0.50),
-                    RoadDistance.Far   => (0.60, 0.85),
+                    RoadDistance.Close => (RoadCloseTargetMin, RoadCloseTargetMax),
+                    RoadDistance.Mid   => (RoadMidTargetMin, RoadMidTargetMax),
+                    RoadDistance.Far   => (RoadFarTargetMin, RoadFarTargetMax),
                     _ => (0.0, 0.0),
                 };
                 rules.Add(new SchemaContentRule
