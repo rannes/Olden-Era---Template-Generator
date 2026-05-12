@@ -1,0 +1,20 @@
+[
+  {
+    "id": "jebus-like",
+    "name": "Jebus-like",
+    "description": "2 player ring map, treasure-rich center, hold-city win.",
+    "file": "jebus-like.oetgs"
+  },
+  {
+    "id": "arcade-2v2",
+    "name": "Arcade 2v2",
+    "description": "4 player chain, fast pacing, low neutral count.",
+    "file": "arcade-2v2.oetgs"
+  },
+  {
+    "id": "big-map-ffa",
+    "name": "Big Map FFA",
+    "description": "8 player random topology, large map, high neutral density.",
+    "file": "big-map-ffa.oetgs"
+  }
+]

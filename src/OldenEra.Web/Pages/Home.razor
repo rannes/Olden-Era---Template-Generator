@@ -2,6 +2,7 @@
 @inject FileDownloader Downloader
 @inject BrowserSettingsStore SettingsStore
 @inject UpdateChecker UpdateChecker
+@inject OldenEra.Generator.Services.PresetCatalog PresetCatalog
 @implements IDisposable
 
 <PageTitle>Olden Era - Template Generator</PageTitle>
@@ -22,6 +23,7 @@
                 <span>Experimental</span>
                 <ExperimentalBadge />
             </label>
+            <button class="oe-btn ghost" @onclick="OpenPresetPicker">Load preset…</button>
             <button class="oe-btn ghost" @onclick="OpenSettingsClick">Open settings…</button>
             <button class="oe-btn ghost" @onclick="SaveSettingsClick">Save settings…</button>
             <button class="oe-btn ghost" @onclick="ShareSettingsClick">Share link</button>
@@ -36,6 +38,8 @@
                        style="display:none" />
         </div>
     </header>
+
+    <PresetPickerModal @bind-IsOpen="IsPresetPickerOpen" OnPick="OnPresetPicked" />
 
     <div class="oe-warning">
         ⚠️ Work in progress — some generated templates may contain game-breaking bugs or issues.
@@ -484,6 +488,30 @@
     {
         // No need for a custom JS file — eval is fine for a one-liner click.
         await Js.InvokeVoidAsync("eval", $"document.getElementById('{elementId}')?.click()");
+    }
+
+    private bool IsPresetPickerOpen;
+
+    private void OpenPresetPicker() => IsPresetPickerOpen = true;
+
+    private async Task OnPresetPicked(string id)
+    {
+        try
+        {
+            var s = PresetCatalog.Load(id);
+            var (mapped, advanced, experimental, expEnabled) = SettingsMapper.FromFile(s);
+            Settings = mapped;
+            AdvancedMode = advanced;
+            ExperimentalMapSizes = experimental;
+            ExperimentalEnabled = expEnabled;
+            Validate();
+            await SettingsStore.SaveAsync(SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalEnabled));
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await FlashToast($"Failed to load preset: {ex.Message}");
+        }
     }
 
     private async Task OnSettingsFileSelected(InputFileChangeEventArgs e)

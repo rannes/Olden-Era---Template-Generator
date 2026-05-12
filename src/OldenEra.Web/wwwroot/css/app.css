@@ -900,6 +900,46 @@ input[type="range"]:focus-visible::-moz-range-thumb {
     text-align: center;
 }
 
+/* -- Preset picker modal ----------------------------------------- */
+.oe-preset-list {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0 0;
+}
+.oe-preset-list li {
+    margin-bottom: 8px;
+}
+.oe-preset-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--oe-surface-2, var(--oe-surface-1));
+    color: inherit;
+    border: 1px solid var(--oe-border);
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+}
+.oe-preset-item:hover {
+    background: var(--oe-surface-3);
+    border-color: var(--oe-accent);
+}
+.oe-preset-item:focus-visible {
+    outline: 2px solid var(--oe-accent);
+    outline-offset: 2px;
+}
+.oe-preset-name {
+    font-weight: 600;
+}
+.oe-preset-desc {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-top: 2px;
+}
+
 /* -- Spinner -------------------------------------------------------- */
 .oe-spinner {
     width: 32px;

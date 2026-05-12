@@ -1,0 +1,13 @@
+{
+  "templateName": "Jebus-like",
+  "playerCount": 2,
+  "topology": 0,
+  "mapSize": 96,
+  "neutralZoneCount": 1,
+  "playerCastles": 1,
+  "victoryCondition": "win_condition_5",
+  "cityHold": true,
+  "cityHoldDays": 6,
+  "resourceDensity": 120,
+  "structureDensity": 120
+}

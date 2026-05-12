@@ -1,0 +1,49 @@
+@using OldenEra.Generator.Services
+@inject PresetCatalog Catalog
+
+@if (IsOpen)
+{
+    <div class="oe-modal-overlay" @onclick="Close" @onkeydown="OnKeyDown" tabindex="-1">
+        <div class="oe-modal" role="dialog" aria-modal="true" aria-labelledby="preset-picker-title" @onclick:stopPropagation="true">
+            <h2 id="preset-picker-title">Load preset</h2>
+            <p>Pick a starting point. Your current settings will be replaced.</p>
+            <ul class="oe-preset-list">
+                @foreach (var entry in Catalog.Entries)
+                {
+                    <li>
+                        <button class="oe-preset-item" @onclick="() => Pick(entry.Id)">
+                            <span class="oe-preset-name">@entry.Name</span>
+                            <span class="oe-preset-desc">@entry.Description</span>
+                        </button>
+                    </li>
+                }
+            </ul>
+            <div class="oe-modal-actions">
+                <button class="oe-btn ghost" @onclick="Close">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public EventCallback<string> OnPick { get; set; }
+
+    private async Task Close()
+    {
+        IsOpen = false;
+        await IsOpenChanged.InvokeAsync(false);
+    }
+
+    private async Task Pick(string id)
+    {
+        await OnPick.InvokeAsync(id);
+        await Close();
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") await Close();
+    }
+}

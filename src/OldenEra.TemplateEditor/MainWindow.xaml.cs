@@ -34,6 +34,7 @@ namespace OldenEra.TemplateEditor
         // Currently open settings file path (null = unsaved / untitled)
         private string? _currentSettingsPath = null;
         private bool _isDirty = false;
+        private readonly PresetCatalog _presetCatalog = new();
         private bool _isRefreshingMapSizes = false;
         private string _baseTitle = string.Empty;
 
@@ -1059,6 +1060,54 @@ namespace OldenEra.TemplateEditor
             _currentSettingsPath = null;
             _isDirty = false;
             UpdateTitle();
+        }
+
+        private ContextMenu? _presetContextMenu;
+
+        private void BtnLoadPreset_Click(object sender, RoutedEventArgs e)
+        {
+            if (_presetContextMenu is null)
+            {
+                _presetContextMenu = new ContextMenu();
+                foreach (var entry in _presetCatalog.Entries)
+                {
+                    var item = new MenuItem
+                    {
+                        Header = entry.Name,
+                        ToolTip = entry.Description,
+                    };
+                    var id = entry.Id;
+                    var name = entry.Name;
+                    item.Click += (_, _) => LoadPresetById(id, name);
+                    _presetContextMenu.Items.Add(item);
+                }
+            }
+
+            _presetContextMenu.PlacementTarget = BtnLoadPreset;
+            _presetContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            _presetContextMenu.IsOpen = true;
+        }
+
+        private void LoadPresetById(string id, string name)
+        {
+            var confirm = MessageBox.Show($"Replace your current settings with the '{name}' preset?",
+                                          "Load Preset",
+                                          MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (confirm != MessageBoxResult.Yes) return;
+
+            try
+            {
+                var settings = _presetCatalog.Load(id);
+                ApplySettings(settings);
+                _currentSettingsPath = null;
+                _isDirty = true;
+                UpdateTitle();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load preset '{name}':\n{ex.Message}", "Preset Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void BtnOpen_Click(object sender, RoutedEventArgs e)

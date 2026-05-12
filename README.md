@@ -16,6 +16,7 @@ A small Windows desktop tool that generates `.rmg.json` random map templates for
 ### General
 
 - Configure **template name**, **player count** (2–8), and **map size**
+- **Built-in preset library** — start from hand-tuned templates (Jebus-like, Arcade 2v2, Big Map FFA) via the **Load preset…** button
 - Experimental map sizes available via an opt-in checkbox
 - **Reproducible generation** — set an optional integer **seed** to make output deterministic; the same settings + seed always produce the same `.rmg.json`. Click 🎲 to roll a fresh seed, leave blank for non-deterministic output. The seed used is shown after generation so you can copy and share it.
 - **Auto update check** — notifies you on startup if a newer version is available on GitHub
