@@ -510,9 +510,7 @@
         }
         catch (Exception ex)
         {
-            ValidationMessage = $"Failed to load preset: {ex.Message}";
-            IsValid = false;
-            StateHasChanged();
+            await FlashToast($"Failed to load preset: {ex.Message}");
         }
     }
 

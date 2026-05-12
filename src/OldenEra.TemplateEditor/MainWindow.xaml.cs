@@ -1090,6 +1090,11 @@ namespace OldenEra.TemplateEditor
 
         private void LoadPresetById(string id, string name)
         {
+            var confirm = MessageBox.Show($"Replace your current settings with the '{name}' preset?",
+                                          "Load Preset",
+                                          MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (confirm != MessageBoxResult.Yes) return;
+
             try
             {
                 var settings = _presetCatalog.Load(id);
