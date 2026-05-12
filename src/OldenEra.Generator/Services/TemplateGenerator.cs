@@ -1,5 +1,6 @@
 using OldenEra.Generator.Models;
 using OldenEra.Generator.Models.Unfrozen;
+using OldenEra.Generator.Services.ZoneContent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -2819,15 +2820,44 @@ namespace OldenEra.Generator.Services
             List<string> playerLetters, List<NeutralZonePlan> neutralZones, GeneratorSettings settings)
         {
             var groups = new List<MandatoryContentGroup>();
+            var referencedNames = ZoneRoadDecorationEmitter.ReferencedItems(settings.ZoneRoadDecorations);
 
             foreach (var letter in playerLetters)
-                groups.Add(BuildSpawnMandatoryContent(letter, settings.ZoneCfg.PlayerZoneCastles, settings.SpawnRemoteFootholds));
+            {
+                var group = BuildSpawnMandatoryContent(letter, settings.ZoneCfg.PlayerZoneCastles, settings.SpawnRemoteFootholds);
+                var userItems = settings.PlayerZoneContent.Items;
+                if (userItems.Count > 0)
+                {
+                    // Warnings discarded in Round 2 — UI surfacing is Round 4.
+                    ZoneContentEmitter.ApplyToMandatoryGroup(group, userItems, $"side_{letter}", referencedNames);
+                }
+                groups.Add(group);
+            }
 
             foreach (var neutralZone in neutralZones)
-                groups.Add(BuildNeutralMandatoryContent(neutralZone.Letter, neutralZone.CastleCount, settings.SpawnRemoteFootholds, neutralZone.Quality));
+            {
+                var group = BuildNeutralMandatoryContent(neutralZone.Letter, neutralZone.CastleCount, settings.SpawnRemoteFootholds, neutralZone.Quality);
+                var resolved = ZoneContentResolver.Resolve(
+                    settings.NeutralZoneContent,
+                    MapQualityToTier(neutralZone.Quality),
+                    neutralZone.Letter).Items;
+                if (resolved.Count > 0)
+                {
+                    // Warnings discarded in Round 2 — UI surfacing is Round 4.
+                    ZoneContentEmitter.ApplyToMandatoryGroup(group, resolved, $"neutral_{neutralZone.Letter}", referencedNames);
+                }
+                groups.Add(group);
+            }
 
             return groups;
         }
+
+        private static NeutralZoneTier MapQualityToTier(NeutralZoneQuality quality) => quality switch
+        {
+            NeutralZoneQuality.Low => NeutralZoneTier.Poor,
+            NeutralZoneQuality.High => NeutralZoneTier.Rich,
+            _ => NeutralZoneTier.Normal,
+        };
 
         private static MandatoryContentGroup BuildSpawnMandatoryContent(string letter, int castleCount, bool spawnFootholds)
         {
