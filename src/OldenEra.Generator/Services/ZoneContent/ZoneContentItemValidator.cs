@@ -19,7 +19,7 @@ namespace OldenEra.Generator.Services.ZoneContent
         ///   <item><description><c>NearCastle</c> is incompatible with <c>RoadDistance=Far</c>.</description></item>
         ///   <item><description><c>RoadDistance</c>, when set to a non-empty value, must be one of the
         ///     canonical PascalCase strings <c>Close</c>, <c>Mid</c>, or <c>Far</c> (case-sensitive).
-        ///     <c>null</c> and empty strings are treated as "unset" and skip this rule.</description></item>
+        ///     <c>null</c>, empty strings, and whitespace-only strings are treated as "unset" and skip this rule.</description></item>
         /// </list>
         /// </summary>
         /// <param name="item">The zone content item to validate.</param>
@@ -40,7 +40,7 @@ namespace OldenEra.Generator.Services.ZoneContent
             if (item.NearCastle && item.RoadDistance == "Far")
                 issues.Add("NearCastle is incompatible with RoadDistance=Far.");
 
-            if (!string.IsNullOrEmpty(item.RoadDistance)
+            if (!string.IsNullOrWhiteSpace(item.RoadDistance)
                 && item.RoadDistance != "Close"
                 && item.RoadDistance != "Mid"
                 && item.RoadDistance != "Far")
