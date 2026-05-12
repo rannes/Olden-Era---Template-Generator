@@ -73,17 +73,21 @@ public enum RoadDistance { Close, Mid, Far }
 public sealed class ZoneRoadDecoration {
     public string Zone { get; set; } = "";          // owning zone name
     public string RoadType { get; set; } = "Stone"; // "Stone" | "Dirt"
-    public RoadEndpoint From { get; set; } = new();
-    public RoadEndpoint To { get; set; } = new();
+    public ZoneRoadEndpoint From { get; set; } = new();
+    public ZoneRoadEndpoint To { get; set; } = new();
 }
 
-public sealed class RoadEndpoint {
-    public RoadEndpointKind Kind { get; set; }
+public sealed class ZoneRoadEndpoint {
+    public ZoneRoadEndpointKind Kind { get; set; }
     public string Arg { get; set; } = "";
 }
 
-public enum RoadEndpointKind { Connection, MainObject, MandatoryContent }
+public enum ZoneRoadEndpointKind { Connection, MainObject, MandatoryContent }
 ```
+
+> **Naming note.** `OldenEra.Generator.Models.Unfrozen.RoadEndpoint` already
+> exists as the schema-side JSON DTO. The user-facing types are prefixed
+> `ZoneRoad*` to avoid collision and clarify intent.
 
 ### `GeneratorSettings`
 
@@ -168,20 +172,34 @@ No warnings from this emitter — the DTO is 1:1 with the schema. Structural pro
 
 ## Generator wiring
 
-In `TemplateGenerator.BuildSpawnZone` and `BuildNeutralZone`, after the per-zone Mandatory group is built and after the existing `roads[]` are populated:
+Mandatory content groups are built centrally by `BuildAllMandatoryContent`,
+which calls `BuildSpawnMandatoryContent` / `BuildNeutralMandatoryContent`
+(one per player letter / neutral letter, names like
+`mandatory_content_side_<letter>` and `mandatory_content_neutral_<letter>`).
+Zone road lists are built per-zone inside `BuildSpawnZone` /
+`BuildNeutralZone`. So the two emitters wire into different call sites:
+
+**Content emitter** — hook inside `BuildSpawnMandatoryContent` and
+`BuildNeutralMandatoryContent` after the curated content list is built:
 
 ```csharp
-var userItems = ResolveUserItems(zone, settings);
+var userItems = ZoneContentResolver.ResolveForZone(zoneScope, letter, settings);
 if (userItems.Count > 0) {
     var referenced = ZoneRoadDecorationEmitter.ReferencedItems(
         settings.ZoneRoadDecorations, allUserItemsByZone);
     var result = ZoneContentEmitter.ApplyToMandatoryGroup(
-        group, userItems, zone.Name, referenced);
+        group, userItems, zoneName: $"side_{letter}" /* or "neutral_{letter}" */,
+        referenced);
     warnings.AddRange(result.Warnings);
 }
+```
 
+**Road decoration emitter** — hook inside `BuildSpawnZone` /
+`BuildNeutralZone` after the existing `Roads` list is populated:
+
+```csharp
 var userDecorations = settings.ZoneRoadDecorations
-    .Where(d => d.Zone == zone.Name).ToList();
+    .Where(d => d.Zone == zoneName).ToList();
 if (userDecorations.Count > 0) {
     ZoneRoadDecorationEmitter.ApplyToZone(zone, userDecorations);
 }
@@ -189,7 +207,9 @@ if (userDecorations.Count > 0) {
 
 Empty-list fast paths give the no-op guarantee.
 
-`ResolveUserItems` is the existing `ZoneContentResolver` call — already in place from Round 1.
+`ZoneContentResolver` is already in place from Round 1; the wiring needs to
+expose a per-(scope,letter) accessor it doesn't already have, or the caller
+flattens the resolver output and filters by zone-name. Decided in impl plan.
 
 ## Tests
 
@@ -222,7 +242,7 @@ src/OldenEra.Generator/Settings/ZoneContent/
   ZoneContentEmitter.cs
   ZoneRoadDecorationEmitter.cs
   ZoneRoadDecoration.cs
-  RoadEndpoint.cs
+  ZoneRoadEndpoint.cs
   RoadDistance.cs
 ```
 
