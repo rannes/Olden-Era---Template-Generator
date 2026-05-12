@@ -34,6 +34,7 @@ namespace OldenEra.TemplateEditor
         // Currently open settings file path (null = unsaved / untitled)
         private string? _currentSettingsPath = null;
         private bool _isDirty = false;
+        private readonly PresetCatalog _presetCatalog = new();
         private bool _isRefreshingMapSizes = false;
         private string _baseTitle = string.Empty;
 
@@ -1059,6 +1060,42 @@ namespace OldenEra.TemplateEditor
             _currentSettingsPath = null;
             _isDirty = false;
             UpdateTitle();
+        }
+
+        private void MnuLoadPreset_SubmenuOpened(object sender, RoutedEventArgs e)
+        {
+            if (MnuLoadPreset.Items.Count > 0) return;
+
+            foreach (var entry in _presetCatalog.Entries)
+            {
+                var item = new MenuItem
+                {
+                    Header = entry.Name,
+                    ToolTip = entry.Description,
+                    Tag = entry.Id,
+                };
+                item.Click += MnuPresetEntry_Click;
+                MnuLoadPreset.Items.Add(item);
+            }
+        }
+
+        private void MnuPresetEntry_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not MenuItem item || item.Tag is not string id) return;
+
+            try
+            {
+                var settings = _presetCatalog.Load(id);
+                ApplySettings(settings);
+                _currentSettingsPath = null;
+                _isDirty = true;
+                UpdateTitle();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load preset:\n{ex.Message}", "Preset Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void BtnOpen_Click(object sender, RoutedEventArgs e)
