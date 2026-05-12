@@ -420,6 +420,7 @@
     private async Task OnZoneContentCompareDefaultsChanged(bool value)
     {
         _zoneContentCompareDefaults = value;
+        if (!IsValid || IsGenerating) return;
         // Trigger a regenerate so the preview reflects the new mode immediately.
         await RunGenerationAsync();
     }
