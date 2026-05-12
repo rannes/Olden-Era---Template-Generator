@@ -98,6 +98,14 @@
     </div>
 </ExperimentalCard>
 
+<ExperimentalCard Key="zone-content" Title="Zone content">
+    <div class="oe-hint">
+        Author the zone-content surface (player zones, neutral tiers,
+        per-zone overrides, road decorations).
+    </div>
+    <ZoneContentEditor Settings="Settings" OnChanged="OnChanged" />
+</ExperimentalCard>
+
 @code {
     [Parameter, EditorRequired] public GeneratorSettings Settings { get; set; } = default!;
     [Parameter] public EventCallback OnChanged { get; set; }

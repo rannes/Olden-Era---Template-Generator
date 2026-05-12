@@ -1,0 +1,51 @@
+@using OldenEra.Generator.Models
+@using OldenEra.Web.Services
+
+<div class="oe-zone-content-editor">
+    <ZoneContentScopeTabs Selected="@_selected"
+                          SelectedChanged="@OnScopeChanged" />
+
+    @if (_selected.Kind == ZoneContentScopeKind.NeutralPerZone)
+    {
+        <PerZoneOverridesPicker Neutral="@Settings.NeutralZoneContent"
+                                SelectedLetter="@_selectedLetter"
+                                SelectedLetterChanged="@OnLetterChanged"
+                                OnNeutralChanged="@NotifyChanged" />
+    }
+
+    <div class="oe-zone-content-body">
+        <div class="oe-hint">Selection: @ScopeDescription()</div>
+        <p class="oe-hint">Item list and detail land in Task 4.</p>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public GeneratorSettings Settings { get; set; } = default!;
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    private ZoneContentScopeKey _selected = new(ZoneContentScopeKind.Player);
+    private string _selectedLetter = "";
+
+    private Task OnScopeChanged(ZoneContentScopeKey next)
+    {
+        _selected = next;
+        return Task.CompletedTask;
+    }
+
+    private Task OnLetterChanged(string letter)
+    {
+        _selectedLetter = letter;
+        return Task.CompletedTask;
+    }
+
+    private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    private string ScopeDescription() => _selected.Kind switch
+    {
+        ZoneContentScopeKind.NeutralPerZone =>
+            string.IsNullOrEmpty(_selectedLetter)
+                ? "Per-zone (no letter selected)"
+                : $"Per-zone · {_selectedLetter}",
+        _ => _selected.Kind.ToString(),
+    };
+}
