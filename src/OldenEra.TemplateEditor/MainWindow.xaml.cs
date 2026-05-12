@@ -28,7 +28,9 @@ namespace OldenEra.TemplateEditor
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
             WriteIndented = true,
-            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
         };
 
         // Currently open settings file path (null = unsaved / untitled)

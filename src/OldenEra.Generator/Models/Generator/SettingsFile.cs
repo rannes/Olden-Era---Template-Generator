@@ -129,5 +129,14 @@ namespace OldenEra.Generator.Models
 
         [JsonIgnore] public int EffectiveResourceDensityPercent  => ResourceDensityPercent  ?? ContentDensityPercent ?? 100;
         [JsonIgnore] public int EffectiveStructureDensityPercent => StructureDensityPercent ?? ContentDensityPercent ?? 100;
+
+        [JsonPropertyName("playerZoneContent")]
+        public ZoneContentList PlayerZoneContent { get; set; } = new();
+
+        [JsonPropertyName("neutralZoneContent")]
+        public NeutralZoneContent NeutralZoneContent { get; set; } = new();
+
+        [JsonPropertyName("zoneRoadDecorations")]
+        public List<ZoneRoadDecoration> ZoneRoadDecorations { get; set; } = new();
     }
 }

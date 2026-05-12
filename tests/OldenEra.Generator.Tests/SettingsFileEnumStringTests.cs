@@ -10,6 +10,7 @@ public class SettingsFileEnumStringTests
     private static readonly JsonSerializerOptions Opts = new()
     {
         Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
     };
 
     [Fact]
