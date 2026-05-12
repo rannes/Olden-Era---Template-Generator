@@ -44,29 +44,9 @@ public class ZoneContentItemValidatorTests
         {
             Sid = "name_mana_well",
             NearCastle = true,
-            RoadDistance = "Far"
+            RoadDistance = RoadDistance.Far
         };
         var issues = ZoneContentItemValidator.Validate(item);
         Assert.Contains(issues, i => i.Contains("NearCastle") && i.Contains("Far"));
-    }
-
-    [Fact]
-    public void Unknown_road_distance_string_fails()
-    {
-        var item = new ZoneContentItem { Sid = "name_x", RoadDistance = "Distant" };
-        var issues = ZoneContentItemValidator.Validate(item);
-        Assert.Contains(issues, i => i.Contains("RoadDistance") && i.Contains("Distant"));
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("\t")]
-    public void Blank_road_distance_is_treated_as_unset(string? value)
-    {
-        var item = new ZoneContentItem { Sid = "name_x", RoadDistance = value };
-        var issues = ZoneContentItemValidator.Validate(item);
-        Assert.DoesNotContain(issues, i => i.Contains("RoadDistance"));
     }
 }

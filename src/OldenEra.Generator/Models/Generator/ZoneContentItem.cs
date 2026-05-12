@@ -11,7 +11,7 @@ namespace OldenEra.Generator.Models
         public ZoneContentPool Pool { get; set; } = ZoneContentPool.Mandatory;
         public bool IsGuarded { get; set; }
         public bool NearCastle { get; set; }
-        public string? RoadDistance { get; set; }
+        public RoadDistance? RoadDistance { get; set; }
         public List<string> FactionAffinity { get; set; } = new();
         public List<string> BiomeFilter { get; set; } = new();
     }
