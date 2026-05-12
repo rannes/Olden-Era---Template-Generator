@@ -239,7 +239,7 @@ namespace OldenEra.Generator.Models
         public BordersRoadsSettings BordersRoads { get; set; } = new BordersRoadsSettings();
         public ZoneContentList PlayerZoneContent { get; set; } = new();
         public NeutralZoneContent NeutralZoneContent { get; set; } = new();
-        public List<ContentConnectionRule> ContentConnectionRules { get; set; } = new();
+        public List<ZoneRoadDecoration> ZoneRoadDecorations { get; set; } = new();
     }
 
     public enum NeutralZoneQuality

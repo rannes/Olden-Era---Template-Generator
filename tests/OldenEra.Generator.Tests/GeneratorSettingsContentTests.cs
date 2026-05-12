@@ -13,7 +13,7 @@ public class GeneratorSettingsContentTests
         Assert.Empty(s.PlayerZoneContent.Items);
         Assert.NotNull(s.NeutralZoneContent);
         Assert.Empty(s.NeutralZoneContent.Global.Items);
-        Assert.NotNull(s.ContentConnectionRules);
-        Assert.Empty(s.ContentConnectionRules);
+        Assert.NotNull(s.ZoneRoadDecorations);
+        Assert.Empty(s.ZoneRoadDecorations);
     }
 }

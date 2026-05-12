@@ -36,15 +36,4 @@ public class ZoneContentItemTests
         Assert.Empty(n.ByZoneLetter);
     }
 
-    [Fact]
-    public void ContentConnectionRule_defaults()
-    {
-        var r = new ContentConnectionRule();
-        Assert.Equal(ContentRuleType.Distance, r.Type);
-        Assert.Equal("", r.FromRef);
-        Assert.Equal("", r.ToRef);
-        Assert.Null(r.RoadType);
-        Assert.Null(r.MinDistance);
-        Assert.Null(r.MaxDistance);
-    }
 }
