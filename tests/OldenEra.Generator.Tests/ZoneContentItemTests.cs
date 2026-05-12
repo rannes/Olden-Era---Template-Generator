@@ -22,6 +22,12 @@ public class ZoneContentItemTests
     }
 
     [Fact]
+    public void Handle_defaults_to_null()
+    {
+        Assert.Null(new ZoneContentItem().Handle);
+    }
+
+    [Fact]
     public void NeutralZoneContent_defaults_are_empty_collections()
     {
         var n = new NeutralZoneContent();

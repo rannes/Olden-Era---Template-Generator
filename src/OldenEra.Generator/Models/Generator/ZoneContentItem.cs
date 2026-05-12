@@ -5,6 +5,7 @@ namespace OldenEra.Generator.Models
     public sealed class ZoneContentItem
     {
         public string Sid { get; set; } = "";
+        public string? Handle { get; set; }
         public bool IsGroup { get; set; }
         public int MinCount { get; set; } = 1;
         public int MaxCount { get; set; } = 1;
