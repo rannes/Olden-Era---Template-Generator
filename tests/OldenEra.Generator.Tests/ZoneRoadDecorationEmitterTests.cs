@@ -19,7 +19,7 @@ namespace OldenEra.Generator.Tests
             var deco = new ZoneRoadDecoration
             {
                 Zone = "Z1",
-                RoadType = "Stone",
+                RoadType = ZoneRoadType.Stone,
                 From = new ZoneRoadEndpoint { Kind = kind, Arg = "argA" },
                 To = new ZoneRoadEndpoint { Kind = ZoneRoadEndpointKind.Connection, Arg = "argB" },
             };
@@ -35,9 +35,9 @@ namespace OldenEra.Generator.Tests
         }
 
         [Theory]
-        [InlineData("Stone")]
-        [InlineData("Dirt")]
-        public void ApplyToZone_HonoursRoadType(string roadType)
+        [InlineData(ZoneRoadType.Stone, "Stone")]
+        [InlineData(ZoneRoadType.Dirt, "Dirt")]
+        public void ApplyToZone_HonoursRoadType(ZoneRoadType roadType, string expectedSchemaType)
         {
             var zone = new Zone();
             var deco = new ZoneRoadDecoration
@@ -50,7 +50,7 @@ namespace OldenEra.Generator.Tests
 
             ZoneRoadDecorationEmitter.ApplyToZone(zone, new[] { deco });
 
-            Assert.Equal(roadType, zone.Roads![0].Type);
+            Assert.Equal(expectedSchemaType, zone.Roads![0].Type);
         }
 
         [Fact]
@@ -76,7 +76,7 @@ namespace OldenEra.Generator.Tests
             var zone = new Zone { Roads = new List<SchemaRoad> { existing } };
             var deco = new ZoneRoadDecoration
             {
-                RoadType = "Dirt",
+                RoadType = ZoneRoadType.Dirt,
                 From = new ZoneRoadEndpoint { Kind = ZoneRoadEndpointKind.Connection, Arg = "a" },
                 To = new ZoneRoadEndpoint { Kind = ZoneRoadEndpointKind.Connection, Arg = "b" },
             };

@@ -157,6 +157,12 @@ public static class SettingsMapper
             },
         };
 
+        // Reference-shared: nested DTO trees are owned by the deserialized side after assignment.
+        // Round 4 UI must clone before mutating if it cares about file/in-memory aliasing.
+        settings.PlayerZoneContent   = s.PlayerZoneContent   ?? new();
+        settings.NeutralZoneContent  = s.NeutralZoneContent  ?? new();
+        settings.ZoneRoadDecorations = s.ZoneRoadDecorations ?? new();
+
         return (settings, advanced, needsExperimentalMapSizes, s.ExperimentalEnabled);
     }
 
@@ -167,7 +173,7 @@ public static class SettingsMapper
     public static SettingsFile ToFile(GeneratorSettings g, bool advancedMode, bool experimentalMapSizes, bool experimentalEnabled = false)
     {
         var a = g.ZoneCfg.Advanced;
-        return new SettingsFile
+        var file = new SettingsFile
         {
             TemplateName = g.TemplateName,
             MapSize = g.MapSize,
@@ -260,6 +266,13 @@ public static class SettingsMapper
             TierMedium = TierToFile(a.MediumTier),
             TierHigh = TierToFile(a.HighTier),
         };
+
+        // Reference-shared: nested DTO trees are owned by the deserialized side after assignment.
+        // Round 4 UI must clone before mutating if it cares about file/in-memory aliasing.
+        file.PlayerZoneContent   = g.PlayerZoneContent;
+        file.NeutralZoneContent  = g.NeutralZoneContent;
+        file.ZoneRoadDecorations = g.ZoneRoadDecorations;
+        return file;
     }
 
     private static TierOverrides TierFromFile(TierOverrideFile? f) =>

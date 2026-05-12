@@ -22,7 +22,7 @@ namespace OldenEra.Generator.Services.ZoneContent
             {
                 zone.Roads.Add(new SchemaRoad
                 {
-                    Type = d.RoadType,
+                    Type = RoadTypeToSchemaType(d.RoadType),
                     From = ToSchemaEndpoint(d.From),
                     To = ToSchemaEndpoint(d.To),
                 });
@@ -46,6 +46,21 @@ namespace OldenEra.Generator.Services.ZoneContent
         }
 
         private static SchemaRoadEndpoint ToSchemaEndpoint(ZoneRoadEndpoint e)
-            => new() { Type = e.Kind.ToString(), Args = new List<string> { e.Arg } };
+            => new() { Type = KindToSchemaType(e.Kind), Args = new List<string> { e.Arg } };
+
+        private static string KindToSchemaType(ZoneRoadEndpointKind kind) => kind switch
+        {
+            ZoneRoadEndpointKind.Connection       => "Connection",
+            ZoneRoadEndpointKind.MainObject       => "MainObject",
+            ZoneRoadEndpointKind.MandatoryContent => "MandatoryContent",
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+        };
+
+        private static string RoadTypeToSchemaType(ZoneRoadType type) => type switch
+        {
+            ZoneRoadType.Stone => "Stone",
+            ZoneRoadType.Dirt  => "Dirt",
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null),
+        };
     }
 }
