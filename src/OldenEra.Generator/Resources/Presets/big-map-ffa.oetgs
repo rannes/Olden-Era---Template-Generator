@@ -1,7 +1,7 @@
 {
   "templateName": "Big Map FFA",
   "playerCount": 8,
-  "topology": 4,
+  "topology": "Random",
   "mapSize": 160,
   "neutralZoneCount": 6,
   "playerCastles": 1,

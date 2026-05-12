@@ -55,6 +55,7 @@ public class PresetCatalogTests
         {
             WriteIndented = true,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = { new JsonStringEnumConverter() },
         };
 
         foreach (var entry in catalog.Entries)

@@ -18,6 +18,7 @@ public sealed class PresetCatalog
     {
         PropertyNameCaseInsensitive = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new JsonStringEnumConverter() },
     };
 
     private const string ManifestResource = "OldenEra.Generator.Resources.Presets.presets.json";

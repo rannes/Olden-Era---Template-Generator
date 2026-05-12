@@ -1,7 +1,7 @@
 {
   "templateName": "Arcade 2v2",
   "playerCount": 4,
-  "topology": 2,
+  "topology": "Chain",
   "mapSize": 80,
   "neutralZoneCount": 2,
   "playerCastles": 1,

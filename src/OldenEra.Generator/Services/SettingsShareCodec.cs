@@ -22,11 +22,13 @@ public static class SettingsShareCodec
     {
         WriteIndented = false,
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
     };
 
     private static readonly JsonSerializerOptions LenientOptions = new()
     {
         PropertyNameCaseInsensitive = true,
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
     };
 
     public static string Encode(SettingsFile settings)

@@ -11,6 +11,7 @@ public class SeedDeterminismTests
     {
         WriteIndented = true,
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
     };
 
     private static GeneratorSettings BuildBaseSettings(int? seed) => new()

@@ -1,7 +1,7 @@
 {
   "templateName": "Jebus-like",
   "playerCount": 2,
-  "topology": 0,
+  "topology": "Default",
   "mapSize": 96,
   "neutralZoneCount": 1,
   "playerCastles": 1,
