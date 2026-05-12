@@ -3,12 +3,12 @@ using Xunit;
 
 namespace OldenEra.Generator.Tests;
 
-public class ContentPresetsTests
+public class ZoneContentPresetsTests
 {
     [Fact]
     public void Presets_are_nonempty_and_valid()
     {
-        var presets = ContentPresets.All();
+        var presets = ZoneContentPresets.All();
         Assert.NotEmpty(presets);
         Assert.All(presets, p =>
         {

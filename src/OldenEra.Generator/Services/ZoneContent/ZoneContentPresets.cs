@@ -9,16 +9,16 @@ namespace OldenEra.Generator.Services.ZoneContent
     /// configure every knob from scratch when adding common rows. Each preset
     /// is hand-picked and guaranteed to pass <see cref="ZoneContentItemValidator"/>.
     /// </summary>
-    public sealed record ContentPreset(string Name, ZoneContentItem Item);
+    public sealed record ZoneContentPreset(string Name, ZoneContentItem Item);
 
     /// <summary>
-    /// Static catalog of curated <see cref="ContentPreset"/> entries. The host
+    /// Static catalog of curated <see cref="ZoneContentPreset"/> entries. The host
     /// UI offers these via an "Add preset…" affordance to seed the customizable
     /// zone content list with sensible, validated defaults.
     /// </summary>
-    public static class ContentPresets
+    public static class ZoneContentPresets
     {
-        public static IReadOnlyList<ContentPreset> All() => new ContentPreset[]
+        public static IReadOnlyList<ZoneContentPreset> All() => new ZoneContentPreset[]
         {
             new("Mana Well x1 (guarded)", new ZoneContentItem
             {

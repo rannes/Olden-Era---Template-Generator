@@ -22,6 +22,12 @@ public class ZoneContentItemTests
     }
 
     [Fact]
+    public void Handle_defaults_to_null()
+    {
+        Assert.Null(new ZoneContentItem().Handle);
+    }
+
+    [Fact]
     public void NeutralZoneContent_defaults_are_empty_collections()
     {
         var n = new NeutralZoneContent();
@@ -30,15 +36,4 @@ public class ZoneContentItemTests
         Assert.Empty(n.ByZoneLetter);
     }
 
-    [Fact]
-    public void ContentConnectionRule_defaults()
-    {
-        var r = new ContentConnectionRule();
-        Assert.Equal(ContentRuleType.Distance, r.Type);
-        Assert.Equal("", r.FromRef);
-        Assert.Equal("", r.ToRef);
-        Assert.Null(r.RoadType);
-        Assert.Null(r.MinDistance);
-        Assert.Null(r.MaxDistance);
-    }
 }
