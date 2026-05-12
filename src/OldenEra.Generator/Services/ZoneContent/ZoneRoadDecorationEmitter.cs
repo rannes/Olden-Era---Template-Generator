@@ -22,7 +22,7 @@ namespace OldenEra.Generator.Services.ZoneContent
             {
                 zone.Roads.Add(new SchemaRoad
                 {
-                    Type = d.RoadType,
+                    Type = d.RoadType.ToString(),  // temporary; Task 2 replaces with RoadTypeToSchemaType
                     From = ToSchemaEndpoint(d.From),
                     To = ToSchemaEndpoint(d.To),
                 });

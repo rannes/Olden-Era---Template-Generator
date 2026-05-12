@@ -82,7 +82,7 @@ public class TemplateGeneratorZoneContentIntegrationTests
         settings.ZoneRoadDecorations.Add(new ZoneRoadDecoration
         {
             Zone = "Spawn-A",
-            RoadType = "Stone",
+            RoadType = ZoneRoadType.Stone,
             From = new ZoneRoadEndpoint { Kind = ZoneRoadEndpointKind.MainObject, Arg = "0" },
             To = new ZoneRoadEndpoint { Kind = ZoneRoadEndpointKind.MandatoryContent, Arg = "user_well" },
         });

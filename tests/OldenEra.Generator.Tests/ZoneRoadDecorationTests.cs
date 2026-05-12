@@ -10,7 +10,7 @@ public class ZoneRoadDecorationTests
     {
         var d = new ZoneRoadDecoration();
         Assert.Equal("", d.Zone);
-        Assert.Equal("Stone", d.RoadType);
+        Assert.Equal(ZoneRoadType.Stone, d.RoadType);
         Assert.NotNull(d.From);
         Assert.NotNull(d.To);
         Assert.Equal(ZoneRoadEndpointKind.Connection, d.From.Kind);
