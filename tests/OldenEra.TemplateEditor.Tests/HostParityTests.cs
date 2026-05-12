@@ -14,6 +14,10 @@ namespace OldenEra.TemplateEditor.Tests;
 /// </summary>
 public class HostParityTests
 {
+    // NOTE: These options are for RmgTemplate (the game's .rmg.json schema artifact),
+    // which requires PascalCase keys. This is intentionally distinct from the
+    // SettingsFile options block in SettingsShareCodec/PresetCatalog/etc., which
+    // uses camelCase + JsonStringEnumConverter. Do not "unify" them.
     private static readonly JsonSerializerOptions SharedJsonOptions = new()
     {
         WriteIndented = true,
