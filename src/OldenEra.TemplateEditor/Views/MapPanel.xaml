@@ -50,7 +50,7 @@
                                Foreground="{StaticResource OeTextDimBrush}"
                                FontSize="11"
                                TextWrapping="Wrap"
-                               Text="Controls the randomized choices this generator makes while building the template (zone topology, neutral placement, content rolls). The same seed with the same settings always produces an identical template file — useful for sharing or reproducing one. Leave blank for a fresh template each time, or click the dice to pick a seed. Note: in-game map layout is rolled separately by Olden Era when a match starts, so the same template can still play differently."/>
+                               Text="Seeds the random choices this generator makes when building the template (zone topology, neutral placement, content rolls). The same seed with the same settings always produces an identical template file — useful for sharing or reproducing a template. Leave blank for a fresh template each time, or click &#x1F3B2; to pick a seed. Note: in-game map layout is rolled separately by Olden Era when a match starts, so the same template can still play differently."/>
                     <Label Grid.Row="8" Grid.Column="0" Content="Map Size"/>
                     <ComboBox x:Name="CmbMapSize" Grid.Row="8" Grid.Column="1"/>
                     <StackPanel Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2">
