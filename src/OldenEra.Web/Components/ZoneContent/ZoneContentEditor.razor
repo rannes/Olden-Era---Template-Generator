@@ -15,7 +15,31 @@
 
     <div class="oe-zone-content-body">
         <div class="oe-hint">Selection: @ScopeDescription()</div>
-        <p class="oe-hint">Item list and detail land in Task 4.</p>
+        @if (_selected.Kind == ZoneContentScopeKind.RoadDecorations)
+        {
+            <div class="oe-hint">Road decorations editor lands in Task 5.</div>
+        }
+        else
+        {
+            var items = ResolveItems();
+            if (items is null)
+            {
+                <div class="oe-hint">Pick a zone letter above (or add one).</div>
+            }
+            else
+            {
+                <div class="oe-zc-master-detail">
+                    <ZoneContentItemList Items="@items"
+                                         SelectedKey="@_selectedKey"
+                                         SelectedKeyChanged="@OnItemSelected"
+                                         OnItemsChanged="@NotifyChanged"
+                                         ReadOnly="@false" />
+                    <ZoneContentItemDetail Item="@ResolveSelectedItem(items)"
+                                           OnChanged="@NotifyChanged"
+                                           ReadOnly="@false" />
+                </div>
+            }
+        }
     </div>
 </div>
 
@@ -25,20 +49,60 @@
 
     private ZoneContentScopeKey _selected = new(ZoneContentScopeKind.Player);
     private string _selectedLetter = "";
+    private string? _selectedKey;
 
     private Task OnScopeChanged(ZoneContentScopeKey next)
     {
         _selected = next;
+        _selectedKey = null;
         return Task.CompletedTask;
     }
 
     private Task OnLetterChanged(string letter)
     {
         _selectedLetter = letter;
+        _selectedKey = null;
+        return Task.CompletedTask;
+    }
+
+    private Task OnItemSelected(string? key)
+    {
+        _selectedKey = key;
         return Task.CompletedTask;
     }
 
     private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    private List<ZoneContentItem>? ResolveItems() => _selected.Kind switch
+    {
+        ZoneContentScopeKind.Player          => Settings.PlayerZoneContent.Items,
+        ZoneContentScopeKind.NeutralGlobal   => Settings.NeutralZoneContent.Global.Items,
+        ZoneContentScopeKind.NeutralPoor     => GetOrCreateTier(NeutralZoneTier.Poor).Items,
+        ZoneContentScopeKind.NeutralNormal   => GetOrCreateTier(NeutralZoneTier.Normal).Items,
+        ZoneContentScopeKind.NeutralRich     => GetOrCreateTier(NeutralZoneTier.Rich).Items,
+        ZoneContentScopeKind.NeutralPerZone  => string.IsNullOrEmpty(_selectedLetter)
+            ? null
+            : (Settings.NeutralZoneContent.ByZoneLetter.TryGetValue(_selectedLetter, out var l) ? l.Items : null),
+        _ => null,
+    };
+
+    private ZoneContentList GetOrCreateTier(NeutralZoneTier tier)
+    {
+        if (!Settings.NeutralZoneContent.ByTier.TryGetValue(tier, out var list))
+        {
+            list = new ZoneContentList();
+            Settings.NeutralZoneContent.ByTier[tier] = list;
+        }
+        return list;
+    }
+
+    private ZoneContentItem? ResolveSelectedItem(List<ZoneContentItem> items)
+    {
+        if (_selectedKey is null) return null;
+        if (_selectedKey.StartsWith("#") && int.TryParse(_selectedKey[1..], out var idx))
+            return idx < items.Count ? items[idx] : null;
+        return items.FirstOrDefault(it => it.Handle == _selectedKey);
+    }
 
     private string ScopeDescription() => _selected.Kind switch
     {

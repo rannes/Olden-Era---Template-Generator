@@ -1,0 +1,55 @@
+@using OldenEra.Generator.Models
+
+<div class="oe-zc-list">
+    <div class="oe-zc-list-toolbar">
+        <button type="button" class="oe-btn ghost" disabled="@ReadOnly" @onclick="AddBlank">+ Add</button>
+        @* Preset insertion lands in Task 6. *@
+    </div>
+    @if (Items.Count == 0)
+    {
+        <div class="oe-hint">No items yet.</div>
+    }
+    else
+    {
+        <ul class="oe-zc-list-rows">
+            @foreach (var (item, idx) in Items.Select((it, i) => (it, i)))
+            {
+                var key = item.Handle is { Length: > 0 } h ? h : $"#{idx}";
+                var selected = SelectedKey == key;
+                <li class="oe-zc-row @(selected ? "selected" : "")"
+                    @onclick="@(() => SelectKey(key))">
+                    <span class="oe-zc-row-sid">@(string.IsNullOrEmpty(item.Sid) ? "(no sid)" : item.Sid)</span>
+                    <span class="oe-zc-row-handle">@(item.Handle ?? "—")</span>
+                    <span class="oe-zc-row-count">@item.MinCount-@item.MaxCount</span>
+                    <button type="button" class="oe-link-btn"
+                            disabled="@ReadOnly"
+                            @onclick:stopPropagation
+                            @onclick="@(() => Remove(idx))" aria-label="Remove">✕</button>
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<ZoneContentItem> Items { get; set; } = default!;
+    [Parameter] public string? SelectedKey { get; set; }
+    [Parameter] public EventCallback<string?> SelectedKeyChanged { get; set; }
+    [Parameter] public EventCallback OnItemsChanged { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private async Task AddBlank()
+    {
+        Items.Add(new ZoneContentItem { Sid = "" });
+        await OnItemsChanged.InvokeAsync();
+    }
+
+    private async Task Remove(int idx)
+    {
+        if (idx < 0 || idx >= Items.Count) return;
+        Items.RemoveAt(idx);
+        await OnItemsChanged.InvokeAsync();
+    }
+
+    private Task SelectKey(string key) => SelectedKeyChanged.InvokeAsync(key);
+}

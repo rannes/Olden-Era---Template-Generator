@@ -1,0 +1,126 @@
+@using OldenEra.Generator.Models
+@using OldenEra.Generator.Services.ZoneContent
+
+@if (Item is null)
+{
+    <div class="oe-hint">Select an item to edit.</div>
+}
+else
+{
+    <div class="oe-zc-detail">
+        <div class="oe-stacked">
+            <label class="oe-label">Sid</label>
+            <input type="text" disabled="@ReadOnly"
+                   @bind="Item.Sid" @bind:after="NotifyChanged" placeholder="e.g. name_mana_well" />
+        </div>
+
+        <div class="oe-stacked">
+            <label class="oe-label">Handle</label>
+            <input type="text" disabled="@ReadOnly"
+                   @bind="HandleText" @bind:after="NotifyChanged" />
+        </div>
+
+        <div class="oe-row" style="grid-template-columns: 1fr 1fr;">
+            <div class="oe-stacked">
+                <label class="oe-label">MinCount</label>
+                <input type="number" min="0" max="20" disabled="@ReadOnly"
+                       @bind="Item.MinCount" @bind:after="NotifyChanged" />
+            </div>
+            <div class="oe-stacked">
+                <label class="oe-label">MaxCount</label>
+                <input type="number" min="0" max="20" disabled="@ReadOnly"
+                       @bind="Item.MaxCount" @bind:after="NotifyChanged" />
+            </div>
+        </div>
+
+        <div class="oe-stacked">
+            <label class="oe-label">Pool</label>
+            <select @bind="Item.Pool" @bind:after="NotifyChanged" disabled="@ReadOnly">
+                @foreach (var p in Enum.GetValues<ZoneContentPool>())
+                {
+                    <option value="@p">@p</option>
+                }
+            </select>
+        </div>
+
+        <div class="oe-row" style="grid-template-columns: 1fr 1fr;">
+            <label class="oe-checkbox">
+                <input type="checkbox" disabled="@ReadOnly"
+                       @bind="Item.IsGuarded" @bind:after="NotifyChanged" />
+                Guarded
+            </label>
+            <label class="oe-checkbox">
+                <input type="checkbox" disabled="@ReadOnly"
+                       @bind="Item.NearCastle" @bind:after="NotifyChanged" />
+                Near castle
+            </label>
+        </div>
+
+        <div class="oe-stacked">
+            <label class="oe-label">RoadDistance</label>
+            <select value="@(Item.RoadDistance?.ToString() ?? "")" disabled="@ReadOnly"
+                    @onchange="OnRoadDistanceChanged">
+                <option value="">(unset)</option>
+                @foreach (var d in Enum.GetValues<RoadDistance>())
+                {
+                    <option value="@d">@d</option>
+                }
+            </select>
+        </div>
+
+        <div class="oe-stacked">
+            <label class="oe-label">FactionAffinity (comma-separated)</label>
+            <input type="text" disabled="@ReadOnly"
+                   value="@string.Join(", ", Item.FactionAffinity)"
+                   @onchange="OnFactionAffinityChanged" />
+        </div>
+        <div class="oe-stacked">
+            <label class="oe-label">BiomeFilter (comma-separated)</label>
+            <input type="text" disabled="@ReadOnly"
+                   value="@string.Join(", ", Item.BiomeFilter)"
+                   @onchange="OnBiomeFilterChanged" />
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public ZoneContentItem? Item { get; set; }
+    [Parameter] public EventCallback OnChanged { get; set; }
+    [Parameter] public IReadOnlyList<EmitWarning> Warnings { get; set; } = Array.Empty<EmitWarning>();
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private string HandleText
+    {
+        get => Item?.Handle ?? "";
+        set { if (Item is not null) Item.Handle = string.IsNullOrWhiteSpace(value) ? null : value; }
+    }
+
+    private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    private async Task OnRoadDistanceChanged(ChangeEventArgs e)
+    {
+        if (Item is null) return;
+        var v = e.Value?.ToString() ?? "";
+        Item.RoadDistance = string.IsNullOrEmpty(v) ? null : Enum.Parse<RoadDistance>(v);
+        await NotifyChanged();
+    }
+
+    private async Task OnFactionAffinityChanged(ChangeEventArgs e)
+    {
+        if (Item is null) return;
+        Item.FactionAffinity = SplitCsv(e.Value?.ToString());
+        await NotifyChanged();
+    }
+
+    private async Task OnBiomeFilterChanged(ChangeEventArgs e)
+    {
+        if (Item is null) return;
+        Item.BiomeFilter = SplitCsv(e.Value?.ToString());
+        await NotifyChanged();
+    }
+
+    private static List<string> SplitCsv(string? s) =>
+        string.IsNullOrWhiteSpace(s)
+            ? new List<string>()
+            : s.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+}

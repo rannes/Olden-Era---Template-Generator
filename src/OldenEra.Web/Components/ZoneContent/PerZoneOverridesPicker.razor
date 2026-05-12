@@ -3,7 +3,7 @@
 <div class="oe-stacked">
     <label class="oe-label">Zone letter</label>
     <div class="oe-row" style="grid-template-columns: 1fr 100px;">
-        <select @bind="SelectedLetter" @bind:after="NotifyLetter" disabled="@(!HasOverrides)">
+        <select @bind="_localSelected" @bind:after="NotifyLetter" disabled="@(!HasOverrides)">
             @if (!HasOverrides)
             {
                 <option value="">(none yet)</option>
@@ -24,19 +24,23 @@
     [Parameter] public EventCallback<string> SelectedLetterChanged { get; set; }
     [Parameter] public EventCallback OnNeutralChanged { get; set; }
 
+    private string _localSelected = "";
     private string PendingLetter { get; set; } = "";
     private bool HasOverrides => Neutral.ByZoneLetter.Count > 0;
 
-    private async Task NotifyLetter() => await SelectedLetterChanged.InvokeAsync(SelectedLetter);
+    protected override void OnParametersSet() => _localSelected = SelectedLetter;
+
+    private async Task NotifyLetter() => await SelectedLetterChanged.InvokeAsync(_localSelected);
 
     private async Task AddLetter()
     {
-        var letter = PendingLetter.Trim();
-        if (string.IsNullOrEmpty(letter) || Neutral.ByZoneLetter.ContainsKey(letter)) return;
+        var letter = PendingLetter.Trim().ToUpperInvariant();
+        if (letter.Length != 1 || !char.IsLetter(letter[0])) return;
+        if (Neutral.ByZoneLetter.ContainsKey(letter)) return;
         Neutral.ByZoneLetter[letter] = new ZoneContentList();
         PendingLetter = "";
-        SelectedLetter = letter;
-        await SelectedLetterChanged.InvokeAsync(SelectedLetter);
+        _localSelected = letter;
+        await SelectedLetterChanged.InvokeAsync(_localSelected);
         await OnNeutralChanged.InvokeAsync();
     }
 }
