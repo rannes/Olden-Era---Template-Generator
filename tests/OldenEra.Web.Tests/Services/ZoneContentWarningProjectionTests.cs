@@ -56,6 +56,22 @@ public class ZoneContentWarningProjectionTests
     }
 
     [Fact]
+    public void NeutralGlobal_ItemsKeyedAsNeutralGlobal()
+    {
+        var settings = new GeneratorSettings();
+        settings.NeutralZoneContent.Global.Items.Add(new ZoneContentItem
+        {
+            Sid = "g", Handle = "gh", BiomeFilter = { "snow" },
+        });
+
+        var result = ZoneContentWarningProjection.Project(settings);
+
+        Assert.Contains(result, w => w.Scope.Kind == ZoneContentScopeKind.NeutralGlobal
+            && w.Handle == "gh"
+            && w.Warning.Code == EmitWarning.Codes.BiomeFilterIgnored);
+    }
+
+    [Fact]
     public void EmptySurface_ProducesNoWarnings()
     {
         var result = ZoneContentWarningProjection.Project(new GeneratorSettings());
