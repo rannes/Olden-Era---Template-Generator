@@ -32,6 +32,16 @@
                     title="Generate a new random seed (reproducible output for the same seed)"
                     @onclick="RandomizeSeed">🎲</button>
         </div>
+        <div class="oe-hint">
+            Seeds the random choices this generator makes when building the
+            template (zone topology, neutral placement, content rolls). The
+            same seed with the same settings always produces an identical
+            template file — useful for sharing or reproducing a template.
+            Leave blank for a fresh template each time, or click 🎲 to pick a
+            seed. Note: in-game map layout is rolled separately by Olden Era
+            when a match starts, so the same template can still play
+            differently.
+        </div>
     </div>
 
     <label class="oe-check">

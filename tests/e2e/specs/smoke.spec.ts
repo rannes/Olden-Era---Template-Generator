@@ -73,3 +73,25 @@ test('each top nav item is clickable without crashing', async ({ page }) => {
 
   expect(errors).toEqual([]);
 });
+
+test('Seed input and dice button share the row sensibly', async ({ page }) => {
+  await page.goto('/');
+  const seedInput = page.locator('#seed');
+  const dice = page.locator('.oe-seed-dice');
+  await expect(seedInput).toBeVisible();
+  await expect(dice).toBeVisible();
+
+  const inputBox = await seedInput.boundingBox();
+  const diceBox = await dice.boundingBox();
+  expect(inputBox).not.toBeNull();
+  expect(diceBox).not.toBeNull();
+
+  // Input should claim most of the row; dice should be a compact control.
+  expect(inputBox!.width).toBeGreaterThan(120);
+  expect(diceBox!.width).toBeLessThan(80);
+  expect(inputBox!.width).toBeGreaterThan(diceBox!.width * 2);
+
+  // Dice click populates the seed with an integer.
+  await dice.click();
+  await expect(seedInput).toHaveValue(/^\d+$/);
+});
