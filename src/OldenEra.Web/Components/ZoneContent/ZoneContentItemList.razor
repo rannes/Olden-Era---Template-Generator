@@ -29,6 +29,7 @@
                     <span class="oe-zc-row-sid">@(string.IsNullOrEmpty(item.Sid) ? "(no sid)" : item.Sid)</span>
                     <span class="oe-zc-row-handle">@(item.Handle ?? "—")</span>
                     <span class="oe-zc-row-count">@item.MinCount-@item.MaxCount</span>
+                    <ZoneContentWarningBadge Warnings="@WarningsForRow(item, idx)" />
                     <button type="button" class="oe-link-btn"
                             disabled="@ReadOnly"
                             @onclick:stopPropagation
@@ -44,7 +45,15 @@
     [Parameter] public string? SelectedKey { get; set; }
     [Parameter] public EventCallback<string?> SelectedKeyChanged { get; set; }
     [Parameter] public EventCallback OnItemsChanged { get; set; }
+    [Parameter] public IReadOnlyDictionary<string, IReadOnlyList<EmitWarning>> WarningsByKey { get; set; }
+        = new Dictionary<string, IReadOnlyList<EmitWarning>>();
     [Parameter] public bool ReadOnly { get; set; }
+
+    private IReadOnlyList<EmitWarning> WarningsForRow(ZoneContentItem item, int idx)
+    {
+        var key = item.Handle is { Length: > 0 } h ? h : $"#{idx}";
+        return WarningsByKey.TryGetValue(key, out var ws) ? ws : Array.Empty<EmitWarning>();
+    }
 
     private async Task AddBlank()
     {

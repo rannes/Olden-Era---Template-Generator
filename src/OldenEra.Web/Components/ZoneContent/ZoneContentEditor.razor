@@ -1,4 +1,5 @@
 @using OldenEra.Generator.Models
+@using OldenEra.Generator.Services.ZoneContent
 @using OldenEra.Web.Services
 
 <div class="oe-zone-content-editor">
@@ -47,9 +48,11 @@
                                          SelectedKey="@_selectedKey"
                                          SelectedKeyChanged="@OnItemSelected"
                                          OnItemsChanged="@NotifyChanged"
+                                         WarningsByKey="@WarningsForCurrentScope()"
                                          ReadOnly="@CompareDefaultsOn" />
                     <ZoneContentItemDetail Item="@ResolveSelectedItem(items)"
                                            OnChanged="@NotifyChanged"
+                                           Warnings="@WarningsForSelectedItem(items)"
                                            ReadOnly="@CompareDefaultsOn" />
                 </div>
             }
@@ -68,10 +71,12 @@
     private ZoneContentScopeKey _selected = new(ZoneContentScopeKind.Player);
     private string _selectedLetter = "";
     private string? _selectedKey;
+    private IReadOnlyList<ZoneContentWarning> _warnings = Array.Empty<ZoneContentWarning>();
 
     protected override void OnParametersSet()
     {
         CompareDefaultsOnLocal = CompareDefaultsOn;
+        _warnings = ZoneContentWarningProjection.Project(Settings);
     }
 
     private async Task OnCompareToggled()
@@ -99,7 +104,45 @@
         return Task.CompletedTask;
     }
 
-    private Task NotifyChanged() => OnChanged.InvokeAsync();
+    private async Task NotifyChanged()
+    {
+        _warnings = ZoneContentWarningProjection.Project(Settings);
+        await OnChanged.InvokeAsync();
+    }
+
+    private IReadOnlyDictionary<string, IReadOnlyList<EmitWarning>> WarningsForCurrentScope()
+    {
+        var scope = _selected.Kind == ZoneContentScopeKind.NeutralPerZone
+            ? new ZoneContentScopeKey(ZoneContentScopeKind.NeutralPerZone, _selectedLetter)
+            : new ZoneContentScopeKey(_selected.Kind);
+
+        var dict = new Dictionary<string, List<EmitWarning>>();
+        foreach (var w in _warnings.Where(w => w.Scope.Equals(scope)))
+        {
+            var key = w.Handle is { Length: > 0 } h ? h : $"#{w.ItemIndex}";
+            if (!dict.TryGetValue(key, out var list))
+            {
+                list = new List<EmitWarning>();
+                dict[key] = list;
+            }
+            list.Add(w.Warning);
+        }
+        return dict.ToDictionary(kv => kv.Key, kv => (IReadOnlyList<EmitWarning>)kv.Value);
+    }
+
+    private IReadOnlyList<EmitWarning> WarningsForSelectedItem(List<ZoneContentItem> items)
+    {
+        if (_selectedKey is null) return Array.Empty<EmitWarning>();
+        int idx = -1;
+        if (_selectedKey.StartsWith("#") && int.TryParse(_selectedKey[1..], out var n))
+            idx = n;
+        else
+            idx = items.FindIndex(it => it.Handle == _selectedKey);
+        if (idx < 0 || idx >= items.Count) return Array.Empty<EmitWarning>();
+        var item = items[idx];
+        var key = item.Handle is { Length: > 0 } h ? h : $"#{idx}";
+        return WarningsForCurrentScope().TryGetValue(key, out var ws) ? ws : Array.Empty<EmitWarning>();
+    }
 
     private List<ZoneContentItem>? ResolveItems() => _selected.Kind switch
     {

@@ -20,21 +20,27 @@ else
                    @bind="HandleText" @bind:after="NotifyChanged" />
         </div>
 
-        <div class="oe-row" style="grid-template-columns: 1fr 1fr;">
-            <div class="oe-stacked">
-                <label class="oe-label">MinCount</label>
-                <input type="number" min="0" max="20" disabled="@ReadOnly"
-                       @bind="Item.MinCount" @bind:after="NotifyChanged" />
+        <div class="oe-stacked">
+            <div class="oe-row" style="grid-template-columns: auto 1fr;">
+                <label class="oe-label">Counts</label>
+                <ZoneContentWarningBadge Warnings="@WarningsFor(EmitWarning.Codes.MinCountRangeNarrowedToMax)" />
             </div>
-            <div class="oe-stacked">
-                <label class="oe-label">MaxCount</label>
-                <input type="number" min="0" max="20" disabled="@ReadOnly"
-                       @bind="Item.MaxCount" @bind:after="NotifyChanged" />
+            <div class="oe-row" style="grid-template-columns: 1fr 1fr;">
+                <div class="oe-stacked">
+                    <label class="oe-label">MinCount</label>
+                    <input type="number" min="0" max="20" disabled="@ReadOnly"
+                           @bind="Item.MinCount" @bind:after="NotifyChanged" />
+                </div>
+                <div class="oe-stacked">
+                    <label class="oe-label">MaxCount</label>
+                    <input type="number" min="0" max="20" disabled="@ReadOnly"
+                           @bind="Item.MaxCount" @bind:after="NotifyChanged" />
+                </div>
             </div>
         </div>
 
         <div class="oe-stacked">
-            <label class="oe-label">Pool</label>
+            <label class="oe-label">Pool <ZoneContentWarningBadge Warnings="@WarningsFor(EmitWarning.Codes.PoolNonMandatoryDropped)" /></label>
             <select @bind="Item.Pool" @bind:after="NotifyChanged" disabled="@ReadOnly">
                 @foreach (var p in Enum.GetValues<ZoneContentPool>())
                 {
@@ -69,13 +75,13 @@ else
         </div>
 
         <div class="oe-stacked">
-            <label class="oe-label">FactionAffinity (comma-separated)</label>
+            <label class="oe-label">FactionAffinity (comma-separated) <ZoneContentWarningBadge Warnings="@WarningsFor(EmitWarning.Codes.FactionAffinityIgnored)" /></label>
             <input type="text" disabled="@ReadOnly"
                    value="@string.Join(", ", Item.FactionAffinity)"
                    @onchange="OnFactionAffinityChanged" />
         </div>
         <div class="oe-stacked">
-            <label class="oe-label">BiomeFilter (comma-separated)</label>
+            <label class="oe-label">BiomeFilter (comma-separated) <ZoneContentWarningBadge Warnings="@WarningsFor(EmitWarning.Codes.BiomeFilterIgnored)" /></label>
             <input type="text" disabled="@ReadOnly"
                    value="@string.Join(", ", Item.BiomeFilter)"
                    @onchange="OnBiomeFilterChanged" />
@@ -96,6 +102,9 @@ else
     }
 
     private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    private IReadOnlyList<EmitWarning> WarningsFor(string code) =>
+        Warnings.Where(w => w.Code == code).ToList();
 
     private async Task OnRoadDistanceChanged(ChangeEventArgs e)
     {

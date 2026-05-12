@@ -1,0 +1,15 @@
+@using OldenEra.Generator.Services.ZoneContent
+
+@if (Warnings.Count > 0)
+{
+    <span class="oe-zc-warning" title="@Tooltip()" role="status">
+        ⚠ @Warnings.Count
+    </span>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<EmitWarning> Warnings { get; set; } = Array.Empty<EmitWarning>();
+
+    private string Tooltip() =>
+        string.Join("\n", Warnings.Select(w => $"{w.Code}: {w.Message}"));
+}
