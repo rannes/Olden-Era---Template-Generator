@@ -39,5 +39,11 @@ namespace OldenEra.Generator.Services.ZoneContent
 
             return issues;
         }
+
+        /// <summary>
+        /// Inspects an item for emit-time warnings (delegates to <see cref="ZoneContentEmitWarnings.Inspect"/>).
+        /// </summary>
+        public static IReadOnlyList<EmitWarning> InspectEmit(ZoneContentItem item, string? zoneName)
+            => ZoneContentEmitWarnings.Inspect(item, zoneName);
     }
 }

@@ -49,4 +49,13 @@ public class ZoneContentItemValidatorTests
         var issues = ZoneContentItemValidator.Validate(item);
         Assert.Contains(issues, i => i.Contains("NearCastle") && i.Contains("Far"));
     }
+
+    [Fact]
+    public void InspectEmit_DelegatesToZoneContentEmitWarnings()
+    {
+        var item = new ZoneContentItem { Sid = "x", BiomeFilter = { "Snow" } };
+        var warnings = ZoneContentItemValidator.InspectEmit(item, "side_red");
+        Assert.Contains(warnings, w => w.Code == EmitWarning.Codes.BiomeFilterIgnored);
+        Assert.Equal("side_red", warnings[0].ZoneName);
+    }
 }
