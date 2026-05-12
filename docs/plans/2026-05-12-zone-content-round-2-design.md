@@ -268,3 +268,24 @@ src/OldenEra.Generator/Settings/ZoneContent/
 ## Mac sanity
 
 `dotnet build src/OldenEra.Generator/OldenEra.Generator.csproj` and `dotnet test tests/OldenEra.Generator.Tests/OldenEra.Generator.Tests.csproj` are the two commands that must stay green throughout. WPF host project is not touched in Round 2.
+
+## Implementation deviations
+
+A short forward note for future readers; the following points diverge from the
+sketches above without changing the user-visible contract.
+
+1. **`ZoneRoadDecorationEmitter.ReferencedItems` returns `IReadOnlySet<string>`**
+   of `MandatoryContent` endpoint args, not the `(zone, sid, index)` triple
+   originally sketched. The content emitter only needs a name lookup ("is this
+   auto-name referenced?"), so a flat string set is simpler and just as correct.
+2. **Road-decoration emitter is wired as a single post-pass in `Generate()`**,
+   not inside `BuildSpawnZone` / `BuildNeutralZone`. Those builders don't take
+   `GeneratorSettings` and are invoked from ~10 topology-specific call sites;
+   threading settings through every site would be invasive. The post-pass
+   mutates the same zone instances and is structurally equivalent.
+3. **`NeutralZoneQuality` → `NeutralZoneTier` mapping** required a small private
+   helper `MapQualityToTier` (Low→Poor, Medium→Normal, High→Rich) because the
+   resolver and the neutral-zone-plan use distinct enums.
+4. **Warnings are discarded in Round 2.** No generator-level warning channel
+   exists yet; surfacing belongs to Round 4. Inline comments document this; the
+   emitter's unit tests still pin warning generation.
