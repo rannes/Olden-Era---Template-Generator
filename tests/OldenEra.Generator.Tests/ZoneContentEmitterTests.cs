@@ -160,4 +160,29 @@ public class ZoneContentEmitterTests
         Assert.Empty(group.Content!);
         Assert.Contains(result.Warnings, w => w.Code == EmitWarning.Codes.PoolNonMandatoryDropped);
     }
+
+    [Fact]
+    public void ApplyToMandatoryGroup_MaxCountGreaterThanOne_AssignsPerRowOccurrenceNames()
+    {
+        var group = new MandatoryContentGroup { Name = "side_red", Content = new() };
+        var item = new ZoneContentItem
+        {
+            Sid = "mana_well",
+            Pool = ZoneContentPool.Mandatory,
+            MaxCount = 3,
+        };
+        var referenced = new HashSet<string>(System.StringComparer.Ordinal)
+        {
+            "name_user_side_red_mana_well_0",
+            "name_user_side_red_mana_well_1",
+            "name_user_side_red_mana_well_2",
+        };
+
+        ZoneContentEmitter.ApplyToMandatoryGroup(group, new[] { item }, "side_red", referenced);
+
+        Assert.Equal(3, group.Content!.Count);
+        Assert.Equal("name_user_side_red_mana_well_0", group.Content[0].Name);
+        Assert.Equal("name_user_side_red_mana_well_1", group.Content[1].Name);
+        Assert.Equal("name_user_side_red_mana_well_2", group.Content[2].Name);
+    }
 }

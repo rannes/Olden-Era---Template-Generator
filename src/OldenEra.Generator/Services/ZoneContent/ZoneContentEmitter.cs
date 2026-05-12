@@ -40,13 +40,13 @@ namespace OldenEra.Generator.Services.ZoneContent
                 if (itemWarnings.Any(w => w.Code == EmitWarning.Codes.PoolNonMandatoryDropped))
                     continue;
 
-                int occurrence = occurrenceBySid.TryGetValue(item.Sid, out var n) ? n : 0;
-                occurrenceBySid[item.Sid] = occurrence + 1;
-
-                string? name = ResolveName(item, zoneName, occurrence, referencedNames);
-
                 for (int copy = 0; copy < item.MaxCount; copy++)
                 {
+                    int occurrence = occurrenceBySid.TryGetValue(item.Sid, out var n) ? n : 0;
+                    occurrenceBySid[item.Sid] = occurrence + 1;
+
+                    string? name = ResolveName(item, zoneName, occurrence, referencedNames);
+
                     var row = new SchemaContentItem
                     {
                         Name = name,
