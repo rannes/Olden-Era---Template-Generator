@@ -17,7 +17,9 @@
         <div class="oe-hint">Selection: @ScopeDescription()</div>
         @if (_selected.Kind == ZoneContentScopeKind.RoadDecorations)
         {
-            <div class="oe-hint">Road decorations editor lands in Task 5.</div>
+            <ZoneRoadDecorationsEditor Decorations="@Settings.ZoneRoadDecorations"
+                                       OnChanged="@NotifyChanged"
+                                       ReadOnly="@false" />
         }
         else
         {
