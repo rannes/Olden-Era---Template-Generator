@@ -3,7 +3,9 @@ using OldenEra.Generator.Constants;
 using OldenEra.Generator.Models;
 using OldenEra.Generator.Services;
 using OldenEra.Generator.Models.Unfrozen;
+using OldenEra.Generator.Services.ZoneContent;
 using OldenEra.TemplateEditor.Services;
+using OldenEra.TemplateEditor.ViewModels;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -39,6 +41,10 @@ namespace OldenEra.TemplateEditor
         private readonly PresetCatalog _presetCatalog = new();
         private bool _isRefreshingMapSizes = false;
         private string _baseTitle = string.Empty;
+
+        // Zone-content panel owns its own settings slice. Rebuilt on ApplySettings.
+        private GeneratorSettings _zoneContentSettings = new();
+        private ZoneContentPanelViewModel _zoneContentPanelVM = null!;
 
         private static readonly (MapTopology Topology, string Label, string Description)[] TopologyOptions =
         [
@@ -103,6 +109,11 @@ namespace OldenEra.TemplateEditor
             PnlZones.ChkNoDirectPlayerConn.Unchecked += ChkOption_Changed;
             PnlZones.ChkRandomPortals.Checked   += ChkRandomPortals_Changed;
             PnlZones.ChkRandomPortals.Unchecked += ChkRandomPortals_Changed;
+
+            // Zone Content panel — VM-driven, owns its own GeneratorSettings slice.
+            _zoneContentPanelVM = new ZoneContentPanelViewModel(_zoneContentSettings);
+            _zoneContentPanelVM.Changed += (_, _) => { MarkDirty(); Validate(); };
+            PnlZoneContent.DataContext = _zoneContentPanelVM;
 
             // Game Rules panel — combo + slider events.
             PnlGameRules.CmbVictory.SelectionChanged += CmbVictory_SelectionChanged;
@@ -271,7 +282,7 @@ namespace OldenEra.TemplateEditor
         private void LstNav_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (PnlMap is null || PnlHeroes is null || PnlTopology is null
-                || PnlZones is null || PnlGameRules is null || PnlExperimental is null) return;
+                || PnlZones is null || PnlZoneContent is null || PnlGameRules is null || PnlExperimental is null) return;
             if (LstNav.SelectedItem is not ListBoxItem item) return;
 
             var tag = item.Tag as string;
@@ -279,6 +290,7 @@ namespace OldenEra.TemplateEditor
             PnlHeroes.Visibility       = tag == "Heroes"        ? Visibility.Visible : Visibility.Collapsed;
             PnlTopology.Visibility     = tag == "Topology"      ? Visibility.Visible : Visibility.Collapsed;
             PnlZones.Visibility        = tag == "Zones"         ? Visibility.Visible : Visibility.Collapsed;
+            PnlZoneContent.Visibility  = tag == "ZoneContent"   ? Visibility.Visible : Visibility.Collapsed;
             PnlGameRules.Visibility    = tag == "WinConditions" ? Visibility.Visible : Visibility.Collapsed;
             PnlExperimental.Visibility = tag == "Experimental"  ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -715,7 +727,10 @@ namespace OldenEra.TemplateEditor
 
         // -- Settings persistence -----------------------------------------------
 
-        private SettingsFile GatherSettings() => new()
+        private SettingsFile GatherSettings()
+        {
+            _zoneContentPanelVM.CommitToSettings();
+            return new SettingsFile
         {
             TemplateName          = PnlMap.TxtTemplateName.Text.Trim(),
             Seed                  = int.TryParse(PnlMap.TxtSeed.Text, out var gatheredSeed) ? gatheredSeed : (int?)null,
@@ -810,7 +825,13 @@ namespace OldenEra.TemplateEditor
             TierLow    = new TierOverrideFile { BuildingPreset = PresetFromCombo(PnlExperimental.CmbLowTierPreset),    GuardWeeklyIncrement = PnlExperimental.SldLowTierGuardWeekly.Value / 100.0 },
             TierMedium = new TierOverrideFile { BuildingPreset = PresetFromCombo(PnlExperimental.CmbMediumTierPreset), GuardWeeklyIncrement = PnlExperimental.SldMediumTierGuardWeekly.Value / 100.0 },
             TierHigh   = new TierOverrideFile { BuildingPreset = PresetFromCombo(PnlExperimental.CmbHighTierPreset),   GuardWeeklyIncrement = PnlExperimental.SldHighTierGuardWeekly.Value / 100.0 },
+
+            // ── Zone content (owned by ZoneContentPanelViewModel) ────────────
+            PlayerZoneContent    = ZoneContentCloning.CloneList(_zoneContentSettings.PlayerZoneContent),
+            NeutralZoneContent   = ZoneContentCloning.CloneNeutral(_zoneContentSettings.NeutralZoneContent),
+            ZoneRoadDecorations  = ZoneContentCloning.CloneRoadDecorations(_zoneContentSettings.ZoneRoadDecorations),
         };
+        }
 
         private static int ParseInt(string s) => int.TryParse(s, out int v) && v >= 0 ? v : 0;
         private static string PresetFromCombo(System.Windows.Controls.ComboBox c)
@@ -968,6 +989,24 @@ namespace OldenEra.TemplateEditor
             PnlExperimental.SldLowTierGuardWeekly.Value    = Math.Clamp((s.TierLow?.GuardWeeklyIncrement    ?? 0) * 100.0, 0, 50);
             PnlExperimental.SldMediumTierGuardWeekly.Value = Math.Clamp((s.TierMedium?.GuardWeeklyIncrement ?? 0) * 100.0, 0, 50);
             PnlExperimental.SldHighTierGuardWeekly.Value   = Math.Clamp((s.TierHigh?.GuardWeeklyIncrement   ?? 0) * 100.0, 0, 50);
+
+            ReinitZoneContentPanel(s);
+        }
+
+        // The panel VM captures Settings + scope VMs at construction time, so on Open/Reset
+        // we deep-clone the incoming zone-content slice and rebuild the VM from scratch.
+        private void ReinitZoneContentPanel(SettingsFile? source)
+        {
+            _zoneContentSettings = new GeneratorSettings();
+            if (source is not null)
+            {
+                _zoneContentSettings.PlayerZoneContent    = ZoneContentCloning.CloneList(source.PlayerZoneContent);
+                _zoneContentSettings.NeutralZoneContent   = ZoneContentCloning.CloneNeutral(source.NeutralZoneContent);
+                _zoneContentSettings.ZoneRoadDecorations  = ZoneContentCloning.CloneRoadDecorations(source.ZoneRoadDecorations);
+            }
+            _zoneContentPanelVM = new ZoneContentPanelViewModel(_zoneContentSettings);
+            _zoneContentPanelVM.Changed += (_, _) => { MarkDirty(); Validate(); };
+            PnlZoneContent.DataContext = _zoneContentPanelVM;
         }
 
         private static int ResourceValue(SettingsFile s, string sid) =>
@@ -1266,7 +1305,10 @@ namespace OldenEra.TemplateEditor
             MessageBox.Show(savedMsg, "Saved", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private GeneratorSettings BuildSettings() => new()
+        private GeneratorSettings BuildSettings()
+        {
+            _zoneContentPanelVM.CommitToSettings();
+            return new GeneratorSettings
         {
             TemplateName = PnlMap.TxtTemplateName.Text.Trim(),
             Seed = int.TryParse(PnlMap.TxtSeed.Text, out var builtSeed) ? builtSeed : (int?)null,
@@ -1400,7 +1442,13 @@ namespace OldenEra.TemplateEditor
                 UnitMultiplier = PnlExperimental.SldBonusUnitMultiplier.Value / 100.0,
                 UnitMultiplierStartHeroOnly = PnlExperimental.ChkBonusUnitMultiplierStartHeroOnly.IsChecked == true,
             },
+
+            // ── Zone content (owned by ZoneContentPanelViewModel) ────────────
+            PlayerZoneContent    = ZoneContentCloning.CloneList(_zoneContentSettings.PlayerZoneContent),
+            NeutralZoneContent   = ZoneContentCloning.CloneNeutral(_zoneContentSettings.NeutralZoneContent),
+            ZoneRoadDecorations  = ZoneContentCloning.CloneRoadDecorations(_zoneContentSettings.ZoneRoadDecorations),
         };
+        }
 
         // Apply per-tier overrides after object init since AdvancedSettings.LowTier/MediumTier/HighTier are not in the initializer above.
         private void ApplyExperimentalTierOverrides(GeneratorSettings settings)
