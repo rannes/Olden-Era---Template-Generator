@@ -104,8 +104,8 @@
                                   ToolTip="Show experimental features. Generated templates may behave unpredictably."
                                   Checked="ChkExperimentalEnabled_Changed"
                                   Unchecked="ChkExperimentalEnabled_Changed"/>
-                        <Button Content="Patch Notes" Click="BtnPatchNotes_Click" Style="{StaticResource OeGhostButton}" ToolTip="View release notes on GitHub"/>
                         <Button Content="GitHub" Click="BtnGithub_Click" Style="{StaticResource OeGhostButton}" ToolTip="View the project on GitHub"/>
+                        <Button Content="Patch Notes" Click="BtnPatchNotes_Click" Style="{StaticResource OeGhostButton}" ToolTip="View release notes on GitHub"/>
                         <Button Content="Discord" Click="BtnDiscord_Click" Style="{StaticResource OeGhostButton}" ToolTip="Join the community Discord"/>
                     </StackPanel>
                 </DockPanel>

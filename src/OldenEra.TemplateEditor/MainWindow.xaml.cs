@@ -230,11 +230,7 @@ namespace OldenEra.TemplateEditor
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(GitHubProjectPage) { UseShellExecute = true });
 
         private void BtnPatchNotes_Click(object sender, RoutedEventArgs e) =>
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = GitHubReleasesPage,
-                UseShellExecute = true
-            });
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(GitHubReleasesPage) { UseShellExecute = true });
 
         private void BtnDiscord_Click(object sender, RoutedEventArgs e) =>
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(CommunityDiscordInvite) { UseShellExecute = true });
