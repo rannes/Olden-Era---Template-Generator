@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using OldenEra.Generator.Models;
 using OldenEra.Generator.Services.ZoneContent;
@@ -12,7 +14,14 @@ namespace OldenEra.TemplateEditor.ViewModels;
 /// per-zone letter rides along with the kind. <see cref="Label"/> is supplied
 /// by the panel-VM so labelling stays a presentation concern.
 /// </summary>
-public sealed class ZoneContentScopeViewModel
+/// <remarks>
+/// Implements <see cref="INotifyPropertyChanged"/> so the WPF tab-header
+/// badges can react to <see cref="WarningCount"/> changes. The scope subscribes
+/// to each item's <see cref="ZoneContentItemViewModel.PropertyChanged"/> and
+/// re-fires <c>WarningCount</c>/<c>HasWarnings</c> when an item's count changes
+/// or when items are added/removed.
+/// </remarks>
+public sealed class ZoneContentScopeViewModel : INotifyPropertyChanged
 {
     public ZoneContentScopeKey Key { get; }
     public string Label { get; }
@@ -22,6 +31,7 @@ public sealed class ZoneContentScopeViewModel
     {
         Key = key;
         Label = label;
+        Items.CollectionChanged += OnItemsChanged;
     }
 
     public static ZoneContentScopeViewModel From(
@@ -37,4 +47,33 @@ public sealed class ZoneContentScopeViewModel
 
     public IReadOnlyList<ZoneContentItem> ToModels() =>
         Items.Select(i => i.ToModel()).ToList();
+
+    public int WarningCount => Items.Sum(i => i.WarningCount);
+
+    public bool HasWarnings => WarningCount > 0;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnItemsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems is not null)
+            foreach (ZoneContentItemViewModel vm in e.NewItems)
+                vm.PropertyChanged += OnItemPropertyChanged;
+        if (e.OldItems is not null)
+            foreach (ZoneContentItemViewModel vm in e.OldItems)
+                vm.PropertyChanged -= OnItemPropertyChanged;
+        RaiseWarningCountChanged();
+    }
+
+    private void OnItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ZoneContentItemViewModel.WarningCount))
+            RaiseWarningCountChanged();
+    }
+
+    private void RaiseWarningCountChanged()
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(WarningCount)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasWarnings)));
+    }
 }

@@ -233,6 +233,52 @@ public class ZoneContentPanelViewModelTests
     }
 
     [Fact]
+    public void Warnings_AreDistributedToOwningItems()
+    {
+        // MinCount != MaxCount triggers MinCountRangeNarrowedToMax.
+        var settings = BuildSettings(
+            player: new[] { Item("name_a", min: 5, max: 1) });
+        var vm = new ZoneContentPanelViewModel(settings);
+
+        Assert.True(vm.PlayerScope.Items[0].WarningCount > 0);
+        Assert.Equal(vm.PlayerScope.WarningCount, vm.PlayerScope.Items[0].WarningCount);
+    }
+
+    [Fact]
+    public void DefaultsCompare_OnClearsItemWarnings()
+    {
+        var settings = BuildSettings(
+            player: new[] { Item("name_a", min: 5, max: 1) });
+        var vm = new ZoneContentPanelViewModel(settings);
+        Assert.True(vm.PlayerScope.WarningCount > 0);
+
+        vm.IsDefaultsCompareActive = true;
+
+        // Blanked clone has no items.
+        Assert.Empty(vm.PlayerScope.Items);
+        Assert.Equal(0, vm.PlayerScope.WarningCount);
+        Assert.False(vm.PlayerScope.HasWarnings);
+    }
+
+    [Fact]
+    public void PerZoneWarningCount_AggregatesAcrossLetters()
+    {
+        var settings = BuildSettings(
+            byLetter: new Dictionary<string, IEnumerable<ZoneContentItem>>
+            {
+                ["A"] = new[] { Item("name_a", min: 1, max: 3) },
+                ["B"] = new[] { Item("name_b", min: 1, max: 4) },
+            });
+        var vm = new ZoneContentPanelViewModel(settings);
+
+        Assert.True(vm.PerZoneWarningCount > 0);
+        Assert.True(vm.PerZoneHasWarnings);
+        Assert.Equal(
+            vm.PerZoneScopes.Values.Sum(s => s.WarningCount),
+            vm.PerZoneWarningCount);
+    }
+
+    [Fact]
     public void RoadDecorations_ReadsThroughLiveSettings()
     {
         var settings = new GeneratorSettings();

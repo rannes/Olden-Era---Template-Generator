@@ -7,6 +7,24 @@
              (see CLAUDE.md -> feedback_wpf_style_child_order). BAML errors
              only surface in CI on Mac. -->
         <conv:InverseBoolConverter x:Key="InverseBool"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+
+        <!-- Warning badge: orange Border + count. Style.Triggers (when added later)
+             MUST come after Setters (CLAUDE.md -> feedback_wpf_style_child_order). -->
+        <Style x:Key="OeWarningBadge" TargetType="Border">
+            <Setter Property="Background" Value="#9A5E1C"/>
+            <Setter Property="BorderBrush" Value="#6B3F10"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="6,1"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="6,0,0,0"/>
+        </Style>
+        <Style x:Key="OeWarningBadgeText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#1c1208"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
 
         <DataTemplate x:Key="ZoneContentItemRowTemplate">
             <Grid Margin="0,2">
@@ -20,6 +38,7 @@
                     <ColumnDefinition Width="*"/>    <!-- FactionAffinity -->
                     <ColumnDefinition Width="*"/>    <!-- BiomeFilter -->
                     <ColumnDefinition Width="Auto"/> <!-- Delete (placeholder; A8 wires deletion) -->
+                    <ColumnDefinition Width="Auto"/> <!-- Warning badge -->
                 </Grid.ColumnDefinitions>
 
                 <ComboBox Grid.Column="0"
@@ -70,6 +89,23 @@
                 <Button Grid.Column="8" Content="✕"
                         IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
                         Margin="4,0,0,0" Padding="6,0"/>
+
+                <!-- Per-row warning badge. Tooltip lists every message; per-field
+                     badges are deferred (see commit message). -->
+                <Border Grid.Column="9" Style="{StaticResource OeWarningBadge}"
+                        Visibility="{Binding HasWarnings, Converter={StaticResource BoolToVisibility}}">
+                    <Border.ToolTip>
+                        <ItemsControl ItemsSource="{Binding Warnings}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Message}" Margin="0,0,0,2"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border.ToolTip>
+                    <TextBlock Style="{StaticResource OeWarningBadgeText}"
+                               Text="{Binding WarningCount}"/>
+                </Border>
             </Grid>
         </DataTemplate>
 
@@ -95,27 +131,87 @@
             </StackPanel>
 
             <TabControl>
-                <TabItem Header="Player" DataContext="{Binding PlayerScope}">
+                <TabItem DataContext="{Binding PlayerScope}">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Player"/>
+                            <Border Style="{StaticResource OeWarningBadge}"
+                                    Visibility="{Binding HasWarnings, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Style="{StaticResource OeWarningBadgeText}"
+                                           Text="{Binding WarningCount}"/>
+                            </Border>
+                        </StackPanel>
+                    </TabItem.Header>
                     <ContentControl Content="{Binding}"
                                     ContentTemplate="{StaticResource ZoneContentScopeBodyTemplate}"/>
                 </TabItem>
-                <TabItem Header="Neutral · Global" DataContext="{Binding NeutralGlobalScope}">
+                <TabItem DataContext="{Binding NeutralGlobalScope}">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Neutral · Global"/>
+                            <Border Style="{StaticResource OeWarningBadge}"
+                                    Visibility="{Binding HasWarnings, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Style="{StaticResource OeWarningBadgeText}"
+                                           Text="{Binding WarningCount}"/>
+                            </Border>
+                        </StackPanel>
+                    </TabItem.Header>
                     <ContentControl Content="{Binding}"
                                     ContentTemplate="{StaticResource ZoneContentScopeBodyTemplate}"/>
                 </TabItem>
-                <TabItem Header="Neutral · Poor" DataContext="{Binding PoorScope}">
+                <TabItem DataContext="{Binding PoorScope}">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Neutral · Poor"/>
+                            <Border Style="{StaticResource OeWarningBadge}"
+                                    Visibility="{Binding HasWarnings, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Style="{StaticResource OeWarningBadgeText}"
+                                           Text="{Binding WarningCount}"/>
+                            </Border>
+                        </StackPanel>
+                    </TabItem.Header>
                     <ContentControl Content="{Binding}"
                                     ContentTemplate="{StaticResource ZoneContentScopeBodyTemplate}"/>
                 </TabItem>
-                <TabItem Header="Neutral · Normal" DataContext="{Binding NormalScope}">
+                <TabItem DataContext="{Binding NormalScope}">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Neutral · Normal"/>
+                            <Border Style="{StaticResource OeWarningBadge}"
+                                    Visibility="{Binding HasWarnings, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Style="{StaticResource OeWarningBadgeText}"
+                                           Text="{Binding WarningCount}"/>
+                            </Border>
+                        </StackPanel>
+                    </TabItem.Header>
                     <ContentControl Content="{Binding}"
                                     ContentTemplate="{StaticResource ZoneContentScopeBodyTemplate}"/>
                 </TabItem>
-                <TabItem Header="Neutral · Rich" DataContext="{Binding RichScope}">
+                <TabItem DataContext="{Binding RichScope}">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Neutral · Rich"/>
+                            <Border Style="{StaticResource OeWarningBadge}"
+                                    Visibility="{Binding HasWarnings, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Style="{StaticResource OeWarningBadgeText}"
+                                           Text="{Binding WarningCount}"/>
+                            </Border>
+                        </StackPanel>
+                    </TabItem.Header>
                     <ContentControl Content="{Binding}"
                                     ContentTemplate="{StaticResource ZoneContentScopeBodyTemplate}"/>
                 </TabItem>
-                <TabItem Header="Per-zone">
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Per-zone"/>
+                            <Border Style="{StaticResource OeWarningBadge}"
+                                    Visibility="{Binding PerZoneHasWarnings, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Style="{StaticResource OeWarningBadgeText}"
+                                           Text="{Binding PerZoneWarningCount}"/>
+                            </Border>
+                        </StackPanel>
+                    </TabItem.Header>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="80"/>

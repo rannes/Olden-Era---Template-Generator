@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using OldenEra.Generator.Models;
+using OldenEra.Generator.Services.ZoneContent;
 
 namespace OldenEra.TemplateEditor.ViewModels;
 
@@ -24,6 +26,7 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
     private RoadDistance? _roadDistance;
     private string _factionAffinityCsv = "";
     private string _biomeFilterCsv = "";
+    private IReadOnlyList<EmitWarning> _warnings = Array.Empty<EmitWarning>();
 
     public string Sid
     {
@@ -89,6 +92,37 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
     {
         get => _biomeFilterCsv;
         set => SetField(ref _biomeFilterCsv, value);
+    }
+
+    /// <summary>
+    /// Warnings projected for this item. Populated by the panel VM after every
+    /// warnings refresh; consumers are read-only. Drives per-row badge display.
+    /// </summary>
+    public IReadOnlyList<EmitWarning> Warnings => _warnings;
+
+    public int WarningCount => _warnings.Count;
+
+    public bool HasWarnings => _warnings.Count > 0;
+
+    /// <summary>
+    /// Item identity used to join warnings to this row. Mirrors the Web projection
+    /// (ZoneContentEditor.razor): handle when present, else <c>#index</c>.
+    /// </summary>
+    public string KeyForIndex(int index) =>
+        string.IsNullOrEmpty(_handleText) ? $"#{index}" : _handleText;
+
+    /// <summary>
+    /// Replaces the warning bag and fires PropertyChanged for the bag and both
+    /// derived helpers (<see cref="WarningCount"/>, <see cref="HasWarnings"/>).
+    /// Internal so only the panel VM populates it.
+    /// </summary>
+    internal void SetWarnings(IReadOnlyList<EmitWarning> warnings)
+    {
+        if (ReferenceEquals(_warnings, warnings)) return;
+        _warnings = warnings;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Warnings)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(WarningCount)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasWarnings)));
     }
 
     public static ZoneContentItemViewModel FromModel(ZoneContentItem model) => new()

@@ -95,6 +95,13 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
 
         RebuildScopeItems();
         _warnings = ZoneContentWarningProjection.Project(_settings);
+        DistributeWarningsToItems();
+
+        // Wire per-zone aggregate INPC. Per-zone scopes are not added/removed
+        // after construction (deferred materialization) so a single subscription
+        // per scope is sufficient.
+        foreach (var scope in _perZone.Values)
+            scope.PropertyChanged += OnPerZoneScopePropertyChanged;
     }
 
     public GeneratorSettings Settings => _settings;
@@ -135,6 +142,7 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
 
             RebuildScopeItems();
             _warnings = ZoneContentWarningProjection.Project(_settings);
+            DistributeWarningsToItems();
 
             RaisePropertyChanged(nameof(IsDefaultsCompareActive));
             RaisePropertyChanged(nameof(IsReadOnly));
@@ -146,6 +154,14 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
     public bool IsReadOnly => _isDefaultsCompareActive;
 
     public IReadOnlyList<ZoneContentWarning> Warnings => _warnings;
+
+    /// <summary>
+    /// Aggregate warning count across every per-zone scope. Drives the Per-zone
+    /// tab-header badge.
+    /// </summary>
+    public int PerZoneWarningCount => _perZone.Values.Sum(s => s.WarningCount);
+
+    public bool PerZoneHasWarnings => PerZoneWarningCount > 0;
 
     public event EventHandler? Changed;
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -176,6 +192,7 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
         }
 
         _warnings = ZoneContentWarningProjection.Project(_settings);
+        DistributeWarningsToItems();
         RaisePropertyChanged(nameof(Warnings));
         Changed?.Invoke(this, EventArgs.Empty);
     }
@@ -219,4 +236,56 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
 
     private void RaisePropertyChanged([CallerMemberName] string? propertyName = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+    /// <summary>
+    /// Distributes the flat <see cref="Warnings"/> list down to each
+    /// item-VM by joining on <c>(scope, handle ?? "#index")</c>. Mirrors the
+    /// Web projection in <c>ZoneContentEditor.razor</c>.
+    /// </summary>
+    private void DistributeWarningsToItems()
+    {
+        var byScope = _warnings
+            .GroupBy(w => w.Scope)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        DistributeForScope(byScope, new ZoneContentScopeKey(ZoneContentScopeKind.Player), _player);
+        DistributeForScope(byScope, new ZoneContentScopeKey(ZoneContentScopeKind.NeutralGlobal), _neutralGlobal);
+        DistributeForScope(byScope, new ZoneContentScopeKey(ZoneContentScopeKind.NeutralPoor), _poor);
+        DistributeForScope(byScope, new ZoneContentScopeKey(ZoneContentScopeKind.NeutralNormal), _normal);
+        DistributeForScope(byScope, new ZoneContentScopeKey(ZoneContentScopeKind.NeutralRich), _rich);
+        foreach (var (letter, scope) in _perZone)
+            DistributeForScope(byScope, new ZoneContentScopeKey(ZoneContentScopeKind.NeutralPerZone, letter), scope);
+    }
+
+    private static void DistributeForScope(
+        Dictionary<ZoneContentScopeKey, List<ZoneContentWarning>> byScope,
+        ZoneContentScopeKey key,
+        ZoneContentScopeViewModel scope)
+    {
+        if (!byScope.TryGetValue(key, out var bag))
+        {
+            for (var i = 0; i < scope.Items.Count; i++)
+                scope.Items[i].SetWarnings(Array.Empty<EmitWarning>());
+            return;
+        }
+        for (var i = 0; i < scope.Items.Count; i++)
+        {
+            var item = scope.Items[i];
+            var idKey = string.IsNullOrEmpty(item.HandleText) ? $"#{i}" : item.HandleText;
+            var matching = bag
+                .Where(w => (string.IsNullOrEmpty(w.Handle) ? $"#{w.ItemIndex}" : w.Handle) == idKey)
+                .Select(w => w.Warning)
+                .ToList();
+            item.SetWarnings(matching);
+        }
+    }
+
+    private void OnPerZoneScopePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ZoneContentScopeViewModel.WarningCount))
+        {
+            RaisePropertyChanged(nameof(PerZoneWarningCount));
+            RaisePropertyChanged(nameof(PerZoneHasWarnings));
+        }
+    }
 }

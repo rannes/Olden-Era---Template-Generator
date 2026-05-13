@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using OldenEra.Generator.Models;
 using OldenEra.Generator.Services.ZoneContent;
@@ -101,6 +103,52 @@ public class ZoneContentScopeViewModelTests
 
         Assert.NotNull(captured);
         Assert.Equal(NotifyCollectionChangedAction.Remove, captured!.Action);
+    }
+
+    [Fact]
+    public void WarningCount_AggregatesAcrossItems()
+    {
+        var scope = ZoneContentScopeViewModel.From(
+            new ZoneContentScopeKey(ZoneContentScopeKind.Player), "Player",
+            new[] { Item("a"), Item("b") });
+
+        scope.Items[0].SetWarnings(new[] { new EmitWarning("X", "m", null, null) });
+        scope.Items[1].SetWarnings(new[]
+        {
+            new EmitWarning("X", "m", null, null),
+            new EmitWarning("Y", "m", null, null),
+        });
+
+        Assert.Equal(3, scope.WarningCount);
+        Assert.True(scope.HasWarnings);
+    }
+
+    [Fact]
+    public void WarningCount_RaisesPropertyChangedOnItemWarningChange()
+    {
+        var scope = ZoneContentScopeViewModel.From(
+            new ZoneContentScopeKey(ZoneContentScopeKind.Player), "Player",
+            new[] { Item("a") });
+        var raised = new List<string>();
+        ((INotifyPropertyChanged)scope).PropertyChanged += (_, e) => raised.Add(e.PropertyName!);
+
+        scope.Items[0].SetWarnings(new[] { new EmitWarning("X", "m", null, null) });
+
+        Assert.Contains(nameof(scope.WarningCount), raised);
+        Assert.Contains(nameof(scope.HasWarnings), raised);
+    }
+
+    [Fact]
+    public void WarningCount_RaisesPropertyChangedOnAddRemove()
+    {
+        var scope = new ZoneContentScopeViewModel(
+            new ZoneContentScopeKey(ZoneContentScopeKind.Player), "Player");
+        var raised = new List<string>();
+        ((INotifyPropertyChanged)scope).PropertyChanged += (_, e) => raised.Add(e.PropertyName!);
+
+        scope.Items.Add(ZoneContentItemViewModel.FromModel(Item("x")));
+
+        Assert.Contains(nameof(scope.WarningCount), raised);
     }
 
     [Fact]

@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using OldenEra.Generator.Models;
+using OldenEra.Generator.Services.ZoneContent;
 using OldenEra.TemplateEditor.ViewModels;
 
 namespace OldenEra.TemplateEditor.Tests.ViewModels;
@@ -228,6 +230,31 @@ public class ZoneContentItemViewModelTests
         vm.FactionAffinityCsv = "haven";
 
         Assert.DoesNotContain(nameof(vm.FactionAffinityCsv), raised);
+    }
+
+    [Fact]
+    public void SetWarnings_RaisesPropertyChangedForAllDerived()
+    {
+        var vm = ZoneContentItemViewModel.FromModel(new ZoneContentItem());
+        var raised = TrackPropertyChanges(vm);
+
+        vm.SetWarnings(new[] { new EmitWarning("X", "msg", null, null) });
+
+        Assert.Contains(nameof(vm.Warnings), raised);
+        Assert.Contains(nameof(vm.WarningCount), raised);
+        Assert.Contains(nameof(vm.HasWarnings), raised);
+        Assert.True(vm.HasWarnings);
+        Assert.Equal(1, vm.WarningCount);
+    }
+
+    [Fact]
+    public void KeyForIndex_PrefersHandle_FallsBackToIndex()
+    {
+        var withHandle = ZoneContentItemViewModel.FromModel(new ZoneContentItem { Handle = "h1" });
+        Assert.Equal("h1", withHandle.KeyForIndex(7));
+
+        var noHandle = ZoneContentItemViewModel.FromModel(new ZoneContentItem());
+        Assert.Equal("#3", noHandle.KeyForIndex(3));
     }
 
     private static List<string> TrackPropertyChanges(INotifyPropertyChanged target)
