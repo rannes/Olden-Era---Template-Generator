@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using OldenEra.Generator.Models;
-using OldenEra.Web.Services;
+using OldenEra.Generator.Services.ZoneContent;
 
-namespace OldenEra.Web.Tests.Services;
+namespace OldenEra.Generator.Tests.Services.ZoneContent;
 
 public class ZoneContentCloningTests
 {
