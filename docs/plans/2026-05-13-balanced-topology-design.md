@@ -67,7 +67,7 @@ master experimental toggle and **not** flip it on by default.
 | `MapTopology.cs` | None | Additive enum value. |
 | `TemplateGenerator.cs` | High (seeded `Random`, zone content #17, `KnownIds`) | Reimplement balanced branches; thread `Random`. |
 | `TemplatePreviewRenderer.cs` | High (renamed from `TemplatePreviewPngWriter.cs`; FR layout + bridge fade) | Reimplement ring-snap pass. |
-| `GeneratorSettings.cs` | Diverged but additive-safe | Mark `ExperimentalBalancedZonePlacement` `[Obsolete]`; keep field. |
+| `GeneratorSettings.cs` | Diverged but additive-safe | Remove `ExperimentalBalancedZonePlacement` (no longer consumed at runtime). |
 | `SettingsFile.cs` / `SettingsMapper` | Additive | Round-trip the topology choice; nothing new structurally. |
 | WPF / Web UI | n/a | Add "Balanced" option to topology selector; visible when Experimental on. |
 | Tests | Additive | Add `TemplateGeneratorTests` cases for balanced placement determinism + ring-snap output. |
