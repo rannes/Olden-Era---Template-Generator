@@ -105,6 +105,34 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
     public bool HasWarnings => _warnings.Count > 0;
 
     /// <summary>
+    /// Filters <see cref="Warnings"/> to entries whose <c>Code</c> equals
+    /// <paramref name="code"/>. Mirrors the Web's <c>WarningsFor</c> helper in
+    /// <c>ZoneContentItemDetail.razor</c>. Used by per-field badge bindings —
+    /// the named properties below (MinMaxWarnings, PoolWarnings, etc.) wrap
+    /// the codes that have a UI surface today.
+    /// </summary>
+    public IReadOnlyList<EmitWarning> WarningsFor(string code) =>
+        _warnings.Where(w => w.Code == code).ToList();
+
+    /// <summary>Per-field warning lists driving the WPF badges.</summary>
+    public IReadOnlyList<EmitWarning> MinMaxWarnings =>
+        WarningsFor(EmitWarning.Codes.MinCountRangeNarrowedToMax);
+
+    public IReadOnlyList<EmitWarning> PoolWarnings =>
+        WarningsFor(EmitWarning.Codes.PoolNonMandatoryDropped);
+
+    public IReadOnlyList<EmitWarning> FactionAffinityWarnings =>
+        WarningsFor(EmitWarning.Codes.FactionAffinityIgnored);
+
+    public IReadOnlyList<EmitWarning> BiomeFilterWarnings =>
+        WarningsFor(EmitWarning.Codes.BiomeFilterIgnored);
+
+    public bool HasMinMaxWarnings => MinMaxWarnings.Count > 0;
+    public bool HasPoolWarnings => PoolWarnings.Count > 0;
+    public bool HasFactionAffinityWarnings => FactionAffinityWarnings.Count > 0;
+    public bool HasBiomeFilterWarnings => BiomeFilterWarnings.Count > 0;
+
+    /// <summary>
     /// Item identity used to join warnings to this row. Mirrors the Web projection
     /// (ZoneContentEditor.razor): handle when present, else <c>#index</c>.
     /// </summary>
@@ -123,6 +151,14 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Warnings)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(WarningCount)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasWarnings)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MinMaxWarnings)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PoolWarnings)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FactionAffinityWarnings)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BiomeFilterWarnings)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasMinMaxWarnings)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasPoolWarnings)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasFactionAffinityWarnings)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasBiomeFilterWarnings)));
     }
 
     public static ZoneContentItemViewModel FromModel(ZoneContentItem model) => new()

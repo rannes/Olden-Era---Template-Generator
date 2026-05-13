@@ -40,6 +40,29 @@
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
 
+        <!-- Per-field warning badge: a small "!" pill rendered next to a
+             specific input. Mirrors the Web's per-code WarningsFor badges.
+             Style.Triggers (when added later) MUST come after Setters
+             (CLAUDE.md -> feedback_wpf_style_child_order). -->
+        <Style x:Key="OeFieldBadge" TargetType="Border">
+            <Setter Property="Background" Value="#9A5E1C"/>
+            <Setter Property="BorderBrush" Value="#6B3F10"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="Height" Value="14"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="4,0,0,0"/>
+        </Style>
+        <Style x:Key="OeFieldBadgeText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#1c1208"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+
         <DataTemplate x:Key="ZoneContentItemRowTemplate">
             <Grid Margin="0,2">
                 <Grid.ColumnDefinitions>
@@ -68,16 +91,42 @@
                          Text="{Binding MinCount, UpdateSourceTrigger=PropertyChanged}"
                          IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
                          Margin="4,0"/>
-                <TextBox Grid.Column="2"
-                         Text="{Binding MaxCount, UpdateSourceTrigger=PropertyChanged}"
-                         IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
-                         Margin="4,0"/>
+                <DockPanel Grid.Column="2" Margin="4,0" LastChildFill="True">
+                    <Border DockPanel.Dock="Right" Style="{StaticResource OeFieldBadge}"
+                            Visibility="{Binding HasMinMaxWarnings, Converter={StaticResource BoolToVisibility}}">
+                        <Border.ToolTip>
+                            <ItemsControl ItemsSource="{Binding MinMaxWarnings}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Message}" Margin="0,0,0,2"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border.ToolTip>
+                        <TextBlock Style="{StaticResource OeFieldBadgeText}" Text="!"/>
+                    </Border>
+                    <TextBox Text="{Binding MaxCount, UpdateSourceTrigger=PropertyChanged}"
+                             IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"/>
+                </DockPanel>
 
-                <ComboBox Grid.Column="3"
-                          ItemsSource="{Binding DataContext.PoolValues, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                          SelectedItem="{Binding Pool}"
-                          IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
-                          Margin="4,0"/>
+                <DockPanel Grid.Column="3" Margin="4,0" LastChildFill="True">
+                    <Border DockPanel.Dock="Right" Style="{StaticResource OeFieldBadge}"
+                            Visibility="{Binding HasPoolWarnings, Converter={StaticResource BoolToVisibility}}">
+                        <Border.ToolTip>
+                            <ItemsControl ItemsSource="{Binding PoolWarnings}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Message}" Margin="0,0,0,2"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border.ToolTip>
+                        <TextBlock Style="{StaticResource OeFieldBadgeText}" Text="!"/>
+                    </Border>
+                    <ComboBox ItemsSource="{Binding DataContext.PoolValues, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              SelectedItem="{Binding Pool}"
+                              IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"/>
+                </DockPanel>
 
                 <CheckBox Grid.Column="4" Content="Guarded"
                           IsChecked="{Binding IsGuarded}"
@@ -88,16 +137,42 @@
                           IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
                           Margin="8,0,0,0" VerticalAlignment="Center"/>
 
-                <TextBox Grid.Column="6"
-                         Text="{Binding FactionAffinityCsv, UpdateSourceTrigger=LostFocus}"
-                         IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
-                         Margin="4,0"
-                         ToolTip="Faction affinity (comma-separated)"/>
-                <TextBox Grid.Column="7"
-                         Text="{Binding BiomeFilterCsv, UpdateSourceTrigger=LostFocus}"
-                         IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
-                         Margin="4,0"
-                         ToolTip="Biome filter (comma-separated)"/>
+                <DockPanel Grid.Column="6" Margin="4,0" LastChildFill="True">
+                    <Border DockPanel.Dock="Right" Style="{StaticResource OeFieldBadge}"
+                            Visibility="{Binding HasFactionAffinityWarnings, Converter={StaticResource BoolToVisibility}}">
+                        <Border.ToolTip>
+                            <ItemsControl ItemsSource="{Binding FactionAffinityWarnings}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Message}" Margin="0,0,0,2"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border.ToolTip>
+                        <TextBlock Style="{StaticResource OeFieldBadgeText}" Text="!"/>
+                    </Border>
+                    <TextBox Text="{Binding FactionAffinityCsv, UpdateSourceTrigger=LostFocus}"
+                             IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                             ToolTip="Faction affinity (comma-separated)"/>
+                </DockPanel>
+                <DockPanel Grid.Column="7" Margin="4,0" LastChildFill="True">
+                    <Border DockPanel.Dock="Right" Style="{StaticResource OeFieldBadge}"
+                            Visibility="{Binding HasBiomeFilterWarnings, Converter={StaticResource BoolToVisibility}}">
+                        <Border.ToolTip>
+                            <ItemsControl ItemsSource="{Binding BiomeFilterWarnings}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Message}" Margin="0,0,0,2"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border.ToolTip>
+                        <TextBlock Style="{StaticResource OeFieldBadgeText}" Text="!"/>
+                    </Border>
+                    <TextBox Text="{Binding BiomeFilterCsv, UpdateSourceTrigger=LostFocus}"
+                             IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                             ToolTip="Biome filter (comma-separated)"/>
+                </DockPanel>
 
                 <!-- Delete button: removes the row's item-VM from its
                      owning scope. Disabled while the panel is in
@@ -107,8 +182,8 @@
                         IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
                         Margin="4,0,0,0" Padding="6,0"/>
 
-                <!-- Per-row warning badge. Tooltip lists every message; per-field
-                     badges are deferred (see commit message). -->
+                <!-- Per-row warning badge. Aggregates the row's full warning
+                     count; per-field badges live next to the relevant input. -->
                 <Border Grid.Column="9" Style="{StaticResource OeWarningBadge}"
                         Visibility="{Binding HasWarnings, Converter={StaticResource BoolToVisibility}}">
                     <Border.ToolTip>

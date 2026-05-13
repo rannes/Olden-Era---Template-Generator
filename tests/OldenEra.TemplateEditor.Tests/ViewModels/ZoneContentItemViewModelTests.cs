@@ -248,6 +248,68 @@ public class ZoneContentItemViewModelTests
     }
 
     [Fact]
+    public void WarningsFor_FiltersByCode()
+    {
+        var vm = ZoneContentItemViewModel.FromModel(new ZoneContentItem());
+        vm.SetWarnings(new[]
+        {
+            new EmitWarning(EmitWarning.Codes.PoolNonMandatoryDropped, "pool", null, null),
+            new EmitWarning(EmitWarning.Codes.MinCountRangeNarrowedToMax, "minmax", null, null),
+            new EmitWarning(EmitWarning.Codes.PoolNonMandatoryDropped, "pool2", null, null),
+        });
+
+        var pool = vm.WarningsFor(EmitWarning.Codes.PoolNonMandatoryDropped);
+        Assert.Equal(2, pool.Count);
+        Assert.All(pool, w => Assert.Equal(EmitWarning.Codes.PoolNonMandatoryDropped, w.Code));
+
+        var minmax = vm.WarningsFor(EmitWarning.Codes.MinCountRangeNarrowedToMax);
+        Assert.Single(minmax);
+    }
+
+    [Fact]
+    public void PerFieldBadgeProjections_MatchUnderlyingCodes()
+    {
+        var vm = ZoneContentItemViewModel.FromModel(new ZoneContentItem());
+        vm.SetWarnings(new[]
+        {
+            new EmitWarning(EmitWarning.Codes.MinCountRangeNarrowedToMax, "m", null, null),
+            new EmitWarning(EmitWarning.Codes.PoolNonMandatoryDropped, "p", null, null),
+            new EmitWarning(EmitWarning.Codes.FactionAffinityIgnored, "f", null, null),
+            new EmitWarning(EmitWarning.Codes.BiomeFilterIgnored, "b", null, null),
+        });
+
+        Assert.Single(vm.MinMaxWarnings);
+        Assert.Single(vm.PoolWarnings);
+        Assert.Single(vm.FactionAffinityWarnings);
+        Assert.Single(vm.BiomeFilterWarnings);
+        Assert.True(vm.HasMinMaxWarnings);
+        Assert.True(vm.HasPoolWarnings);
+        Assert.True(vm.HasFactionAffinityWarnings);
+        Assert.True(vm.HasBiomeFilterWarnings);
+    }
+
+    [Fact]
+    public void SetWarnings_RaisesPropertyChangedForPerFieldProjections()
+    {
+        var vm = ZoneContentItemViewModel.FromModel(new ZoneContentItem());
+        var raised = TrackPropertyChanges(vm);
+
+        vm.SetWarnings(new[]
+        {
+            new EmitWarning(EmitWarning.Codes.PoolNonMandatoryDropped, "p", null, null),
+        });
+
+        Assert.Contains(nameof(vm.MinMaxWarnings), raised);
+        Assert.Contains(nameof(vm.PoolWarnings), raised);
+        Assert.Contains(nameof(vm.FactionAffinityWarnings), raised);
+        Assert.Contains(nameof(vm.BiomeFilterWarnings), raised);
+        Assert.Contains(nameof(vm.HasMinMaxWarnings), raised);
+        Assert.Contains(nameof(vm.HasPoolWarnings), raised);
+        Assert.Contains(nameof(vm.HasFactionAffinityWarnings), raised);
+        Assert.Contains(nameof(vm.HasBiomeFilterWarnings), raised);
+    }
+
+    [Fact]
     public void KeyForIndex_PrefersHandle_FallsBackToIndex()
     {
         var withHandle = ZoneContentItemViewModel.FromModel(new ZoneContentItem { Handle = "h1" });

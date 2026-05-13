@@ -190,7 +190,15 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
         // reenter OnLiveEdit.
         if (e.PropertyName is nameof(ZoneContentItemViewModel.Warnings)
             or nameof(ZoneContentItemViewModel.WarningCount)
-            or nameof(ZoneContentItemViewModel.HasWarnings)) return;
+            or nameof(ZoneContentItemViewModel.HasWarnings)
+            or nameof(ZoneContentItemViewModel.MinMaxWarnings)
+            or nameof(ZoneContentItemViewModel.PoolWarnings)
+            or nameof(ZoneContentItemViewModel.FactionAffinityWarnings)
+            or nameof(ZoneContentItemViewModel.BiomeFilterWarnings)
+            or nameof(ZoneContentItemViewModel.HasMinMaxWarnings)
+            or nameof(ZoneContentItemViewModel.HasPoolWarnings)
+            or nameof(ZoneContentItemViewModel.HasFactionAffinityWarnings)
+            or nameof(ZoneContentItemViewModel.HasBiomeFilterWarnings)) return;
         OnLiveEdit();
     }
 
