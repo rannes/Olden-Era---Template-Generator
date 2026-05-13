@@ -108,7 +108,6 @@ public static class SettingsMapper
             NoDirectPlayerConnections = s.NoDirectPlayerConn,
             MatchPlayerCastleFactions = s.MatchPlayerCastleFactions,
             MinNeutralZonesBetweenPlayers = s.MinNeutralZonesBetweenPlayers,
-            ExperimentalBalancedZonePlacement = s.ExperimentalBalancedZonePlacement,
             FactionLawsExpPercent = Math.Clamp(s.FactionLawsExpPercent, 25, 200),
             AstrologyExpPercent = Math.Clamp(s.AstrologyExpPercent, 25, 200),
             ZoneCfg = new ZoneConfiguration
@@ -197,7 +196,8 @@ public static class SettingsMapper
             NeutralHighCastleCount = a.NeutralHighCastleCount,
             MatchPlayerCastleFactions = g.MatchPlayerCastleFactions,
             MinNeutralZonesBetweenPlayers = g.MinNeutralZonesBetweenPlayers,
-            ExperimentalBalancedZonePlacement = g.ExperimentalBalancedZonePlacement,
+            // ExperimentalBalancedZonePlacement: legacy field, no longer written. Kept on
+            // SettingsFile for back-compat reads only; SettingsMapper.FromFile migrates it.
             ExperimentalMapSizes = experimentalMapSizes,
             PlayerZoneSize = a.PlayerZoneSize,
             NeutralZoneSize = a.NeutralZoneSize,

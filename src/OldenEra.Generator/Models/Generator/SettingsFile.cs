@@ -38,7 +38,7 @@ namespace OldenEra.Generator.Models
         [JsonPropertyName("neutralHighCastle")]     public int NeutralHighCastleCount     { get; set; } = 0;
         [JsonPropertyName("matchPlayerCastleFactions")] public bool MatchPlayerCastleFactions { get; set; } = false;
         [JsonPropertyName("minNeutralZonesBetweenPlayers")] public int MinNeutralZonesBetweenPlayers { get; set; } = 0;
-        [JsonPropertyName("experimentalBalancedZonePlacement")] public bool ExperimentalBalancedZonePlacement { get; set; } = false;
+        [JsonPropertyName("experimentalBalancedZonePlacement")] public bool ExperimentalBalancedZonePlacement { get; set; } = false; // legacy: migrated to Topology=Balanced on load
         [JsonPropertyName("experimentalMapSizes")] public bool ExperimentalMapSizes { get; set; } = false;
         [JsonPropertyName("playerZoneSize")]  public double  PlayerZoneSize       { get; set; } = 1.0;
         [JsonPropertyName("neutralZoneSize")] public double  NeutralZoneSize      { get; set; } = 1.0;

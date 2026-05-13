@@ -85,6 +85,12 @@ master experimental toggle and **not** flip it on by default.
 1. Seeded `Random` — thread through `BuildBalancedRandomPositions`. (Confirmed.)
 2. Renderer scope — ring-snap in shared library, both hosts. (Confirmed.)
 3. Random semantic — "no ring-snap, ever." (Confirmed.)
+4. Experimental gate — Balanced ships as a first-class topology choice (not gated on the master Experimental toggle). It's stable, additive, and matches upstream's mainline behaviour; gating would be busywork.
+
+## Behaviour changes (vs pre-port)
+
+- **Structured topologies always use balanced zone ordering.** Before, Default/Chain/HubAndSpoke/SharedWeb used balanced ordering only when the legacy `ExperimentalBalancedZonePlacement` flag was on. Now they always do (matches upstream's default). For users who had the flag off and `MinNeutralZonesBetweenPlayers = 0`, the same seed produces a different zone ordering — players are distributed evenly around the ring instead of grouped.
+- **`ExperimentalBalancedZonePlacement` removed from `GeneratorSettings`.** The field stays on `SettingsFile` for back-compat reads; `SettingsMapper.FromFile` migrates `Topology=Random + flag=true` → `Topology=Balanced` on load and drops the flag thereafter.
 
 ## Implementation phasing
 

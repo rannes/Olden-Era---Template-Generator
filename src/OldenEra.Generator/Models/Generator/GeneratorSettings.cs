@@ -213,7 +213,6 @@ namespace OldenEra.Generator.Models
         public int MaxPortalConnections { get; set; } = 32;
         public bool SpawnRemoteFootholds { get; set; } = true;
         public bool GenerateRoads { get; set; } = true;
-        public bool ExperimentalBalancedZonePlacement { get; set; } = false;
         public bool MatchPlayerCastleFactions { get; set; } = false;
         public int MinNeutralZonesBetweenPlayers { get; set; } = 0;
         public MapTopology Topology { get; set; } = MapTopology.Random;
