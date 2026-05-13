@@ -65,14 +65,39 @@ public sealed class ZoneContentScopeViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    private readonly HashSet<ZoneContentItemViewModel> _subscribed = new();
+
     private void OnItemsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.NewItems is not null)
-            foreach (ZoneContentItemViewModel vm in e.NewItems)
-                vm.PropertyChanged += OnItemPropertyChanged;
-        if (e.OldItems is not null)
-            foreach (ZoneContentItemViewModel vm in e.OldItems)
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            // ObservableCollection.Clear raises Reset with OldItems == null;
+            // unsubscribe everyone we know about so handlers don't leak.
+            foreach (var vm in _subscribed)
                 vm.PropertyChanged -= OnItemPropertyChanged;
+            _subscribed.Clear();
+            // Defensive: re-attach to whatever (if anything) survived the reset.
+            foreach (ZoneContentItemViewModel vm in Items)
+            {
+                vm.PropertyChanged += OnItemPropertyChanged;
+                _subscribed.Add(vm);
+            }
+        }
+        else
+        {
+            if (e.NewItems is not null)
+                foreach (ZoneContentItemViewModel vm in e.NewItems)
+                {
+                    vm.PropertyChanged += OnItemPropertyChanged;
+                    _subscribed.Add(vm);
+                }
+            if (e.OldItems is not null)
+                foreach (ZoneContentItemViewModel vm in e.OldItems)
+                {
+                    vm.PropertyChanged -= OnItemPropertyChanged;
+                    _subscribed.Remove(vm);
+                }
+        }
         RaiseWarningCountChanged();
     }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -47,6 +48,7 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
     private GeneratorSettings _settings;
     private bool _isDefaultsCompareActive;
     private IReadOnlyList<ZoneContentWarning> _warnings;
+    private bool _suppressLiveEdit;
 
     private readonly ZoneContentScopeViewModel _player;
     private readonly ZoneContentScopeViewModel _neutralGlobal;
@@ -102,6 +104,101 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
         // per scope is sufficient.
         foreach (var scope in _perZone.Values)
             scope.PropertyChanged += OnPerZoneScopePropertyChanged;
+
+        WireLiveEditSignals();
+    }
+
+    private IEnumerable<ZoneContentScopeViewModel> AllScopes()
+    {
+        yield return _player;
+        yield return _neutralGlobal;
+        yield return _poor;
+        yield return _normal;
+        yield return _rich;
+        foreach (var s in _perZone.Values) yield return s;
+    }
+
+    // Reverse map from a scope's Items collection back to the scope, so the
+    // CollectionChanged handler (whose sender is the collection, not the scope)
+    // can resolve the owner without an O(n) scan.
+    private readonly Dictionary<object, ZoneContentScopeViewModel> _scopeByItems = new();
+
+    private void WireLiveEditSignals()
+    {
+        foreach (var scope in AllScopes())
+        {
+            _scopeByItems[scope.Items] = scope;
+            scope.Items.CollectionChanged += OnScopeItemsChanged;
+            foreach (var item in scope.Items)
+                HookItemEdits(scope, item);
+        }
+    }
+
+    // Tracks every item-VM whose PropertyChanged we've hooked, keyed by the
+    // owning scope. Lets us unhook on Reset (Clear) where OldItems is null.
+    private readonly Dictionary<ZoneContentScopeViewModel, HashSet<ZoneContentItemViewModel>>
+        _hookedItems = new();
+
+    private void HookItemEdits(ZoneContentScopeViewModel scope, ZoneContentItemViewModel item)
+    {
+        item.PropertyChanged += OnItemEdited;
+        if (!_hookedItems.TryGetValue(scope, out var set))
+            _hookedItems[scope] = set = new HashSet<ZoneContentItemViewModel>();
+        set.Add(item);
+    }
+
+    private void UnhookItemEdits(ZoneContentScopeViewModel scope, ZoneContentItemViewModel item)
+    {
+        item.PropertyChanged -= OnItemEdited;
+        if (_hookedItems.TryGetValue(scope, out var set))
+            set.Remove(item);
+    }
+
+    private void OnScopeItemsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (sender is null || !_scopeByItems.TryGetValue(sender, out var scope))
+            return;
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            // Clear() raises Reset with OldItems == null — unhook everything we
+            // had hooked under this scope so handlers don't leak.
+            if (_hookedItems.TryGetValue(scope, out var set))
+            {
+                foreach (var vm in set)
+                    vm.PropertyChanged -= OnItemEdited;
+                set.Clear();
+            }
+            // Re-hook anything still present (defensive).
+            foreach (var vm in scope.Items) HookItemEdits(scope, vm);
+        }
+        else
+        {
+            if (e.NewItems is not null)
+                foreach (ZoneContentItemViewModel vm in e.NewItems)
+                    HookItemEdits(scope, vm);
+            if (e.OldItems is not null)
+                foreach (ZoneContentItemViewModel vm in e.OldItems)
+                    UnhookItemEdits(scope, vm);
+        }
+        OnLiveEdit();
+    }
+
+    private void OnItemEdited(object? sender, PropertyChangedEventArgs e)
+    {
+        // Filter out properties we set ourselves while distributing warnings,
+        // otherwise CommitToSettings -> SetWarnings -> PropertyChanged would
+        // reenter OnLiveEdit.
+        if (e.PropertyName is nameof(ZoneContentItemViewModel.Warnings)
+            or nameof(ZoneContentItemViewModel.WarningCount)
+            or nameof(ZoneContentItemViewModel.HasWarnings)) return;
+        OnLiveEdit();
+    }
+
+    private void OnLiveEdit()
+    {
+        if (IsReadOnly) return;
+        if (_suppressLiveEdit) return;
+        CommitToSettings();
     }
 
     public GeneratorSettings Settings => _settings;
@@ -206,19 +303,28 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
 
     private void RebuildScopeItems()
     {
-        ReplaceItems(_player, _settings.PlayerZoneContent.Items);
-        ReplaceItems(_neutralGlobal, _settings.NeutralZoneContent.Global.Items);
-        ReplaceItems(_poor, ItemsForTier(NeutralZoneTier.Poor));
-        ReplaceItems(_normal, ItemsForTier(NeutralZoneTier.Normal));
-        ReplaceItems(_rich, ItemsForTier(NeutralZoneTier.Rich));
-
-        foreach (var letter in _originalLetters)
+        var prev = _suppressLiveEdit;
+        _suppressLiveEdit = true;
+        try
         {
-            IEnumerable<ZoneContentItem> items =
-                _settings.NeutralZoneContent.ByZoneLetter.TryGetValue(letter, out var list)
-                    ? list.Items
-                    : Array.Empty<ZoneContentItem>();
-            ReplaceItems(_perZone[letter], items);
+            ReplaceItems(_player, _settings.PlayerZoneContent.Items);
+            ReplaceItems(_neutralGlobal, _settings.NeutralZoneContent.Global.Items);
+            ReplaceItems(_poor, ItemsForTier(NeutralZoneTier.Poor));
+            ReplaceItems(_normal, ItemsForTier(NeutralZoneTier.Normal));
+            ReplaceItems(_rich, ItemsForTier(NeutralZoneTier.Rich));
+
+            foreach (var letter in _originalLetters)
+            {
+                IEnumerable<ZoneContentItem> items =
+                    _settings.NeutralZoneContent.ByZoneLetter.TryGetValue(letter, out var list)
+                        ? list.Items
+                        : Array.Empty<ZoneContentItem>();
+                ReplaceItems(_perZone[letter], items);
+            }
+        }
+        finally
+        {
+            _suppressLiveEdit = prev;
         }
     }
 

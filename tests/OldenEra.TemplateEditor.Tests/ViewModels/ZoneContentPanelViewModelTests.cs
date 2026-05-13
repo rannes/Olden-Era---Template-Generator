@@ -159,10 +159,12 @@ public class ZoneContentPanelViewModelTests
         vm.Changed += (_, _) => fired++;
 
         vm.PlayerScope.Items[0].Sid = "name_a_renamed";
+        // Live-edit auto-commits on PropertyChanged; the explicit call below
+        // performs a second redundant commit.
         vm.CommitToSettings();
 
         Assert.Equal("name_a_renamed", settings.PlayerZoneContent.Items[0].Sid);
-        Assert.Equal(1, fired);
+        Assert.Equal(2, fired);
     }
 
     [Fact]
@@ -302,5 +304,66 @@ public class ZoneContentPanelViewModelTests
     {
         var vm = new ZoneContentPanelViewModel(new GeneratorSettings());
         Assert.Equal((ZoneContentPool[])Enum.GetValues(typeof(ZoneContentPool)), vm.PoolValues);
+    }
+
+    [Fact]
+    public void ItemEdit_AfterCtor_RaisesChangedAndCommitsToSettings()
+    {
+        var settings = new GeneratorSettings();
+        settings.PlayerZoneContent.Items.Add(new ZoneContentItem { Sid = "old" });
+        var vm = new ZoneContentPanelViewModel(settings);
+        var changedFired = 0;
+        vm.Changed += (_, _) => changedFired++;
+
+        vm.PlayerScope.Items[0].Sid = "new";
+
+        Assert.True(changedFired > 0);
+        Assert.Equal("new", settings.PlayerZoneContent.Items[0].Sid);
+    }
+
+    [Fact]
+    public void PresetAdd_RefreshesWarnings()
+    {
+        var vm = new ZoneContentPanelViewModel(new GeneratorSettings());
+        var preset = ZoneContentPresets.All().First();
+        vm.PlayerScope.AddPreset(preset);
+        Assert.Single(vm.PlayerScope.Items);
+        // Force an invalid edit to trigger a warning (Min > Max narrows to Max).
+        vm.PlayerScope.Items[0].MinCount = 99;
+        vm.PlayerScope.Items[0].MaxCount = 1;
+        Assert.True(vm.PlayerScope.WarningCount > 0);
+    }
+
+    [Fact]
+    public void ItemEdit_DuringDefaultsCompare_DoesNotMutateOriginalSettings()
+    {
+        var settings = new GeneratorSettings();
+        settings.PlayerZoneContent.Items.Add(new ZoneContentItem { Sid = "original" });
+        var vm = new ZoneContentPanelViewModel(settings);
+        vm.IsDefaultsCompareActive = true;
+        // Blanked clone has no items.
+        Assert.Empty(vm.PlayerScope.Items);
+        // Toggle off; original should be intact.
+        vm.IsDefaultsCompareActive = false;
+        Assert.Equal("original", settings.PlayerZoneContent.Items[0].Sid);
+    }
+
+    [Fact]
+    public void DefaultsCompare_RoundTrip_WithEditsBetween()
+    {
+        // Edit while compare is OFF, toggle ON, toggle OFF — edits must persist.
+        var settings = new GeneratorSettings();
+        settings.PlayerZoneContent.Items.Add(new ZoneContentItem { Sid = "v1" });
+        var vm = new ZoneContentPanelViewModel(settings);
+
+        vm.PlayerScope.Items[0].Sid = "v2";  // committed via OnLiveEdit
+        Assert.Equal("v2", settings.PlayerZoneContent.Items[0].Sid);
+
+        vm.IsDefaultsCompareActive = true;
+        Assert.Empty(vm.PlayerScope.Items);
+
+        vm.IsDefaultsCompareActive = false;
+        Assert.Single(vm.PlayerScope.Items);
+        Assert.Equal("v2", vm.PlayerScope.Items[0].Sid);
     }
 }

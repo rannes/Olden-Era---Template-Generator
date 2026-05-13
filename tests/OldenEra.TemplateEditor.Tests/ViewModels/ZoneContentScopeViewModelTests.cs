@@ -170,6 +170,29 @@ public class ZoneContentScopeViewModelTests
     }
 
     [Fact]
+    public void Items_Clear_UnsubscribesAllItems()
+    {
+        var scope = ZoneContentScopeViewModel.From(
+            new ZoneContentScopeKey(ZoneContentScopeKind.Player), "Player",
+            new[] { new ZoneContentItem { Sid = "a" }, new ZoneContentItem { Sid = "b" } });
+        var item0 = scope.Items[0];
+        var item1 = scope.Items[1];
+        int notifications = 0;
+        ((INotifyPropertyChanged)scope).PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ZoneContentScopeViewModel.WarningCount)) notifications++;
+        };
+
+        scope.Items.Clear();
+        notifications = 0;
+
+        // After Clear, the scope must not react to events from the removed items.
+        item0.SetWarnings(new[] { new EmitWarning("X", "m", null, null) });
+        item1.SetWarnings(new[] { new EmitWarning("Y", "m", null, null) });
+        Assert.Equal(0, notifications);
+    }
+
+    [Fact]
     public void Key_WithZoneLetter_RoundTrips()
     {
         var key = new ZoneContentScopeKey(ZoneContentScopeKind.NeutralPerZone, "B");
