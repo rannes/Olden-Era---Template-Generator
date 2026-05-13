@@ -1,0 +1,33 @@
+<UserControl x:Class="OldenEra.TemplateEditor.Views.ZoneContentPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <!-- Style.Triggers, when added later, MUST come after all Setters
+             (see CLAUDE.md -> feedback_wpf_style_child_order). BAML errors
+             only surface in CI on Mac. -->
+    </UserControl.Resources>
+
+    <Border Style="{StaticResource SectionBorder}">
+        <DockPanel>
+            <!-- Toolbar: defaults-compare toggle + total warning count -->
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                <CheckBox x:Name="ChkDefaultsCompare"
+                          Content="Compare against defaults (read-only)"
+                          IsChecked="{Binding IsDefaultsCompareActive, Mode=TwoWay}"/>
+                <TextBlock Margin="16,0,0,0"
+                           VerticalAlignment="Center"
+                           Text="{Binding Warnings.Count, StringFormat=Warnings: {0}}"/>
+            </StackPanel>
+
+            <TabControl>
+                <TabItem Header="Player"           DataContext="{Binding PlayerScope}"/>
+                <TabItem Header="Neutral · Global" DataContext="{Binding NeutralGlobalScope}"/>
+                <TabItem Header="Neutral · Poor"   DataContext="{Binding PoorScope}"/>
+                <TabItem Header="Neutral · Normal" DataContext="{Binding NormalScope}"/>
+                <TabItem Header="Neutral · Rich"   DataContext="{Binding RichScope}"/>
+                <TabItem Header="Per-zone"/>
+                <TabItem Header="Road decorations"/>
+            </TabControl>
+        </DockPanel>
+    </Border>
+</UserControl>
