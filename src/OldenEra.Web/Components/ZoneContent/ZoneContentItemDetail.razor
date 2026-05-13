@@ -14,7 +14,7 @@ else
             <datalist id="zone-content-sids">
                 @foreach (var entry in ZoneContentSidCatalog.All())
                 {
-                    <option value="@entry.Sid" label="@entry.FriendlyName"></option>
+                    <option value="@entry.Sid">@entry.FriendlyName</option>
                 }
             </datalist>
         </div>

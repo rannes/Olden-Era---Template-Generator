@@ -13,9 +13,8 @@ namespace OldenEra.Generator.Services.ZoneContent
     /// and pandora's box variants — because <see cref="GameDataCatalog"/> only
     /// exposes raw SIDs (no friendly names) and <see cref="CommunityCatalog"/>
     /// indexes typed entities (heroes, units, spells) rather than zone-content SIDs.
-    /// Catalog expansion (e.g., friendly-name source for <see cref="GameDataCatalog"/>
-    /// / <see cref="CommunityCatalog"/>) is deferred to a future round; the seed
-    /// intentionally stays small.
+    /// Catalog expansion (e.g., a friendly-name source for <see cref="GameDataCatalog"/>
+    /// / <see cref="CommunityCatalog"/>) is deferred to a future round.
     /// </remarks>
     public static class ZoneContentSidCatalog
     {
