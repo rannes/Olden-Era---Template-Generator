@@ -29,7 +29,7 @@ namespace OldenEra.Generator.Services.ZoneContent
         public const string CategoryPortals = "Portals";
         public const string CategoryFootholds = "Footholds";
 
-        public static IReadOnlyList<ZoneContentPreset> All() => new ZoneContentPreset[]
+        private static readonly ZoneContentPreset[] _all =
         {
             // ---------- Mandatory ----------
             new("Mana Well x1 (guarded)", CategoryMandatory, new ZoneContentItem
@@ -156,5 +156,7 @@ namespace OldenEra.Generator.Services.ZoneContent
                 Pool = ZoneContentPool.Mandatory,
             }),
         };
+
+        public static IReadOnlyList<ZoneContentPreset> All() => _all;
     }
 }
