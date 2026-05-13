@@ -1,6 +1,6 @@
 using OldenEra.Generator.Models;
 
-namespace OldenEra.Web.Services;
+namespace OldenEra.Generator.Services.ZoneContent;
 
 public enum ZoneContentScopeKind
 {
