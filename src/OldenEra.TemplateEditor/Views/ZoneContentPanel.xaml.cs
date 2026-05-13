@@ -1,4 +1,9 @@
+using System;
+using System.Collections;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Media;
 using OldenEra.Generator.Services.ZoneContent;
 using OldenEra.TemplateEditor.ViewModels;
 
@@ -9,6 +14,22 @@ public partial class ZoneContentPanel : UserControl
     public ZoneContentPanel()
     {
         InitializeComponent();
+        Loaded += OnLoaded;
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        // Apply StringComparer.Ordinal to the grouped-presets view so
+        // category/name ordering matches the Web optgroup order exactly,
+        // regardless of the user's culture. Default SortDescriptions use
+        // the current culture's collator. Loaded fires every time we re-enter
+        // the visual tree (e.g. tab switches), so guard against re-applying.
+        if (Resources["GroupedPresets"] is CollectionViewSource cvs &&
+            cvs.View is ListCollectionView view &&
+            view.CustomSort is null)
+        {
+            view.CustomSort = new PresetOrdinalComparer();
+        }
     }
 
     /// <summary>
@@ -25,5 +46,40 @@ public partial class ZoneContentPanel : UserControl
         if (cb.Tag is not ZoneContentScopeViewModel scope) return;
         scope.AddPreset(preset);
         cb.SelectedItem = null;
+    }
+
+    /// <summary>
+    /// Removes the row's item-VM from its owning scope. The Button's
+    /// DataContext is the <see cref="ZoneContentItemViewModel"/>; the
+    /// enclosing rows-<see cref="ItemsControl"/> binds its DataContext to
+    /// the owning <see cref="ZoneContentScopeViewModel"/>. The row template
+    /// also contains an inner ItemsControl for the warnings tooltip — walk
+    /// up by DataContext type rather than the first ItemsControl we hit so
+    /// that template change can't silently break this lookup.
+    /// </summary>
+    private void DeleteRow_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button btn) return;
+        if (btn.DataContext is not ZoneContentItemViewModel item) return;
+        var scope = FindAncestorWithDataContext<ZoneContentScopeViewModel>(btn);
+        if (scope is null) return;
+        scope.Items.Remove(item);
+    }
+
+    private static T? FindAncestorWithDataContext<T>(DependencyObject start) where T : class
+    {
+        for (var d = VisualTreeHelper.GetParent(start); d is not null; d = VisualTreeHelper.GetParent(d))
+            if (d is FrameworkElement fe && fe.DataContext is T t) return t;
+        return null;
+    }
+
+    private sealed class PresetOrdinalComparer : IComparer
+    {
+        public int Compare(object? x, object? y)
+        {
+            if (x is not ZoneContentPreset a || y is not ZoneContentPreset b) return 0;
+            var c = StringComparer.Ordinal.Compare(a.Category, b.Category);
+            return c != 0 ? c : StringComparer.Ordinal.Compare(a.Name, b.Name);
+        }
     }
 }

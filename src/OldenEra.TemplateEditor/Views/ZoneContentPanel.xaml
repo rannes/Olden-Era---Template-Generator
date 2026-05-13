@@ -2,23 +2,19 @@
              x:Name="Root"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:conv="clr-namespace:OldenEra.TemplateEditor.Converters"
-             xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase">
+             xmlns:conv="clr-namespace:OldenEra.TemplateEditor.Converters">
     <UserControl.Resources>
-        <!-- Grouped + sorted preset view. Source binds through to the panel-VM
-             via x:Reference to the named UserControl because resources have no
-             DataContext of their own. SortDescriptions match the Web optgroup
-             ordering (StringComparer.Ordinal) closely enough for the seed set;
-             pure-Ordinal parity is a future refinement. -->
+        <!-- Grouped preset view. Source binds through to the panel-VM via
+             x:Reference to the named UserControl because resources have no
+             DataContext of their own. Ordinal sort is applied in code-behind
+             (Loaded handler) via ListCollectionView.CustomSort so the order
+             matches the Web optgroup order regardless of culture; XAML
+             SortDescriptions would use the current culture's collator. -->
         <CollectionViewSource x:Key="GroupedPresets"
                               Source="{Binding DataContext.Presets, Source={x:Reference Root}}">
             <CollectionViewSource.GroupDescriptions>
                 <PropertyGroupDescription PropertyName="Category"/>
             </CollectionViewSource.GroupDescriptions>
-            <CollectionViewSource.SortDescriptions>
-                <scm:SortDescription PropertyName="Category" Direction="Ascending"/>
-                <scm:SortDescription PropertyName="Name" Direction="Ascending"/>
-            </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
 
         <!-- Style.Triggers, when added later, MUST come after all Setters
@@ -103,8 +99,11 @@
                          Margin="4,0"
                          ToolTip="Biome filter (comma-separated)"/>
 
-                <!-- Delete button placeholder; A8 wires the command. -->
+                <!-- Delete button: removes the row's item-VM from its
+                     owning scope. Disabled while the panel is in
+                     defaults-compare (read-only) mode. -->
                 <Button Grid.Column="8" Content="✕"
+                        Click="DeleteRow_Click"
                         IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
                         Margin="4,0,0,0" Padding="6,0"/>
 

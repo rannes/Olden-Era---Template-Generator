@@ -29,7 +29,12 @@ namespace OldenEra.Generator.Services.ZoneContent
         public const string CategoryPortals = "Portals";
         public const string CategoryFootholds = "Footholds";
 
-        public static IReadOnlyList<ZoneContentPreset> All() => new ZoneContentPreset[]
+        // Cached singleton. ZoneContentItem is a mutable class, so callers
+        // MUST clone preset.Item before adding it to a scope (see
+        // ZoneContentScopeViewModel.AddPreset, which uses
+        // ZoneContentCloning.CloneItem). Mutating a preset's Item directly
+        // would poison every host that reads All().
+        private static readonly ZoneContentPreset[] _all =
         {
             // ---------- Mandatory ----------
             new("Mana Well x1 (guarded)", CategoryMandatory, new ZoneContentItem
@@ -156,5 +161,7 @@ namespace OldenEra.Generator.Services.ZoneContent
                 Pool = ZoneContentPool.Mandatory,
             }),
         };
+
+        public static IReadOnlyList<ZoneContentPreset> All() => _all;
     }
 }
