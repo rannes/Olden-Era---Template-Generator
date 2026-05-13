@@ -21,6 +21,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Reference VM source files directly; do NOT reference OldenEra.TemplateEditor.csproj
+         because that pulls in WPF assemblies that don't build on Mac. -->
+    <Compile Include="..\..\src\OldenEra.TemplateEditor\ViewModels\*.cs" LinkBase="ViewModels" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 
