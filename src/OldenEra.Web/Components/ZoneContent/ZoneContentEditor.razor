@@ -106,8 +106,19 @@
 
     private async Task NotifyChanged()
     {
+        MaterializeTransientIfDirty();
         _warnings = ZoneContentWarningProjection.Project(Settings);
         await OnChanged.InvokeAsync();
+    }
+
+    private void MaterializeTransientIfDirty()
+    {
+        if (_pendingTransientList is null || _pendingTransientList.Count == 0) return;
+        if (_pendingTransientTier is { } tier
+            && !Settings.NeutralZoneContent.ByTier.ContainsKey(tier))
+        {
+            Settings.NeutralZoneContent.ByTier[tier] = new ZoneContentList { Items = _pendingTransientList };
+        }
     }
 
     private IReadOnlyDictionary<string, IReadOnlyList<EmitWarning>> WarningsForCurrentScope()
@@ -144,27 +155,39 @@
         return WarningsForCurrentScope().TryGetValue(key, out var ws) ? ws : Array.Empty<EmitWarning>();
     }
 
-    private List<ZoneContentItem>? ResolveItems() => _selected.Kind switch
-    {
-        ZoneContentScopeKind.Player          => Settings.PlayerZoneContent.Items,
-        ZoneContentScopeKind.NeutralGlobal   => Settings.NeutralZoneContent.Global.Items,
-        ZoneContentScopeKind.NeutralPoor     => GetOrCreateTier(NeutralZoneTier.Poor).Items,
-        ZoneContentScopeKind.NeutralNormal   => GetOrCreateTier(NeutralZoneTier.Normal).Items,
-        ZoneContentScopeKind.NeutralRich     => GetOrCreateTier(NeutralZoneTier.Rich).Items,
-        ZoneContentScopeKind.NeutralPerZone  => string.IsNullOrEmpty(_selectedLetter)
-            ? null
-            : (Settings.NeutralZoneContent.ByZoneLetter.TryGetValue(_selectedLetter, out var l) ? l.Items : null),
-        _ => null,
-    };
+    // Transient list bookkeeping: don't mutate Settings.NeutralZoneContent.ByTier on tab click
+    // (i.e. inside the render block). Only materialize the dictionary entry on first user edit.
+    // See the Round 4 review (item 1).
+    private List<ZoneContentItem>? _pendingTransientList;
+    private NeutralZoneTier? _pendingTransientTier;
 
-    private ZoneContentList GetOrCreateTier(NeutralZoneTier tier)
+    private List<ZoneContentItem>? ResolveItems()
     {
-        if (!Settings.NeutralZoneContent.ByTier.TryGetValue(tier, out var list))
+        _pendingTransientList = null;
+        _pendingTransientTier = null;
+
+        return _selected.Kind switch
         {
-            list = new ZoneContentList();
-            Settings.NeutralZoneContent.ByTier[tier] = list;
-        }
-        return list;
+            ZoneContentScopeKind.Player          => Settings.PlayerZoneContent.Items,
+            ZoneContentScopeKind.NeutralGlobal   => Settings.NeutralZoneContent.Global.Items,
+            ZoneContentScopeKind.NeutralPoor     => ResolveTierTransient(NeutralZoneTier.Poor),
+            ZoneContentScopeKind.NeutralNormal   => ResolveTierTransient(NeutralZoneTier.Normal),
+            ZoneContentScopeKind.NeutralRich     => ResolveTierTransient(NeutralZoneTier.Rich),
+            ZoneContentScopeKind.NeutralPerZone  => string.IsNullOrEmpty(_selectedLetter)
+                ? null
+                : (Settings.NeutralZoneContent.ByZoneLetter.TryGetValue(_selectedLetter, out var l) ? l.Items : null),
+            _ => null,
+        };
+    }
+
+    private List<ZoneContentItem> ResolveTierTransient(NeutralZoneTier tier)
+    {
+        if (Settings.NeutralZoneContent.ByTier.TryGetValue(tier, out var existing))
+            return existing.Items;
+        var transient = new List<ZoneContentItem>();
+        _pendingTransientList = transient;
+        _pendingTransientTier = tier;
+        return transient;
     }
 
     private ZoneContentItem? ResolveSelectedItem(List<ZoneContentItem> items)
