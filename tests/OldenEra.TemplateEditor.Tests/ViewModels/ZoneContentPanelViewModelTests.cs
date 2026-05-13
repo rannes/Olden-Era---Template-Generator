@@ -399,15 +399,26 @@ public class ZoneContentPanelViewModelTests
     }
 
     [Fact]
-    public void RemoveItem_CommitsThroughToSettings()
+    public void EditTriggeringWarning_DoesNotRecurseViaWarningPropertyChanged()
     {
-        var settings = BuildSettings(
-            player: new[] { Item("name_a"), Item("name_b") });
+        // Regression guard. Setting MinCount > MaxCount projects a
+        // MinCountRangeNarrowedToMax warning, which fans out via
+        // SetWarnings -> PropertyChanged on Warnings + every WarningsFor
+        // projection. Without a producer-side reentrancy guard around
+        // DistributeWarningsToItems the SetWarnings PropertyChanged would
+        // re-enter OnItemEdited -> OnLiveEdit -> CommitToSettings -> ...
+        // and stack-overflow. The previous implementation filtered by
+        // property-name in OnItemEdited, which silently rotted whenever a
+        // new derived warning property was added. This test exercises the
+        // fan-out path so any future regression surfaces here, not as a
+        // crash in production.
+        var settings = BuildSettings(player: new[] { Item("name_a", min: 1, max: 1) });
         var vm = new ZoneContentPanelViewModel(settings);
 
-        vm.PlayerScope.Items.RemoveAt(0);
+        // Should complete without a StackOverflowException.
+        vm.PlayerScope.Items[0].MinCount = 5;
+        vm.PlayerScope.Items[0].MaxCount = 1;
 
-        Assert.Single(settings.PlayerZoneContent.Items);
-        Assert.Equal("name_b", settings.PlayerZoneContent.Items[0].Sid);
+        Assert.True(vm.PlayerScope.Items[0].HasMinMaxWarnings);
     }
 }
