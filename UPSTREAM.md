@@ -8,9 +8,9 @@ record what we have synced, what we consciously skipped, and where the cursor si
 | Field | Value |
 | --- | --- |
 | Upstream remote | `https://github.com/KhanDevelopsGames/Olden-Era---Template-Generator.git` |
-| Last reviewed upstream commit | `edb64cb` ("zone customization UI improvements", 2026-05-11) |
+| Last reviewed upstream commit | `76ee588` ("auto-update XAML + version bump", 2026-05-13) |
 | Last common merge base | `1bf6fd7` ("fix random tournament layout + preview") |
-| Last review date | 2026-05-11 |
+| Last review date | 2026-05-13 |
 
 To recompute divergence:
 
@@ -43,7 +43,10 @@ intend to port but tracked as its own initiative.
 | `f47fae3` | Customizable starting zone content (impl) | deferred (PR #17) | Adds `PlayerZoneMandatoryContent` setting + WPF UI + `Services/ContentManagement/` layer. See `docs/plans/2026-05-11-upstream-sync.md` for design notes. |
 | `4a76ce2` | Added guards to default content | deferred (PR #17) | Tail end of the same feature. |
 | `edb64cb` | zone customization UI improvements | deferred (PR #17) | Polish on top of the above. |
-| `b062d10` | add patch notes button | port | Idea ported: Patch Notes ghost button in `MainWindow.xaml`/`.cs` action toolbar (reuses `GitHubReleasesPage` constant) and matching link in `OldenEra.Web/Pages/Home.razor` header. |
+| `b062d10` | add patch notes button | port (PR #19) | Idea ported: Patch Notes ghost button in `MainWindow.xaml`/`.cs` action toolbar (reuses `GitHubReleasesPage` constant) and matching link in `OldenEra.Web/Pages/Home.razor` header. |
+| `4ae647c` | auto-update download + UpdateProgressWindow | port (this PR) | Reimplemented under `src/OldenEra.TemplateEditor/Services/AutoUpdate/`. Adds checker / downloader / batch-installer split, logging to `%LOCALAPPDATA%/OldenEraTemplateGenerator/update.log`, and a "Check for updates on startup" toggle. Browser fallback preserved. |
+| `bc93dc5` | auto-update Cancel button + CancellationToken | port (this PR) | Folded into the v2 design — `UpdateProgressWindow` exposes a `CancellationToken` consumed by the downloader. |
+| `76ee588` | monolithic MainWindow XAML edit + version bump | skip (partial) | The `UpdateProgressWindow.xaml.cs` slice was absorbed into this PR. The monolithic MainWindow XAML edit is rejected — our `MainWindow.xaml` is decomposed into per-panel UserControls. We pick our own version (0.7.0) rather than copying upstream's. |
 
 ## Sync workflow
 
@@ -51,7 +54,7 @@ When syncing a new round of upstream commits:
 
 1. `git fetch upstream`
 2. List new commits since the cursor:
-   `git log --oneline edb64cb..upstream/main`
+   `git log --oneline 76ee588..upstream/main`
 3. For each new commit, append a row to the triage table with status.
 4. Update the **Last reviewed upstream commit** + **Last review date** to the newest hash you classified.
 5. For `port` rows, open a PR. For `deferred`, open a plan in `docs/plans/`.
