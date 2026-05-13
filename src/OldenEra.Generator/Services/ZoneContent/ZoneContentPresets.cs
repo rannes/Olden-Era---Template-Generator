@@ -145,6 +145,16 @@ namespace OldenEra.Generator.Services.ZoneContent
                 Sid = "name_remote_foothold_2", MinCount = 1, MaxCount = 1,
                 Pool = ZoneContentPool.Mandatory,
             }),
+            new("Remote Foothold #3", CategoryFootholds, new ZoneContentItem
+            {
+                Sid = "name_remote_foothold_3", MinCount = 1, MaxCount = 1,
+                Pool = ZoneContentPool.Mandatory,
+            }),
+            new("Remote Foothold #4", CategoryFootholds, new ZoneContentItem
+            {
+                Sid = "name_remote_foothold_4", MinCount = 1, MaxCount = 1,
+                Pool = ZoneContentPool.Mandatory,
+            }),
         };
     }
 }

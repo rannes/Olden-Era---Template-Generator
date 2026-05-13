@@ -19,7 +19,6 @@ namespace OldenEra.Generator.Services.ZoneContent
     public static class ZoneContentSidCatalog
     {
         public const string CategoryMandatory = "Mandatory";
-        public const string CategoryResources = "Resources";
         public const string CategoryMines = "Mines";
         public const string CategoryStructures = "Structures";
         public const string CategoryPortals = "Portals";
@@ -39,7 +38,7 @@ namespace OldenEra.Generator.Services.ZoneContent
 
             // Mines (resource generators)
             new("name_mine_gold", "Gold Mine", CategoryMines),
-            new("name_mine_wood", "Sawmill (Wood)", CategoryMines),
+            new("name_mine_wood", "Sawmill", CategoryMines),
             new("name_mine_ore", "Ore Pit", CategoryMines),
             new("name_mine_crystals", "Crystal Cavern", CategoryMines),
             new("name_mine_gemstones", "Gem Mine", CategoryMines),
