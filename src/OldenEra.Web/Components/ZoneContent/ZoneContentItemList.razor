@@ -5,7 +5,7 @@
         <button type="button" class="oe-btn ghost" disabled="@ReadOnly" @onclick="AddBlank">+ Add</button>
         <select disabled="@ReadOnly" value="" @onchange="OnPresetChosen">
             <option value="">+ Add from preset…</option>
-            @foreach (var group in ZoneContentPresets.All().GroupBy(p => p.Category))
+            @foreach (var group in ZoneContentPresets.All().GroupBy(p => p.Category).OrderBy(g => g.Key, StringComparer.Ordinal))
             {
                 <optgroup label="@group.Key">
                     @foreach (var preset in group)
