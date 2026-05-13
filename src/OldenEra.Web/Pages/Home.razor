@@ -174,23 +174,6 @@
     </footer>
 </div>
 
-@if (ShowLargeMapConfirm)
-{
-    <div class="oe-modal-overlay" @onclick="CancelLargeMapConfirm">
-        <div class="oe-modal" @onclick:stopPropagation="true">
-            <h2>Large map — please confirm</h2>
-            <p>
-                This may take several minutes for large maps.
-                The browser tab will be unresponsive during generation.
-                Continue?
-            </p>
-            <div class="oe-modal-actions">
-                <button class="oe-btn" @onclick="CancelLargeMapConfirm">Cancel</button>
-                <button class="oe-btn primary" @onclick="ConfirmLargeMapAndGenerate">Generate</button>
-            </div>
-        </div>
-    </div>
-}
 
 @if (IsGenerating)
 {
@@ -210,9 +193,6 @@
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
     };
 
-    private const int LargeMapSizeThreshold = 240;
-    private const int LargeMapZoneThreshold = 16;
-
     private enum Section { Map, Heroes, Topology, Zones, WinConditions, Experimental }
     private Section ActiveSection { get; set; } = Section.Map;
 
@@ -231,7 +211,6 @@
     private Version? CurrentVersion;
     private Version? UpdateAvailable;
 
-    private bool ShowLargeMapConfirm;
     private bool IsGenerating;
 
     private bool _zoneContentCompareDefaults;
@@ -410,13 +389,6 @@
 
     // -- Generate flow -----------------------------------------------------
 
-    private bool IsLargeMap()
-    {
-        if (Settings.MapSize >= LargeMapSizeThreshold) return true;
-        int total = Settings.PlayerCount + TotalNeutralZones();
-        return total >= LargeMapZoneThreshold;
-    }
-
     private async Task OnZoneContentCompareDefaultsChanged(bool value)
     {
         _zoneContentCompareDefaults = value;
@@ -428,22 +400,6 @@
     private async Task OnGenerateClick()
     {
         if (!IsValid || IsGenerating) return;
-        if (IsLargeMap())
-        {
-            ShowLargeMapConfirm = true;
-            return;
-        }
-        await RunGenerationAsync();
-    }
-
-    private void CancelLargeMapConfirm()
-    {
-        ShowLargeMapConfirm = false;
-    }
-
-    private async Task ConfirmLargeMapAndGenerate()
-    {
-        ShowLargeMapConfirm = false;
         await RunGenerationAsync();
     }
 
