@@ -188,9 +188,11 @@ public class ZoneContentPanelViewModelTests
     }
 
     [Fact]
-    public void CommitToSettings_DoesNotMaterializeAbsentTier()
+    public void CommitToSettings_DoesNotMaterializeEmptyAbsentTier()
     {
         // Settings without a Poor tier; PoorScope is empty and stays empty.
+        // Empty absent tiers must remain absent so we don't pollute the
+        // dictionary with empty lists on every commit.
         var settings = BuildSettings();
         var vm = new ZoneContentPanelViewModel(settings);
 
@@ -199,6 +201,24 @@ public class ZoneContentPanelViewModelTests
         vm.CommitToSettings();
 
         Assert.False(settings.NeutralZoneContent.ByTier.ContainsKey(NeutralZoneTier.Poor));
+    }
+
+    [Fact]
+    public void CommitToSettings_MaterializesAbsentTierOnFirstEdit()
+    {
+        // Settings without a Poor tier; user adds an item via the empty Poor
+        // scope. Commit should materialize the dictionary entry so the edit
+        // round-trips through Save/Open.
+        var settings = BuildSettings();
+        var vm = new ZoneContentPanelViewModel(settings);
+
+        vm.PoorScope.Items.Add(ZoneContentItemViewModel.FromModel(Item("name_x")));
+        // Live-edit auto-commits, but explicit call is the contract surface.
+        vm.CommitToSettings();
+
+        Assert.True(settings.NeutralZoneContent.ByTier.ContainsKey(NeutralZoneTier.Poor));
+        Assert.Single(settings.NeutralZoneContent.ByTier[NeutralZoneTier.Poor].Items);
+        Assert.Equal("name_x", settings.NeutralZoneContent.ByTier[NeutralZoneTier.Poor].Items[0].Sid);
     }
 
     [Fact]
