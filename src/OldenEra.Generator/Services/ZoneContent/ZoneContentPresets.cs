@@ -29,6 +29,11 @@ namespace OldenEra.Generator.Services.ZoneContent
         public const string CategoryPortals = "Portals";
         public const string CategoryFootholds = "Footholds";
 
+        // Cached singleton. ZoneContentItem is a mutable class, so callers
+        // MUST clone preset.Item before adding it to a scope (see
+        // ZoneContentScopeViewModel.AddPreset, which uses
+        // ZoneContentCloning.CloneItem). Mutating a preset's Item directly
+        // would poison every host that reads All().
         private static readonly ZoneContentPreset[] _all =
         {
             // ---------- Mandatory ----------
