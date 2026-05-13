@@ -266,6 +266,7 @@
                                  ItemsSource="{Binding PerZoneScopesOrdered}"
                                  DisplayMemberPath="Key"
                                  SelectedValuePath="Key"
+                                 SelectedIndex="0"
                                  Margin="0,0,8,0"/>
                         <ContentControl Grid.Column="1"
                                         Content="{Binding ElementName=LbPerZoneLetters, Path=SelectedItem.Value}"
