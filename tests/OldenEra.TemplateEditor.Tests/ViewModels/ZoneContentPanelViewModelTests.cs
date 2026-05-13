@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -230,5 +231,19 @@ public class ZoneContentPanelViewModelTests
 
         Assert.Single(vm.RoadDecorations);
         Assert.Equal("1", vm.RoadDecorations[0].Zone);
+    }
+
+    [Fact]
+    public void SidCatalog_MatchesStaticCatalog()
+    {
+        var vm = new ZoneContentPanelViewModel(new GeneratorSettings());
+        Assert.Equal(ZoneContentSidCatalog.All(), vm.SidCatalog);
+    }
+
+    [Fact]
+    public void PoolValues_ContainsAllPoolEnumMembers()
+    {
+        var vm = new ZoneContentPanelViewModel(new GeneratorSettings());
+        Assert.Equal((ZoneContentPool[])Enum.GetValues(typeof(ZoneContentPool)), vm.PoolValues);
     }
 }

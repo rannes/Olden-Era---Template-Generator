@@ -84,6 +84,8 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
 
         Scopes = new[] { _player, _neutralGlobal, _poor, _normal, _rich };
         Presets = ZoneContentPresets.All();
+        SidCatalog = ZoneContentSidCatalog.All();
+        PoolValues = (ZoneContentPool[])Enum.GetValues(typeof(ZoneContentPool));
 
         RebuildScopeItems();
         _warnings = ZoneContentWarningProjection.Project(_settings);
@@ -102,6 +104,10 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
     public IReadOnlyList<ZoneRoadDecoration> RoadDecorations => _settings.ZoneRoadDecorations;
 
     public IReadOnlyList<ZoneContentPreset> Presets { get; }
+
+    public IReadOnlyList<ZoneContentSidEntry> SidCatalog { get; }
+
+    public IReadOnlyList<ZoneContentPool> PoolValues { get; }
 
     public bool IsDefaultsCompareActive
     {

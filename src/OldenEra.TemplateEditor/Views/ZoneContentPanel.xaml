@@ -1,10 +1,77 @@
 <UserControl x:Class="OldenEra.TemplateEditor.Views.ZoneContentPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:OldenEra.TemplateEditor.Converters">
     <UserControl.Resources>
         <!-- Style.Triggers, when added later, MUST come after all Setters
              (see CLAUDE.md -> feedback_wpf_style_child_order). BAML errors
              only surface in CI on Mac. -->
+        <conv:InverseBoolConverter x:Key="InverseBool"/>
+
+        <DataTemplate x:Key="ZoneContentItemRowTemplate">
+            <Grid Margin="0,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="220"/>  <!-- Sid -->
+                    <ColumnDefinition Width="60"/>   <!-- Min -->
+                    <ColumnDefinition Width="60"/>   <!-- Max -->
+                    <ColumnDefinition Width="120"/>  <!-- Pool -->
+                    <ColumnDefinition Width="Auto"/> <!-- Guarded -->
+                    <ColumnDefinition Width="Auto"/> <!-- NearCastle -->
+                    <ColumnDefinition Width="*"/>    <!-- FactionAffinity -->
+                    <ColumnDefinition Width="*"/>    <!-- BiomeFilter -->
+                    <ColumnDefinition Width="Auto"/> <!-- Delete (placeholder; A8 wires deletion) -->
+                </Grid.ColumnDefinitions>
+
+                <ComboBox Grid.Column="0"
+                          IsEditable="True"
+                          IsTextSearchEnabled="True"
+                          Text="{Binding Sid, UpdateSourceTrigger=PropertyChanged}"
+                          ItemsSource="{Binding DataContext.SidCatalog, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          DisplayMemberPath="FriendlyName"
+                          SelectedValuePath="Sid"
+                          IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"/>
+
+                <TextBox Grid.Column="1"
+                         Text="{Binding MinCount, UpdateSourceTrigger=PropertyChanged}"
+                         IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                         Margin="4,0"/>
+                <TextBox Grid.Column="2"
+                         Text="{Binding MaxCount, UpdateSourceTrigger=PropertyChanged}"
+                         IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                         Margin="4,0"/>
+
+                <ComboBox Grid.Column="3"
+                          ItemsSource="{Binding DataContext.PoolValues, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          SelectedItem="{Binding Pool}"
+                          IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                          Margin="4,0"/>
+
+                <CheckBox Grid.Column="4" Content="Guarded"
+                          IsChecked="{Binding IsGuarded}"
+                          IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                          Margin="8,0,0,0" VerticalAlignment="Center"/>
+                <CheckBox Grid.Column="5" Content="Near castle"
+                          IsChecked="{Binding NearCastle}"
+                          IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                          Margin="8,0,0,0" VerticalAlignment="Center"/>
+
+                <TextBox Grid.Column="6"
+                         Text="{Binding FactionAffinityCsv, UpdateSourceTrigger=LostFocus}"
+                         IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                         Margin="4,0"
+                         ToolTip="Faction affinity (comma-separated)"/>
+                <TextBox Grid.Column="7"
+                         Text="{Binding BiomeFilterCsv, UpdateSourceTrigger=LostFocus}"
+                         IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                         Margin="4,0"
+                         ToolTip="Biome filter (comma-separated)"/>
+
+                <!-- Delete button placeholder; A8 wires the command. -->
+                <Button Grid.Column="8" Content="✕"
+                        IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                        Margin="4,0,0,0" Padding="6,0"/>
+            </Grid>
+        </DataTemplate>
     </UserControl.Resources>
 
     <Border Style="{StaticResource SectionBorder}">
@@ -20,7 +87,12 @@
             </StackPanel>
 
             <TabControl>
-                <TabItem Header="Player"           DataContext="{Binding PlayerScope}"/>
+                <TabItem Header="Player" DataContext="{Binding PlayerScope}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding Items}"
+                                      ItemTemplate="{StaticResource ZoneContentItemRowTemplate}"/>
+                    </ScrollViewer>
+                </TabItem>
                 <TabItem Header="Neutral · Global" DataContext="{Binding NeutralGlobalScope}"/>
                 <TabItem Header="Neutral · Poor"   DataContext="{Binding PoorScope}"/>
                 <TabItem Header="Neutral · Normal" DataContext="{Binding NormalScope}"/>
