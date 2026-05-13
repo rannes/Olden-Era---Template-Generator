@@ -20,10 +20,12 @@ namespace OldenEra.TemplateEditor.ViewModels;
 /// <para>Round 5 (v1) constraints:</para>
 /// <list type="bullet">
 ///   <item><description>
-///     <b>Conservative writes.</b> <see cref="CommitToSettings"/> only writes
-///     back tier and per-zone-letter keys that already existed on the source
-///     <see cref="GeneratorSettings"/> at construction time. The "auto-
-///     materialize a new tier/letter on first edit" affordance is deferred.
+///     <b>Tier materialization on first edit.</b> <see cref="CommitToSettings"/>
+///     adds an absent tier dictionary entry to
+///     <c>NeutralZoneContent.ByTier</c> the first time the corresponding scope
+///     gains items, mirroring the Web's transient-list pattern. Per-zone-letter
+///     materialization is not needed here because the WPF UI exposes only the
+///     letters present at construction.
 ///   </description></item>
 ///   <item><description>
 ///     <b>Road decorations.</b> Exposed read-through via
@@ -43,7 +45,6 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
 {
     private readonly GeneratorSettings _originalSettings;
     private readonly IReadOnlyList<string> _originalLetters;
-    private readonly IReadOnlySet<NeutralZoneTier> _originalTiers;
 
     private GeneratorSettings _settings;
     private bool _isDefaultsCompareActive;
@@ -63,7 +64,6 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
         _settings = settings;
 
         _originalLetters = settings.NeutralZoneContent.ByZoneLetter.Keys.ToList();
-        _originalTiers = settings.NeutralZoneContent.ByTier.Keys.ToHashSet();
 
         _player = new ZoneContentScopeViewModel(
             new ZoneContentScopeKey(ZoneContentScopeKind.Player), "Player");
@@ -265,10 +265,17 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
 
     /// <summary>
     /// Pushes scope-VM edits back into the live <see cref="Settings"/>.
-    /// No-op while <see cref="IsReadOnly"/> is true. Conservative writes:
-    /// only re-writes tier/per-zone keys that already existed at
-    /// construction time.
+    /// No-op while <see cref="IsReadOnly"/> is true.
     /// </summary>
+    /// <remarks>
+    /// Tier dictionary entries are materialized on first edit: a tier scope
+    /// that was absent at construction is added to
+    /// <c>NeutralZoneContent.ByTier</c> the first time it has items. Empty
+    /// scopes for absent tiers stay absent (mirrors the Web's transient-list
+    /// pattern in <c>ZoneContentEditor.razor</c>). Per-zone-letter
+    /// materialization is not needed in v1 because the WPF UI exposes only the
+    /// letters present at construction.
+    /// </remarks>
     public void CommitToSettings()
     {
         if (IsReadOnly) return;
@@ -276,9 +283,9 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
         _originalSettings.PlayerZoneContent.Items = _player.ToModels().ToList();
         _originalSettings.NeutralZoneContent.Global.Items = _neutralGlobal.ToModels().ToList();
 
-        WriteTierIfPresent(NeutralZoneTier.Poor, _poor);
-        WriteTierIfPresent(NeutralZoneTier.Normal, _normal);
-        WriteTierIfPresent(NeutralZoneTier.Rich, _rich);
+        WriteTier(NeutralZoneTier.Poor, _poor);
+        WriteTier(NeutralZoneTier.Normal, _normal);
+        WriteTier(NeutralZoneTier.Rich, _rich);
 
         foreach (var letter in _originalLetters)
         {
@@ -294,11 +301,22 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    private void WriteTierIfPresent(NeutralZoneTier tier, ZoneContentScopeViewModel scope)
+    private void WriteTier(NeutralZoneTier tier, ZoneContentScopeViewModel scope)
     {
-        if (!_originalTiers.Contains(tier)) return;
-        if (!_originalSettings.NeutralZoneContent.ByTier.TryGetValue(tier, out var list)) return;
-        list.Items = scope.ToModels().ToList();
+        if (_originalSettings.NeutralZoneContent.ByTier.TryGetValue(tier, out var list))
+        {
+            // Once materialized, the entry is retained even if the user empties
+            // the scope (matches Web ZoneContentEditor behavior). Removal would
+            // need an explicit "clear tier" affordance.
+            list.Items = scope.ToModels().ToList();
+            return;
+        }
+        // Materialize-on-first-edit: an absent tier with items now gets a
+        // dictionary entry. Empty scopes for absent tiers stay absent so we
+        // don't pollute the dictionary on every commit.
+        if (scope.Items.Count == 0) return;
+        _originalSettings.NeutralZoneContent.ByTier[tier] =
+            new ZoneContentList { Items = scope.ToModels().ToList() };
     }
 
     private void RebuildScopeItems()
