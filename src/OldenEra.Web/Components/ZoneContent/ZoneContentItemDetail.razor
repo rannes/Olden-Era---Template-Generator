@@ -11,12 +11,6 @@ else
             <label class="oe-label">Sid</label>
             <input type="text" disabled="@ReadOnly" list="zone-content-sids"
                    @bind="Item.Sid" @bind:after="NotifyChanged" placeholder="e.g. name_mana_well" />
-            <datalist id="zone-content-sids">
-                @foreach (var entry in ZoneContentSidCatalog.All())
-                {
-                    <option value="@entry.Sid">@entry.FriendlyName</option>
-                }
-            </datalist>
         </div>
 
         <div class="oe-stacked">
