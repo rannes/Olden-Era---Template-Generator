@@ -82,6 +82,12 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
                 $"Per-zone {letter}");
         }
 
+        // Deterministic ordinal-sorted snapshot for the WPF Per-zone tab list.
+        // StringComparer.Ordinal matches Web optgroup ordering (Thread B reviewer note).
+        PerZoneScopesOrdered = _perZone
+            .OrderBy(kv => kv.Key, StringComparer.Ordinal)
+            .ToList();
+
         Scopes = new[] { _player, _neutralGlobal, _poor, _normal, _rich };
         Presets = ZoneContentPresets.All();
         SidCatalog = ZoneContentSidCatalog.All();
@@ -100,6 +106,12 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
     public ZoneContentScopeViewModel NormalScope => _normal;
     public ZoneContentScopeViewModel RichScope => _rich;
     public IReadOnlyDictionary<string, ZoneContentScopeViewModel> PerZoneScopes => _perZone;
+
+    /// <summary>
+    /// Per-zone scopes in deterministic ordinal-letter order, suitable for
+    /// binding directly to the WPF Per-zone tab's letter list.
+    /// </summary>
+    public IReadOnlyList<KeyValuePair<string, ZoneContentScopeViewModel>> PerZoneScopesOrdered { get; }
 
     public IReadOnlyList<ZoneRoadDecoration> RoadDecorations => _settings.ZoneRoadDecorations;
 

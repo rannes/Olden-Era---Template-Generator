@@ -72,6 +72,14 @@
                         Margin="4,0,0,0" Padding="6,0"/>
             </Grid>
         </DataTemplate>
+
+        <!-- Body template shared across all scope tabs (Player + 4 neutrals + per-zone right pane). -->
+        <DataTemplate x:Key="ZoneContentScopeBodyTemplate">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Items}"
+                              ItemTemplate="{StaticResource ZoneContentItemRowTemplate}"/>
+            </ScrollViewer>
+        </DataTemplate>
     </UserControl.Resources>
 
     <Border Style="{StaticResource SectionBorder}">
@@ -88,17 +96,70 @@
 
             <TabControl>
                 <TabItem Header="Player" DataContext="{Binding PlayerScope}">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <ItemsControl ItemsSource="{Binding Items}"
-                                      ItemTemplate="{StaticResource ZoneContentItemRowTemplate}"/>
-                    </ScrollViewer>
+                    <ContentControl Content="{Binding}"
+                                    ContentTemplate="{StaticResource ZoneContentScopeBodyTemplate}"/>
                 </TabItem>
-                <TabItem Header="Neutral · Global" DataContext="{Binding NeutralGlobalScope}"/>
-                <TabItem Header="Neutral · Poor"   DataContext="{Binding PoorScope}"/>
-                <TabItem Header="Neutral · Normal" DataContext="{Binding NormalScope}"/>
-                <TabItem Header="Neutral · Rich"   DataContext="{Binding RichScope}"/>
-                <TabItem Header="Per-zone"/>
-                <TabItem Header="Road decorations"/>
+                <TabItem Header="Neutral · Global" DataContext="{Binding NeutralGlobalScope}">
+                    <ContentControl Content="{Binding}"
+                                    ContentTemplate="{StaticResource ZoneContentScopeBodyTemplate}"/>
+                </TabItem>
+                <TabItem Header="Neutral · Poor" DataContext="{Binding PoorScope}">
+                    <ContentControl Content="{Binding}"
+                                    ContentTemplate="{StaticResource ZoneContentScopeBodyTemplate}"/>
+                </TabItem>
+                <TabItem Header="Neutral · Normal" DataContext="{Binding NormalScope}">
+                    <ContentControl Content="{Binding}"
+                                    ContentTemplate="{StaticResource ZoneContentScopeBodyTemplate}"/>
+                </TabItem>
+                <TabItem Header="Neutral · Rich" DataContext="{Binding RichScope}">
+                    <ContentControl Content="{Binding}"
+                                    ContentTemplate="{StaticResource ZoneContentScopeBodyTemplate}"/>
+                </TabItem>
+                <TabItem Header="Per-zone">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <ListBox x:Name="LbPerZoneLetters"
+                                 Grid.Column="0"
+                                 ItemsSource="{Binding PerZoneScopesOrdered}"
+                                 DisplayMemberPath="Key"
+                                 SelectedValuePath="Key"
+                                 Margin="0,0,8,0"/>
+                        <ContentControl Grid.Column="1"
+                                        Content="{Binding ElementName=LbPerZoneLetters, Path=SelectedItem.Value}"
+                                        ContentTemplate="{StaticResource ZoneContentScopeBodyTemplate}"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Road decorations">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top"
+                                   Margin="0,0,0,8"
+                                   TextWrapping="Wrap"
+                                   Text="Road decorations are read-only in this round. Edit support arrives in a future round."/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding RoadDecorations}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="80"/>
+                                                <ColumnDefinition Width="120"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Zone}"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding RoadType}"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding From.Kind, StringFormat=From: {0}}"/>
+                                            <TextBlock Grid.Column="3" Text="{Binding To.Kind, StringFormat=To: {0}}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </TabItem>
             </TabControl>
         </DockPanel>
     </Border>

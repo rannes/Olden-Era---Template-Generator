@@ -54,6 +54,17 @@ public class ZoneContentPanelViewModelTests
     }
 
     [Fact]
+    public void PerZoneScopesOrdered_IsAlphabetical()
+    {
+        var settings = new GeneratorSettings();
+        settings.NeutralZoneContent.ByZoneLetter["B"] = new ZoneContentList();
+        settings.NeutralZoneContent.ByZoneLetter["A"] = new ZoneContentList();
+        settings.NeutralZoneContent.ByZoneLetter["C"] = new ZoneContentList();
+        var vm = new ZoneContentPanelViewModel(settings);
+        Assert.Equal(new[] { "A", "B", "C" }, vm.PerZoneScopesOrdered.Select(kv => kv.Key).ToArray());
+    }
+
+    [Fact]
     public void Construction_PerZoneScopes_ExposeEachLetter()
     {
         var settings = BuildSettings(
