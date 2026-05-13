@@ -152,6 +152,24 @@ public class ZoneContentScopeViewModelTests
     }
 
     [Fact]
+    public void AddPreset_AppendsClonedItem()
+    {
+        var preset = ZoneContentPresets.All().First();
+        var scope = ZoneContentScopeViewModel.From(
+            new ZoneContentScopeKey(ZoneContentScopeKind.Player), "Player",
+            Array.Empty<ZoneContentItem>());
+
+        scope.AddPreset(preset);
+
+        Assert.Single(scope.Items);
+        Assert.Equal(preset.Item.Sid, scope.Items[0].Sid);
+
+        // Mutating the scope item must not affect the preset's stored Item.
+        scope.Items[0].Sid = "mutated";
+        Assert.Equal(preset.Item.Sid, ZoneContentPresets.All().First().Item.Sid);
+    }
+
+    [Fact]
     public void Key_WithZoneLetter_RoundTrips()
     {
         var key = new ZoneContentScopeKey(ZoneContentScopeKind.NeutralPerZone, "B");

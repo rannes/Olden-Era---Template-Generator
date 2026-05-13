@@ -48,6 +48,17 @@ public sealed class ZoneContentScopeViewModel : INotifyPropertyChanged
     public IReadOnlyList<ZoneContentItem> ToModels() =>
         Items.Select(i => i.ToModel()).ToList();
 
+    /// <summary>
+    /// Appends a fresh item-VM seeded from <paramref name="preset"/>. The
+    /// preset's stored DTO is deep-cloned so subsequent edits never alias
+    /// back into the curated catalog.
+    /// </summary>
+    public void AddPreset(ZoneContentPreset preset)
+    {
+        var clone = ZoneContentCloning.CloneItem(preset.Item);
+        Items.Add(ZoneContentItemViewModel.FromModel(clone));
+    }
+
     public int WarningCount => Items.Sum(i => i.WarningCount);
 
     public bool HasWarnings => WarningCount > 0;
