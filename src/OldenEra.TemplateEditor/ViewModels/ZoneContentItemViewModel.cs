@@ -4,137 +4,136 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using OldenEra.Generator.Models;
 
-namespace OldenEra.TemplateEditor.ViewModels
+namespace OldenEra.TemplateEditor.ViewModels;
+
+/// <summary>
+/// INPC wrapper around <see cref="ZoneContentItem"/>. Exposes every model field plus
+/// CSV string proxies for the list-of-string fields and a HandleText proxy that
+/// round-trips empty/whitespace -&gt; null on the underlying Handle.
+/// </summary>
+public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
 {
-    /// <summary>
-    /// INPC wrapper around <see cref="ZoneContentItem"/>. Exposes every model field plus
-    /// CSV string proxies for the list-of-string fields and a HandleText proxy that
-    /// round-trips empty/whitespace -&gt; null on the underlying Handle.
-    /// </summary>
-    public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
+    private string _sid = "";
+    private string _handleText = "";
+    private bool _isGroup;
+    private int _minCount = 1;
+    private int _maxCount = 1;
+    private ZoneContentPool _pool = ZoneContentPool.Mandatory;
+    private bool _isGuarded;
+    private bool _nearCastle;
+    private RoadDistance? _roadDistance;
+    private string _factionAffinityCsv = "";
+    private string _biomeFilterCsv = "";
+
+    public string Sid
     {
-        private string _sid = "";
-        private string _handleText = "";
-        private bool _isGroup;
-        private int _minCount = 1;
-        private int _maxCount = 1;
-        private ZoneContentPool _pool = ZoneContentPool.Mandatory;
-        private bool _isGuarded;
-        private bool _nearCastle;
-        private RoadDistance? _roadDistance;
-        private string _factionAffinityCsv = "";
-        private string _biomeFilterCsv = "";
+        get => _sid;
+        set => SetField(ref _sid, value);
+    }
 
-        public string Sid
-        {
-            get => _sid;
-            set => SetField(ref _sid, value);
-        }
+    public string HandleText
+    {
+        get => _handleText;
+        set => SetField(ref _handleText, value);
+    }
 
-        public string HandleText
-        {
-            get => _handleText;
-            set => SetField(ref _handleText, value);
-        }
+    public bool IsGroup
+    {
+        get => _isGroup;
+        set => SetField(ref _isGroup, value);
+    }
 
-        public bool IsGroup
-        {
-            get => _isGroup;
-            set => SetField(ref _isGroup, value);
-        }
+    public int MinCount
+    {
+        get => _minCount;
+        set => SetField(ref _minCount, value);
+    }
 
-        public int MinCount
-        {
-            get => _minCount;
-            set => SetField(ref _minCount, value);
-        }
+    public int MaxCount
+    {
+        get => _maxCount;
+        set => SetField(ref _maxCount, value);
+    }
 
-        public int MaxCount
-        {
-            get => _maxCount;
-            set => SetField(ref _maxCount, value);
-        }
+    public ZoneContentPool Pool
+    {
+        get => _pool;
+        set => SetField(ref _pool, value);
+    }
 
-        public ZoneContentPool Pool
-        {
-            get => _pool;
-            set => SetField(ref _pool, value);
-        }
+    public bool IsGuarded
+    {
+        get => _isGuarded;
+        set => SetField(ref _isGuarded, value);
+    }
 
-        public bool IsGuarded
-        {
-            get => _isGuarded;
-            set => SetField(ref _isGuarded, value);
-        }
+    public bool NearCastle
+    {
+        get => _nearCastle;
+        set => SetField(ref _nearCastle, value);
+    }
 
-        public bool NearCastle
-        {
-            get => _nearCastle;
-            set => SetField(ref _nearCastle, value);
-        }
+    public RoadDistance? RoadDistance
+    {
+        get => _roadDistance;
+        set => SetField(ref _roadDistance, value);
+    }
 
-        public RoadDistance? RoadDistance
-        {
-            get => _roadDistance;
-            set => SetField(ref _roadDistance, value);
-        }
+    public string FactionAffinityCsv
+    {
+        get => _factionAffinityCsv;
+        set => SetField(ref _factionAffinityCsv, value);
+    }
 
-        public string FactionAffinityCsv
-        {
-            get => _factionAffinityCsv;
-            set => SetField(ref _factionAffinityCsv, value);
-        }
+    public string BiomeFilterCsv
+    {
+        get => _biomeFilterCsv;
+        set => SetField(ref _biomeFilterCsv, value);
+    }
 
-        public string BiomeFilterCsv
-        {
-            get => _biomeFilterCsv;
-            set => SetField(ref _biomeFilterCsv, value);
-        }
+    public static ZoneContentItemViewModel FromModel(ZoneContentItem model) => new()
+    {
+        _sid = model.Sid,
+        _handleText = model.Handle ?? "",
+        _isGroup = model.IsGroup,
+        _minCount = model.MinCount,
+        _maxCount = model.MaxCount,
+        _pool = model.Pool,
+        _isGuarded = model.IsGuarded,
+        _nearCastle = model.NearCastle,
+        _roadDistance = model.RoadDistance,
+        _factionAffinityCsv = JoinCsv(model.FactionAffinity),
+        _biomeFilterCsv = JoinCsv(model.BiomeFilter),
+    };
 
-        public static ZoneContentItemViewModel FromModel(ZoneContentItem model) => new()
-        {
-            _sid = model.Sid,
-            _handleText = model.Handle ?? "",
-            _isGroup = model.IsGroup,
-            _minCount = model.MinCount,
-            _maxCount = model.MaxCount,
-            _pool = model.Pool,
-            _isGuarded = model.IsGuarded,
-            _nearCastle = model.NearCastle,
-            _roadDistance = model.RoadDistance,
-            _factionAffinityCsv = JoinCsv(model.FactionAffinity),
-            _biomeFilterCsv = JoinCsv(model.BiomeFilter),
-        };
+    public ZoneContentItem ToModel() => new()
+    {
+        Sid = _sid,
+        Handle = string.IsNullOrWhiteSpace(_handleText) ? null : _handleText,
+        IsGroup = _isGroup,
+        MinCount = _minCount,
+        MaxCount = _maxCount,
+        Pool = _pool,
+        IsGuarded = _isGuarded,
+        NearCastle = _nearCastle,
+        RoadDistance = _roadDistance,
+        FactionAffinity = SplitCsv(_factionAffinityCsv),
+        BiomeFilter = SplitCsv(_biomeFilterCsv),
+    };
 
-        public ZoneContentItem ToModel() => new()
-        {
-            Sid = _sid,
-            Handle = string.IsNullOrWhiteSpace(_handleText) ? null : _handleText,
-            IsGroup = _isGroup,
-            MinCount = _minCount,
-            MaxCount = _maxCount,
-            Pool = _pool,
-            IsGuarded = _isGuarded,
-            NearCastle = _nearCastle,
-            RoadDistance = _roadDistance,
-            FactionAffinity = SplitCsv(_factionAffinityCsv),
-            BiomeFilter = SplitCsv(_biomeFilterCsv),
-        };
+    private static List<string> SplitCsv(string? s) =>
+        string.IsNullOrWhiteSpace(s)
+            ? new List<string>()
+            : s!.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
 
-        private static List<string> SplitCsv(string? s) =>
-            string.IsNullOrWhiteSpace(s)
-                ? new List<string>()
-                : s!.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+    private static string JoinCsv(IEnumerable<string> values) => string.Join(", ", values);
 
-        private static string JoinCsv(IEnumerable<string> values) => string.Join(", ", values);
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        private void SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-        {
-            if (EqualityComparer<T>.Default.Equals(field, value)) return;
-            field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+    private void SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return;
+        field = value;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
