@@ -27,6 +27,10 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
     private string _factionAffinityCsv = "";
     private string _biomeFilterCsv = "";
     private IReadOnlyList<EmitWarning> _warnings = Array.Empty<EmitWarning>();
+    private IReadOnlyList<EmitWarning> _minMaxWarnings = Array.Empty<EmitWarning>();
+    private IReadOnlyList<EmitWarning> _poolWarnings = Array.Empty<EmitWarning>();
+    private IReadOnlyList<EmitWarning> _factionAffinityWarnings = Array.Empty<EmitWarning>();
+    private IReadOnlyList<EmitWarning> _biomeFilterWarnings = Array.Empty<EmitWarning>();
 
     public string Sid
     {
@@ -107,30 +111,31 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
     /// <summary>
     /// Filters <see cref="Warnings"/> to entries whose <c>Code</c> equals
     /// <paramref name="code"/>. Mirrors the Web's <c>WarningsFor</c> helper in
-    /// <c>ZoneContentItemDetail.razor</c>. Used by per-field badge bindings —
-    /// the named properties below (MinMaxWarnings, PoolWarnings, etc.) wrap
-    /// the codes that have a UI surface today.
+    /// <c>ZoneContentItemDetail.razor</c>. The named projections below
+    /// (<see cref="MinMaxWarnings"/>, <see cref="PoolWarnings"/>, etc.) cache
+    /// the codes that have a UI surface today; prefer those over calling this
+    /// helper from a binding hot path.
     /// </summary>
     public IReadOnlyList<EmitWarning> WarningsFor(string code) =>
         _warnings.Where(w => w.Code == code).ToList();
 
-    /// <summary>Per-field warning lists driving the WPF badges.</summary>
-    public IReadOnlyList<EmitWarning> MinMaxWarnings =>
-        WarningsFor(EmitWarning.Codes.MinCountRangeNarrowedToMax);
+    /// <summary>
+    /// Warnings shown by the badge that sits next to the Min/Max counts pair
+    /// (the underlying <c>MinCountRangeNarrowedToMax</c> code spans both
+    /// fields, hence the pair-cell name rather than a single-field name).
+    /// </summary>
+    public IReadOnlyList<EmitWarning> MinMaxWarnings => _minMaxWarnings;
 
-    public IReadOnlyList<EmitWarning> PoolWarnings =>
-        WarningsFor(EmitWarning.Codes.PoolNonMandatoryDropped);
+    public IReadOnlyList<EmitWarning> PoolWarnings => _poolWarnings;
 
-    public IReadOnlyList<EmitWarning> FactionAffinityWarnings =>
-        WarningsFor(EmitWarning.Codes.FactionAffinityIgnored);
+    public IReadOnlyList<EmitWarning> FactionAffinityWarnings => _factionAffinityWarnings;
 
-    public IReadOnlyList<EmitWarning> BiomeFilterWarnings =>
-        WarningsFor(EmitWarning.Codes.BiomeFilterIgnored);
+    public IReadOnlyList<EmitWarning> BiomeFilterWarnings => _biomeFilterWarnings;
 
-    public bool HasMinMaxWarnings => MinMaxWarnings.Count > 0;
-    public bool HasPoolWarnings => PoolWarnings.Count > 0;
-    public bool HasFactionAffinityWarnings => FactionAffinityWarnings.Count > 0;
-    public bool HasBiomeFilterWarnings => BiomeFilterWarnings.Count > 0;
+    public bool HasMinMaxWarnings => _minMaxWarnings.Count > 0;
+    public bool HasPoolWarnings => _poolWarnings.Count > 0;
+    public bool HasFactionAffinityWarnings => _factionAffinityWarnings.Count > 0;
+    public bool HasBiomeFilterWarnings => _biomeFilterWarnings.Count > 0;
 
     /// <summary>
     /// Item identity used to join warnings to this row. Mirrors the Web projection
@@ -148,6 +153,13 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
     {
         if (ReferenceEquals(_warnings, warnings)) return;
         _warnings = warnings;
+        // Precompute per-field projections once so binding hot paths read
+        // a cached field instead of re-running Where().ToList() on every
+        // PropertyChanged invalidation.
+        _minMaxWarnings = WarningsFor(EmitWarning.Codes.MinCountRangeNarrowedToMax);
+        _poolWarnings = WarningsFor(EmitWarning.Codes.PoolNonMandatoryDropped);
+        _factionAffinityWarnings = WarningsFor(EmitWarning.Codes.FactionAffinityIgnored);
+        _biomeFilterWarnings = WarningsFor(EmitWarning.Codes.BiomeFilterIgnored);
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Warnings)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(WarningCount)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasWarnings)));
