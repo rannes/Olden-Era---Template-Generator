@@ -305,11 +305,15 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
     {
         if (_originalSettings.NeutralZoneContent.ByTier.TryGetValue(tier, out var list))
         {
+            // Once materialized, the entry is retained even if the user empties
+            // the scope (matches Web ZoneContentEditor behavior). Removal would
+            // need an explicit "clear tier" affordance.
             list.Items = scope.ToModels().ToList();
             return;
         }
         // Materialize-on-first-edit: an absent tier with items now gets a
-        // dictionary entry. Empty scopes for absent tiers stay absent.
+        // dictionary entry. Empty scopes for absent tiers stay absent so we
+        // don't pollute the dictionary on every commit.
         if (scope.Items.Count == 0) return;
         _originalSettings.NeutralZoneContent.ByTier[tier] =
             new ZoneContentList { Items = scope.ToModels().ToList() };

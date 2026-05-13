@@ -203,22 +203,32 @@ public class ZoneContentPanelViewModelTests
         Assert.False(settings.NeutralZoneContent.ByTier.ContainsKey(NeutralZoneTier.Poor));
     }
 
-    [Fact]
-    public void CommitToSettings_MaterializesAbsentTierOnFirstEdit()
+    [Theory]
+    [InlineData(NeutralZoneTier.Poor)]
+    [InlineData(NeutralZoneTier.Normal)]
+    [InlineData(NeutralZoneTier.Rich)]
+    public void CommitToSettings_MaterializesAbsentTierOnFirstEdit(NeutralZoneTier tier)
     {
-        // Settings without a Poor tier; user adds an item via the empty Poor
-        // scope. Commit should materialize the dictionary entry so the edit
+        // Settings without the tier; user adds an item via the empty scope.
+        // Commit should materialize the dictionary entry so the edit
         // round-trips through Save/Open.
         var settings = BuildSettings();
         var vm = new ZoneContentPanelViewModel(settings);
 
-        vm.PoorScope.Items.Add(ZoneContentItemViewModel.FromModel(Item("name_x")));
+        var scope = tier switch
+        {
+            NeutralZoneTier.Poor => vm.PoorScope,
+            NeutralZoneTier.Normal => vm.NormalScope,
+            NeutralZoneTier.Rich => vm.RichScope,
+            _ => throw new ArgumentOutOfRangeException(nameof(tier)),
+        };
+        scope.Items.Add(ZoneContentItemViewModel.FromModel(Item("name_x")));
         // Live-edit auto-commits, but explicit call is the contract surface.
         vm.CommitToSettings();
 
-        Assert.True(settings.NeutralZoneContent.ByTier.ContainsKey(NeutralZoneTier.Poor));
-        Assert.Single(settings.NeutralZoneContent.ByTier[NeutralZoneTier.Poor].Items);
-        Assert.Equal("name_x", settings.NeutralZoneContent.ByTier[NeutralZoneTier.Poor].Items[0].Sid);
+        Assert.True(settings.NeutralZoneContent.ByTier.ContainsKey(tier));
+        Assert.Single(settings.NeutralZoneContent.ByTier[tier].Items);
+        Assert.Equal("name_x", settings.NeutralZoneContent.ByTier[tier].Items[0].Sid);
     }
 
     [Fact]
