@@ -74,6 +74,30 @@ public class UpdateAssetSelectionTests
     }
 
     [Fact]
+    public void SelectAsset_matches_whenTagOmitsBuildAndAssetUsesShortVersion()
+    {
+        // Released as `v0.7` (Version.Build == -1). Asset name is the short form.
+        var picked = UpdateAssetSelection.SelectAsset(
+            new[] { "OldenEraTemplateGenerator-v0.7-win-x64.exe" },
+            new Version(0, 7));
+        Assert.Equal("OldenEraTemplateGenerator-v0.7-win-x64.exe", picked);
+    }
+
+    [Fact]
+    public void SelectAsset_prefersExactMatch_overShortVersionPrefix()
+    {
+        // For v0.7.0 (Build=0), we should prefer "-v0.7.0-" over "-v0.7-".
+        var picked = UpdateAssetSelection.SelectAsset(
+            new[]
+            {
+                "OldenEraTemplateGenerator-v0.7-win-x64.exe",
+                "OldenEraTemplateGenerator-v0.7.0-win-x64.exe",
+            },
+            new Version(0, 7, 0));
+        Assert.Equal("OldenEraTemplateGenerator-v0.7.0-win-x64.exe", picked);
+    }
+
+    [Fact]
     public void SelectAsset_skipsZipAssets()
     {
         var picked = UpdateAssetSelection.SelectAsset(

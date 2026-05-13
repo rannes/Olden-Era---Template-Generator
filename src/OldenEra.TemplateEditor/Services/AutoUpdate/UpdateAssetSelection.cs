@@ -34,20 +34,24 @@ public static class UpdateAssetSelection
     {
         if (assetNames is null) return null;
 
-        string exactMarker1 = $"-v{targetVersion.Major}.{targetVersion.Minor}.{targetVersion.Build}-";
-        string exactMarker2 = $"-v{targetVersion.Major}.{targetVersion.Minor}-";
+        string longMarker = $"-v{targetVersion.Major}.{targetVersion.Minor}.{Math.Max(0, targetVersion.Build)}-";
+        string shortMarker = targetVersion.Build < 0
+            ? $"-v{targetVersion.Major}.{targetVersion.Minor}-"
+            : null!;
 
+        string? longMatch  = null;
+        string? shortMatch = null;
         string? firstMatch = null;
+
         foreach (var name in assetNames)
         {
             if (name is null || !AssetPattern.IsMatch(name)) continue;
-            if (name.Contains(exactMarker1, StringComparison.OrdinalIgnoreCase)
-                || (targetVersion.Build <= 0 && name.Contains(exactMarker2, StringComparison.OrdinalIgnoreCase)))
-            {
-                return name;
-            }
             firstMatch ??= name;
+            if (longMatch is null && name.Contains(longMarker, StringComparison.OrdinalIgnoreCase))
+                longMatch = name;
+            else if (shortMarker != null && shortMatch is null && name.Contains(shortMarker, StringComparison.OrdinalIgnoreCase))
+                shortMatch = name;
         }
-        return firstMatch;
+        return longMatch ?? shortMatch ?? firstMatch;
     }
 }

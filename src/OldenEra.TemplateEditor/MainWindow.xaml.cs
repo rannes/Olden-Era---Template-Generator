@@ -199,7 +199,7 @@ namespace OldenEra.TemplateEditor
 
             UpdateProgressWindow? progressWindow = null;
             var ui = new UpdateOrchestrator.UiCallbacks(
-                AskUserToInstall: info => Dispatcher.Invoke(() => MessageBox.Show(
+                AskUserToInstall: info => OnUi(() => MessageBox.Show(
                     $"A new version is available: {FormatVersion(info.Version)}\n" +
                     $"You are running: {FormatVersion(currentVersion)}\n\n" +
                     (string.IsNullOrEmpty(info.AssetUrl)
@@ -208,18 +208,18 @@ namespace OldenEra.TemplateEditor
                     "Update Available",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Information) == MessageBoxResult.Yes),
-                ShowDownloadDialog: () => Dispatcher.Invoke(() =>
+                ShowDownloadDialog: () => OnUi(() =>
                 {
                     progressWindow = new UpdateProgressWindow { Owner = this };
                     progressWindow.Show();
                     return new UpdateOrchestrator.DownloadDialog(
                         Progress: progressWindow,
                         Token: progressWindow.CancellationToken,
-                        Close: () => Dispatcher.Invoke(() => progressWindow?.Close()));
+                        Close: () => OnUi(() => progressWindow?.Close()));
                 }),
-                ShowError: msg => Dispatcher.Invoke(() => MessageBox.Show(
+                ShowError: msg => OnUi(() => MessageBox.Show(
                     msg, "Update Error", MessageBoxButton.OK, MessageBoxImage.Warning)),
-                OpenReleasesPage: () => Dispatcher.Invoke(() =>
+                OpenReleasesPage: () => OnUi(() =>
                     System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(GitHubReleasesPage) { UseShellExecute = true })));
 
             try
@@ -237,6 +237,20 @@ namespace OldenEra.TemplateEditor
             if (!_appPrefsLoaded) return;
             _appPrefs = _appPrefs with { CheckForUpdatesOnStartup = ChkCheckForUpdates.IsChecked == true };
             _appPrefsStore.Save(_appPrefs);
+        }
+
+        // Runs <paramref name="action"/> on the UI thread, executing inline if we
+        // are already on it. Avoids the latent re-entrancy of synchronous
+        // Dispatcher.Invoke from the UI thread.
+        private void OnUi(Action action)
+        {
+            if (Dispatcher.CheckAccess()) action();
+            else Dispatcher.Invoke(action);
+        }
+
+        private T OnUi<T>(Func<T> func)
+        {
+            return Dispatcher.CheckAccess() ? func() : Dispatcher.Invoke(func);
         }
 
         // Formats a Version as "vMajor.Minor" or "vMajor.Minor.Build" when build > 0.

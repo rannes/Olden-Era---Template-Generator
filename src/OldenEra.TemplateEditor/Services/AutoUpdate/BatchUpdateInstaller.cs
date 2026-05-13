@@ -32,7 +32,17 @@ public sealed class BatchUpdateInstaller : IUpdateInstaller
             CreateNoWindow = true,
             WindowStyle = ProcessWindowStyle.Hidden,
         };
-        Process.Start(psi);
+        try
+        {
+            Process.Start(psi);
+        }
+        catch
+        {
+            // Handoff failed before any work happened — clean up the orphan script
+            // and let the caller surface the error. Don't shut the app down.
+            try { File.Delete(scriptPath); } catch { /* swallow */ }
+            throw;
+        }
         _shutdown();
     }
 

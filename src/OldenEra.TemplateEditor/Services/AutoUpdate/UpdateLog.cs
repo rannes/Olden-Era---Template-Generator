@@ -15,7 +15,9 @@ public sealed class UpdateLog : IUpdateLog
 {
     private const long MaxBytes = 64 * 1024;
     private readonly string _path;
-    private readonly object _gate = new();
+    // Static lock: all instances target the same default file path, so cross-
+    // instance writes must serialize to avoid interleaved File.AppendAllText.
+    private static readonly object Gate = new();
 
     public UpdateLog(string? path = null)
     {
@@ -30,7 +32,7 @@ public sealed class UpdateLog : IUpdateLog
     {
         try
         {
-            lock (_gate)
+            lock (Gate)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
                 var sb = new StringBuilder();
