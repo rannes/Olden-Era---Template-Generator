@@ -5,14 +5,16 @@ using OldenEra.Generator.Services;
 using OldenEra.Generator.Models.Unfrozen;
 using OldenEra.Generator.Services.ZoneContent;
 using OldenEra.TemplateEditor.Services;
+using OldenEra.TemplateEditor.Services.AutoUpdate;
 using OldenEra.TemplateEditor.ViewModels;
+using OldenEra.TemplateEditor.Views;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -20,12 +22,13 @@ namespace OldenEra.TemplateEditor
 {
     public partial class MainWindow : Window
     {
-        private const string GitHubApiLatestRelease = "https://api.github.com/repos/rannes/Olden-Era---Template-Generator/releases/latest";
         private const string GitHubReleasesPage     = "https://github.com/rannes/Olden-Era---Template-Generator/releases";
         private const int SimpleModeMaxZones = 32;
         private const int AdvancedModeMaxZones = 32;
 
-        private static readonly HttpClient Http = new();
+        private static readonly HttpClient UpdateHttpClient = new();
+        private readonly IAppPreferencesStore _appPrefsStore = new JsonAppPreferencesStore();
+        private AppPreferences _appPrefs = new();
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -166,8 +169,13 @@ namespace OldenEra.TemplateEditor
             UpdatePlayerCastleFactionVisibility();
             UpdateBalancedZonePlacementDescVisibility();
 
+            // Load app preferences and reflect into the toolbar checkbox.
+            _appPrefs = _appPrefsStore.Load();
+            ChkCheckForUpdates.IsChecked = _appPrefs.CheckForUpdatesOnStartup;
+
             // Fire-and-forget background update check — never blocks the UI.
-            _ = CheckForUpdateAsync(version);
+            if (_appPrefs.CheckForUpdatesOnStartup && version != null)
+                _ = RunUpdateCheckAsync(version);
 
             PnlMap.TxtTemplateName.TextChanged += (_, _) => { MarkDirtyNameOnly(); Validate(); };
             PnlMap.TxtSeed.TextChanged += (_, _) => { MarkDirty(); Validate(); };
@@ -175,42 +183,56 @@ namespace OldenEra.TemplateEditor
             TxtWindowTitle.Text = Title;
         }
 
-        private async Task CheckForUpdateAsync(Version? currentVersion)
+        private async Task RunUpdateCheckAsync(Version currentVersion)
         {
+            var log         = new UpdateLog();
+            var checker     = new GitHubUpdateChecker(UpdateHttpClient);
+            var downloader  = new HttpUpdateDownloader(UpdateHttpClient);
+            var installer   = new BatchUpdateInstaller(
+                resolveCurrentExePath: () => System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName!,
+                shutdown: () => Application.Current.Shutdown());
+            var orchestrator = new UpdateOrchestrator(checker, downloader, installer, log);
+
+            UpdateProgressWindow? progressWindow = null;
+            var ui = new UpdateOrchestrator.UiCallbacks(
+                AskUserToInstall: info => Dispatcher.Invoke(() => MessageBox.Show(
+                    $"A new version is available: {FormatVersion(info.Version)}\n" +
+                    $"You are running: {FormatVersion(currentVersion)}\n\n" +
+                    (string.IsNullOrEmpty(info.AssetUrl)
+                        ? "Open the releases page to download the update?"
+                        : "Download and install the update now?"),
+                    "Update Available",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information) == MessageBoxResult.Yes),
+                ShowDownloadDialog: () => Dispatcher.Invoke(() =>
+                {
+                    progressWindow = new UpdateProgressWindow { Owner = this };
+                    progressWindow.Show();
+                    return new UpdateOrchestrator.DownloadDialog(
+                        Progress: progressWindow,
+                        Token: progressWindow.CancellationToken,
+                        Close: () => Dispatcher.Invoke(() => progressWindow?.Close()));
+                }),
+                ShowError: msg => Dispatcher.Invoke(() => MessageBox.Show(
+                    msg, "Update Error", MessageBoxButton.OK, MessageBoxImage.Warning)),
+                OpenReleasesPage: () => Dispatcher.Invoke(() =>
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(GitHubReleasesPage) { UseShellExecute = true })));
+
             try
             {
-                Http.DefaultRequestHeaders.UserAgent.Clear();
-                Http.DefaultRequestHeaders.UserAgent.Add(
-                    new ProductInfoHeaderValue("OldenEraTemplateGenerator", currentVersion?.ToString() ?? "0"));
-
-                using var response = await Http.GetAsync(GitHubApiLatestRelease);
-                if (!response.IsSuccessStatusCode) return;
-
-                using var stream = await response.Content.ReadAsStreamAsync();
-                var release = await JsonSerializer.DeserializeAsync<GitHubRelease>(stream);
-                if (release?.TagName == null) return;
-
-                // Tag expected format: "v1.2", "1.2", or "v1.2.3" — parse major.minor[.build].
-                string tag = release.TagName.TrimStart('v');
-                if (!Version.TryParse(tag, out Version? latestVersion)) return;
-                if (currentVersion == null || latestVersion <= currentVersion) return;
-
-                // A newer version exists — prompt on the UI thread.
-                Dispatcher.Invoke(() =>
-                {
-                    var result = MessageBox.Show(
-                        $"A new version is available: {FormatVersion(latestVersion)}\n" +
-                        $"You are running: {FormatVersion(currentVersion)}\n\n" +
-                        "Open the releases page to download the update?",
-                        "Update Available",
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Information);
-
-                    if (result == MessageBoxResult.Yes)
-                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(GitHubReleasesPage) { UseShellExecute = true });
-                });
+                await orchestrator.RunStartupCheckAsync(currentVersion, ui).ConfigureAwait(false);
             }
-            catch { /* Network unavailable or API error — silently ignore. */ }
+            catch (Exception ex)
+            {
+                log.Error("Unhandled error in update flow.", ex);
+            }
+        }
+
+        private void ChkCheckForUpdates_Changed(object sender, RoutedEventArgs e)
+        {
+            if (!IsInitialized) return;
+            _appPrefs = _appPrefs with { CheckForUpdatesOnStartup = ChkCheckForUpdates.IsChecked == true };
+            _appPrefsStore.Save(_appPrefs);
         }
 
         // Formats a Version as "vMajor.Minor" or "vMajor.Minor.Build" when build > 0.
@@ -234,13 +256,6 @@ namespace OldenEra.TemplateEditor
 
         private void BtnDiscord_Click(object sender, RoutedEventArgs e) =>
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(CommunityDiscordInvite) { UseShellExecute = true });
-
-        // Minimal model for GitHub releases API response.
-        private sealed class GitHubRelease
-        {
-            [JsonPropertyName("tag_name")]
-            public string? TagName { get; set; }
-        }
 
         private void MarkDirty()
         {

@@ -104,6 +104,12 @@
                                   ToolTip="Show experimental features. Generated templates may behave unpredictably."
                                   Checked="ChkExperimentalEnabled_Changed"
                                   Unchecked="ChkExperimentalEnabled_Changed"/>
+                        <CheckBox x:Name="ChkCheckForUpdates"
+                                  Content="Check for updates on startup"
+                                  VerticalAlignment="Center" Margin="0,0,12,0"
+                                  ToolTip="When enabled, the app checks GitHub for a new release at startup."
+                                  Checked="ChkCheckForUpdates_Changed"
+                                  Unchecked="ChkCheckForUpdates_Changed"/>
                         <Button Content="GitHub" Click="BtnGithub_Click" Style="{StaticResource OeGhostButton}" ToolTip="View the project on GitHub"/>
                         <Button Content="Patch Notes" Click="BtnPatchNotes_Click" Style="{StaticResource OeGhostButton}" ToolTip="View release notes on GitHub"/>
                         <Button Content="Discord" Click="BtnDiscord_Click" Style="{StaticResource OeGhostButton}" ToolTip="Join the community Discord"/>
