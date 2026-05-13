@@ -1,15 +1,18 @@
 @using OldenEra.Generator.Models
-@using OldenEra.Generator.Services.ZoneContent
-@using OldenEra.Web.Services
 
 <div class="oe-zc-list">
     <div class="oe-zc-list-toolbar">
         <button type="button" class="oe-btn ghost" disabled="@ReadOnly" @onclick="AddBlank">+ Add</button>
         <select disabled="@ReadOnly" value="" @onchange="OnPresetChosen">
             <option value="">+ Add from preset…</option>
-            @foreach (var preset in ZoneContentPresets.All())
+            @foreach (var group in ZoneContentPresets.All().GroupBy(p => p.Category).OrderBy(g => g.Key, StringComparer.Ordinal))
             {
-                <option value="@preset.Name">@preset.Name</option>
+                <optgroup label="@group.Key">
+                    @foreach (var preset in group)
+                    {
+                        <option value="@preset.Name">@preset.Name</option>
+                    }
+                </optgroup>
             }
         </select>
     </div>

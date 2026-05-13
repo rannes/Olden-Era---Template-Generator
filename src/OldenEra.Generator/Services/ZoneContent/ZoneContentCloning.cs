@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OldenEra.Generator.Models;
 
-namespace OldenEra.Web.Services;
+namespace OldenEra.Generator.Services.ZoneContent;
 
 /// <summary>
 /// Centralizes deep-cloning of the zone-content trees on

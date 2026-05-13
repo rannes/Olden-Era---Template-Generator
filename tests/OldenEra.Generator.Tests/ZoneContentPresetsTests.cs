@@ -17,4 +17,13 @@ public class ZoneContentPresetsTests
             Assert.Empty(ZoneContentItemValidator.Validate(p.Item));
         });
     }
+
+    [Fact]
+    public void All_presets_have_non_empty_category()
+    {
+        foreach (var preset in ZoneContentPresets.All())
+        {
+            Assert.False(string.IsNullOrWhiteSpace(preset.Category));
+        }
+    }
 }

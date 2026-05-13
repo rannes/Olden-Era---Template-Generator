@@ -1,7 +1,6 @@
 using OldenEra.Generator.Models;
-using OldenEra.Generator.Services.ZoneContent;
 
-namespace OldenEra.Web.Services;
+namespace OldenEra.Generator.Services.ZoneContent;
 
 public sealed record ZoneContentWarning(
     ZoneContentScopeKey Scope,

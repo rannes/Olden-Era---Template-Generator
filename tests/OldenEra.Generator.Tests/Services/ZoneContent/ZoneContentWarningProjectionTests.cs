@@ -1,8 +1,7 @@
 using OldenEra.Generator.Models;
 using OldenEra.Generator.Services.ZoneContent;
-using OldenEra.Web.Services;
 
-namespace OldenEra.Web.Tests.Services;
+namespace OldenEra.Generator.Tests.Services.ZoneContent;
 
 public class ZoneContentWarningProjectionTests
 {
