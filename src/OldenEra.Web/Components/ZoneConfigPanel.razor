@@ -90,20 +90,6 @@
         </div>
     }
 
-    <label class="oe-check">
-        <input type="checkbox" checked="@Settings.ExperimentalBalancedZonePlacement"
-               @onchange="@(e => { Settings.ExperimentalBalancedZonePlacement = (bool)e.Value!; NotifyChanged(); })" />
-        <span>Balance zone placement [RECOMMENDED]</span>
-        <ExperimentalBadge />
-    </label>
-    @if (Settings.ExperimentalBalancedZonePlacement)
-    {
-        <div class="oe-hint" style="margin-left:1.5rem;">
-            Spreads players and neutral zone tiers more evenly across structured layouts.
-            Random layout uses balanced seed positions before building borders.
-        </div>
-    }
-
     @if (Settings.Topology == MapTopology.Random)
     {
         <label class="oe-check">

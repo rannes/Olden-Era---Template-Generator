@@ -96,11 +96,9 @@ namespace OldenEra.Generator.Services
                 warnings.Add("Minimum neutral separation cannot be guaranteed with the current layout, neutral zone total, or portal setting; generation will ignore that option.");
             }
 
-            if (settings.Topology == MapTopology.Random
-                && settings.ExperimentalBalancedZonePlacement
-                && totalZones >= 24)
+            if (settings.Topology == MapTopology.Balanced && totalZones >= 24)
             {
-                warnings.Add("Balanced zone placement may produce unexpected results with the random map layout and more than 24 total zones.");
+                warnings.Add("Balanced layout may produce unexpected results with more than 24 total zones.");
             }
 
             // Hero ban / fixed-hero validation.

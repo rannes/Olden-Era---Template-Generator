@@ -23,6 +23,13 @@ public static class SettingsMapper
         bool needsExperimentalMapSizes = s.ExperimentalMapSizes || KnownValues.IsExperimentalMapSize(s.MapSize);
         bool advanced = s.AdvancedMode || needsExperimentalMapSizes || hasCustomZoneSizes;
 
+        // Migration: pre-Balanced files used `Topology=Random` + the legacy
+        // `experimentalBalancedZonePlacement` flag to mean the same thing as today's
+        // `MapTopology.Balanced`. Promote to the new topology on load.
+        var migratedTopology = s.Topology == MapTopology.Random && s.ExperimentalBalancedZonePlacement
+            ? MapTopology.Balanced
+            : s.Topology;
+
         var settings = new GeneratorSettings
         {
             TemplateName = string.IsNullOrEmpty(s.TemplateName) ? "Custom Template" : s.TemplateName,
@@ -93,7 +100,7 @@ public static class SettingsMapper
                     ? new()
                     : new Dictionary<string, string?>(s.FixedStartingHeroByFaction),
             },
-            Topology = s.Topology,
+            Topology = migratedTopology,
             RandomPortals = s.RandomPortals,
             MaxPortalConnections = Math.Clamp(s.MaxPortalConnections, 1, 32),
             SpawnRemoteFootholds = s.SpawnRemoteFootholds,

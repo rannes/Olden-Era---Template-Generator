@@ -1061,8 +1061,10 @@ namespace OldenEra.Generator.Services
 
         private static Dictionary<string, SKPoint> LayoutZones(List<Zone> zones, List<Connection> connections, MapTopology topology)
         {
-            // Structured topologies use the simple ring layout; only Random uses the spring embedder.
-            if (topology != MapTopology.Random)
+            // Structured topologies use the simple ring layout. Random uses the spring
+            // embedder. Balanced uses the same generator-position pipeline as Random,
+            // with a ring-snap pre-pass to clean up the concentric arrangement.
+            if (topology != MapTopology.Random && topology != MapTopology.Balanced)
                 return LayoutZonesRing(zones, connections);
 
             int n = zones.Count;
@@ -1087,6 +1089,17 @@ namespace OldenEra.Generator.Services
             // ── If zones already carry generator-stamped positions, use them ──
             if (zones.All(z => z.GeneratorPosition.HasValue))
             {
+                // ── Ring-snap pass (Balanced topology only) ─────────────────────────
+                // Snaps zones to clean evenly-spaced concentric rings. Skipped for
+                // Random so that genuinely scattered positions are never forced into a
+                // false circular arrangement. For two-cluster tournament Balanced the
+                // pass runs independently per cluster, each in its own canvas half.
+                if (topology == MapTopology.Balanced)
+                {
+                    var snapped = TryRingSnap(zones, connections, idx, n, margin, minGap);
+                    if (snapped != null) return snapped;
+                }
+
                 var gAdj = new HashSet<int>[n];
                 for (int i = 0; i < n; i++) gAdj[i] = new HashSet<int>();
                 foreach (var conn in connections)
@@ -1674,6 +1687,183 @@ namespace OldenEra.Generator.Services
             }
 
             return positions;
+        }
+
+        /// <summary>
+        /// Ring-snap pass for Balanced topology: detects concentric rings in the raw
+        /// generator positions (gap-based clustering on distance-from-centroid) and
+        /// snaps each ring to perfectly even spacing. Returns null if no ring structure
+        /// is detected in any cluster (caller falls back to the standard pipeline).
+        /// </summary>
+        private static Dictionary<string, SKPoint>? TryRingSnap(
+            List<Zone> zones,
+            List<Connection> connections,
+            Dictionary<string, int> idx,
+            int n,
+            double margin,
+            double minGap)
+        {
+            // Build adjacency to detect connected components.
+            var bAdj = new HashSet<int>[n];
+            for (int i = 0; i < n; i++) bAdj[i] = new HashSet<int>();
+            foreach (var conn in connections)
+            {
+                if (string.Equals(conn.ConnectionType, "Proximity", StringComparison.Ordinal)) continue;
+                if (string.Equals(conn.ConnectionType, "Portal", StringComparison.Ordinal)) continue;
+                if (!idx.TryGetValue(conn.From, out int ba)) continue;
+                if (!idx.TryGetValue(conn.To, out int bb)) continue;
+                bAdj[ba].Add(bb); bAdj[bb].Add(ba);
+            }
+
+            var bCompId = new int[n];
+            Array.Fill(bCompId, -1);
+            var bComponents = new List<List<int>>();
+            for (int start = 0; start < n; start++)
+            {
+                if (bCompId[start] >= 0) continue;
+                var comp = new List<int>();
+                var bq = new Queue<int>();
+                bq.Enqueue(start); bCompId[start] = bComponents.Count;
+                while (bq.Count > 0)
+                {
+                    int u = bq.Dequeue(); comp.Add(u);
+                    foreach (int v in bAdj[u])
+                        if (bCompId[v] < 0) { bCompId[v] = bComponents.Count; bq.Enqueue(v); }
+                }
+                bComponents.Add(comp);
+            }
+
+            bool isTwoCluster = bComponents.Count == 2;
+            const double ringGapThreshold = 0.03;
+
+            var rPxB = new double[n];
+            var rPyB = new double[n];
+            double bestZoneRadius = ZoneRadiusMax;
+            bool allClustersSnapped = true;
+
+            for (int ci = 0; ci < bComponents.Count; ci++)
+            {
+                var comp = bComponents[ci];
+                int cn = comp.Count;
+
+                double canvasXMin = isTwoCluster
+                    ? (ci == 0 ? margin : Width / 2.0 + margin / 2.0)
+                    : margin;
+                double canvasXMax = isTwoCluster
+                    ? (ci == 0 ? Width / 2.0 - margin / 2.0 : Width - margin)
+                    : Width - margin;
+                double canvasYMin = margin;
+                double canvasYMax = Height - margin;
+                double clCx = (canvasXMin + canvasXMax) / 2.0;
+                double clCy = (canvasYMin + canvasYMax) / 2.0;
+                double clW  = canvasXMax - canvasXMin;
+                double clH  = canvasYMax - canvasYMin;
+
+                double rawClCx = comp.Average(i => zones[i].GeneratorPosition!.Value.X);
+                double rawClCy = comp.Average(i => zones[i].GeneratorPosition!.Value.Y);
+
+                var clusterByDist = comp
+                    .Select(i =>
+                    {
+                        double dx = zones[i].GeneratorPosition!.Value.X - rawClCx;
+                        double dy = zones[i].GeneratorPosition!.Value.Y - rawClCy;
+                        return (idx: i, dist: Math.Sqrt(dx * dx + dy * dy));
+                    })
+                    .OrderBy(t => t.dist)
+                    .ToList();
+
+                var clRingLabel = new int[n];
+                int clRingCount = 0;
+                clRingLabel[clusterByDist[0].idx] = 0;
+                for (int k = 1; k < cn; k++)
+                {
+                    if (clusterByDist[k].dist - clusterByDist[k - 1].dist > ringGapThreshold)
+                        clRingCount++;
+                    clRingLabel[clusterByDist[k].idx] = clRingCount;
+                }
+                clRingCount++;
+
+                if (clRingCount < 2)
+                {
+                    allClustersSnapped = false;
+                    break;
+                }
+
+                var clRingIndices = Enumerable.Range(0, clRingCount)
+                    .Select(r => comp.Where(i => clRingLabel[i] == r).ToList())
+                    .ToList();
+
+                double drawRadius = Math.Min(clW, clH) / 2.0 - ZoneRadiusMax;
+
+                double[] AssignRingRadii(double zr)
+                {
+                    double mc = 2.0 * zr + minGap;
+                    var radii = new double[clRingCount];
+                    for (int r = 0; r < clRingCount; r++)
+                    {
+                        int cnt = clRingIndices[r].Count;
+                        double natural    = drawRadius * (r + 1.0) / clRingCount;
+                        double withinRing = cnt >= 2
+                            ? mc / (2.0 * Math.Sin(Math.PI / cnt))
+                            : (cnt == 1 && r > 0 ? mc : 0.0);
+                        double afterPrev = r > 0 ? radii[r - 1] + mc : 0.0;
+                        radii[r] = Math.Max(natural, Math.Max(withinRing, afterPrev));
+                    }
+                    return radii;
+                }
+
+                double lo = 8.0, hi = ZoneRadiusMax;
+                for (int iter = 0; iter < 32; iter++)
+                {
+                    double mid = (lo + hi) / 2.0;
+                    double[] r2 = AssignRingRadii(mid);
+                    if (r2[clRingCount - 1] <= drawRadius) lo = mid;
+                    else hi = mid;
+                }
+                double clZoneRadius = Math.Max(lo, 8.0);
+                bestZoneRadius = Math.Min(bestZoneRadius, clZoneRadius);
+
+                double[] ringRadii = AssignRingRadii(clZoneRadius);
+
+                for (int r = 0; r < clRingCount; r++)
+                {
+                    var group = clRingIndices[r];
+                    int cnt = group.Count;
+                    double canvasRadius = ringRadii[r];
+
+                    if (cnt == 1 && r == 0)
+                    {
+                        rPxB[group[0]] = clCx;
+                        rPyB[group[0]] = clCy;
+                        continue;
+                    }
+
+                    var sortedByAngle = group
+                        .OrderBy(i => Math.Atan2(
+                            zones[i].GeneratorPosition!.Value.Y - rawClCy,
+                            zones[i].GeneratorPosition!.Value.X - rawClCx))
+                        .ToList();
+
+                    double firstAngle = Math.Atan2(
+                        zones[sortedByAngle[0]].GeneratorPosition!.Value.Y - rawClCy,
+                        zones[sortedByAngle[0]].GeneratorPosition!.Value.X - rawClCx);
+
+                    for (int j = 0; j < cnt; j++)
+                    {
+                        double angle = firstAngle + 2.0 * Math.PI * j / cnt;
+                        rPxB[sortedByAngle[j]] = clCx + Math.Cos(angle) * canvasRadius;
+                        rPyB[sortedByAngle[j]] = clCy + Math.Sin(angle) * canvasRadius;
+                    }
+                }
+            }
+
+            if (!allClustersSnapped) return null;
+
+            _zoneRadius = bestZoneRadius;
+            var rResult = new Dictionary<string, SKPoint>(StringComparer.Ordinal);
+            for (int i = 0; i < n; i++)
+                rResult[zones[i].Name] = new SKPoint((float)rPxB[i], (float)rPyB[i]);
+            return rResult;
         }
 
         /// <summary>
