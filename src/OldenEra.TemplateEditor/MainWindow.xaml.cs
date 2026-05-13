@@ -29,6 +29,7 @@ namespace OldenEra.TemplateEditor
         private static readonly HttpClient UpdateHttpClient = new();
         private readonly IAppPreferencesStore _appPrefsStore = new JsonAppPreferencesStore();
         private AppPreferences _appPrefs = new();
+        private bool _appPrefsLoaded = false;
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -169,9 +170,12 @@ namespace OldenEra.TemplateEditor
             UpdatePlayerCastleFactionVisibility();
             UpdateBalancedZonePlacementDescVisibility();
 
-            // Load app preferences and reflect into the toolbar checkbox.
+            // Load app preferences and reflect into the toolbar checkbox. The flag
+            // gates the Checked/Unchecked handler so the initial assignment doesn't
+            // re-save the prefs file on every startup.
             _appPrefs = _appPrefsStore.Load();
             ChkCheckForUpdates.IsChecked = _appPrefs.CheckForUpdatesOnStartup;
+            _appPrefsLoaded = true;
 
             // Fire-and-forget background update check — never blocks the UI.
             if (_appPrefs.CheckForUpdatesOnStartup && version != null)
@@ -230,7 +234,7 @@ namespace OldenEra.TemplateEditor
 
         private void ChkCheckForUpdates_Changed(object sender, RoutedEventArgs e)
         {
-            if (!IsInitialized) return;
+            if (!_appPrefsLoaded) return;
             _appPrefs = _appPrefs with { CheckForUpdatesOnStartup = ChkCheckForUpdates.IsChecked == true };
             _appPrefsStore.Save(_appPrefs);
         }

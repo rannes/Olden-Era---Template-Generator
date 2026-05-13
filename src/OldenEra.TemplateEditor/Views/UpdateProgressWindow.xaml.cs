@@ -39,6 +39,10 @@ namespace OldenEra.TemplateEditor.Views
 
         protected override void OnClosed(EventArgs e)
         {
+            // If the window was closed via the X (or programmatically) without the
+            // Cancel button having fired, signal cancellation so the in-flight
+            // download stops touching the now-disposed token source.
+            try { if (!_cts.IsCancellationRequested) _cts.Cancel(); } catch { /* swallow */ }
             _cts.Dispose();
             base.OnClosed(e);
         }
