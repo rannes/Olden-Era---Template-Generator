@@ -53,6 +53,7 @@ namespace OldenEra.TemplateEditor
         private static readonly (MapTopology Topology, string Label, string Description)[] TopologyOptions =
         [
             (MapTopology.Random,      "Random",        "Zones are placed at random positions. Each zone connects to all zones that border it — no fixed structure."),
+            (MapTopology.Balanced,    "Balanced",      "Zones are placed on concentric rings by quality tier. Lower-tier neutrals form an inner ring, higher-tier neutrals form outer rings; players are distributed evenly around the layout."),
             (MapTopology.Default,     "Ring",          "All zones are arranged in a circle. Each zone connects to the two zones next to it."),
             (MapTopology.HubAndSpoke, "Hub",   "All zones connect to a shared central hub. Players never border each other directly."),
             (MapTopology.Chain,       "Chain",         "Zones are connected in a straight line from one end to the other, with no wrap-around.")
@@ -107,8 +108,6 @@ namespace OldenEra.TemplateEditor
             PnlZones.ChkGenerateRoads.Unchecked += ChkOption_Changed;
             PnlZones.ChkSpawnFootholds.Checked   += ChkOption_Changed;
             PnlZones.ChkSpawnFootholds.Unchecked += ChkOption_Changed;
-            PnlZones.ChkBalancedZonePlacement.Checked   += ChkOption_Changed;
-            PnlZones.ChkBalancedZonePlacement.Unchecked += ChkOption_Changed;
             PnlZones.ChkNoDirectPlayerConn.Checked   += ChkOption_Changed;
             PnlZones.ChkNoDirectPlayerConn.Unchecked += ChkOption_Changed;
             PnlZones.ChkRandomPortals.Checked   += ChkRandomPortals_Changed;
@@ -168,7 +167,6 @@ namespace OldenEra.TemplateEditor
             UpdateValueLabels();
             UpdateAdvancedZoneSettingsVisibility();
             UpdatePlayerCastleFactionVisibility();
-            UpdateBalancedZonePlacementDescVisibility();
 
             // Load app preferences and reflect into the toolbar checkbox. The flag
             // gates the Checked/Unchecked handler so the initial assignment doesn't
@@ -509,7 +507,7 @@ namespace OldenEra.TemplateEditor
 
             // Isolate option is only meaningful for Random and Chain topologies.
             var topo = idx >= 0 && idx < TopologyOptions.Length ? TopologyOptions[idx].Topology : MapTopology.Default;
-            bool isolateApplicable = topo is MapTopology.Random;
+            bool isolateApplicable = topo is MapTopology.Random or MapTopology.Balanced;
             PnlZones.ChkNoDirectPlayerConn.Visibility = isolateApplicable ? Visibility.Visible : Visibility.Collapsed;
             if (!isolateApplicable) PnlZones.ChkNoDirectPlayerConn.IsChecked = false;
             UpdateIsolateDescVisibility();
@@ -533,7 +531,6 @@ namespace OldenEra.TemplateEditor
         {
             if (!IsInitialized) return;
             UpdateIsolateDescVisibility();
-            UpdateBalancedZonePlacementDescVisibility();
             UpdatePlayerCastleFactionVisibility();
             UpdateWinConditionDetailVisibility();
             MarkDirty();
@@ -753,14 +750,6 @@ namespace OldenEra.TemplateEditor
                 : Visibility.Collapsed;
         }
 
-        private void UpdateBalancedZonePlacementDescVisibility()
-        {
-            if (PnlZones.TxtBalancedZonePlacementDesc == null || PnlZones.ChkBalancedZonePlacement == null) return;
-            PnlZones.TxtBalancedZonePlacementDesc.Visibility = PnlZones.ChkBalancedZonePlacement.IsChecked == true
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-        }
-
         // -- Settings persistence -----------------------------------------------
 
         private SettingsFile GatherSettings()
@@ -784,7 +773,6 @@ namespace OldenEra.TemplateEditor
             NeutralHighCastleCount = (int)PnlZones.SldNeutralHighCastle.Value,
             MatchPlayerCastleFactions = PnlZones.ChkMatchPlayerCastleFactions.IsChecked == true,
             MinNeutralZonesBetweenPlayers = (int)PnlZones.SldMinNeutralBetweenPlayers.Value,
-            ExperimentalBalancedZonePlacement = PnlZones.ChkBalancedZonePlacement.IsChecked == true,
             ExperimentalMapSizes  = PnlMap.ChkExperimentalMapSizes.IsChecked == true,
             PlayerZoneSize        = _advancedZoneSettings ? PnlZones.SldPlayerZoneSize.Value : 1.0,
             NeutralZoneSize       = _advancedZoneSettings ? PnlZones.SldNeutralZoneSize.Value : 1.0,
@@ -929,7 +917,6 @@ namespace OldenEra.TemplateEditor
             PnlZones.SldNeutralHighCastle.Value = s.NeutralHighCastleCount;
             PnlZones.ChkMatchPlayerCastleFactions.IsChecked = s.MatchPlayerCastleFactions;
             PnlZones.SldMinNeutralBetweenPlayers.Value = s.MinNeutralZonesBetweenPlayers;
-            PnlZones.ChkBalancedZonePlacement.IsChecked = s.ExperimentalBalancedZonePlacement;
             PnlZones.SldPlayerZoneSize.Value = Math.Clamp(s.PlayerZoneSize, 0.1, 2.0);
             PnlZones.SldNeutralZoneSize.Value = Math.Clamp(s.NeutralZoneSize, 0.1, 2.0);
             PnlTopology.SldHubZoneSize.Value = Math.Clamp(s.HubZoneSize, 0.25, 3.0);
@@ -972,7 +959,6 @@ namespace OldenEra.TemplateEditor
             UpdateValueLabels();
             UpdateAdvancedZoneSettingsVisibility();
             UpdatePlayerCastleFactionVisibility();
-            UpdateBalancedZonePlacementDescVisibility();
             UpdateWinConditionDetailVisibility();
 
             // ── Experimental ─────────────────────────────────────────────────
@@ -1399,7 +1385,6 @@ namespace OldenEra.TemplateEditor
             // Neutral zones between players can be influenced by advanced zone settings, but is functionally independent.
             MinNeutralZonesBetweenPlayers = _advancedZoneSettings ? (int)PnlZones.SldMinNeutralBetweenPlayers.Value : 0,
             MatchPlayerCastleFactions = PnlZones.ChkMatchPlayerCastleFactions.IsChecked == true,
-            ExperimentalBalancedZonePlacement = PnlZones.ChkBalancedZonePlacement.IsChecked == true,
             NoDirectPlayerConnections = PnlZones.ChkNoDirectPlayerConn.IsChecked == true,
             RandomPortals = PnlZones.ChkRandomPortals.IsChecked == true,
             MaxPortalConnections = (int)PnlZones.SldMaxPortals.Value,

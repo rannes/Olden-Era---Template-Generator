@@ -52,6 +52,7 @@
         (MapTopology.HubAndSpoke, "Hub & Spoke", new MarkupString(HubSvg)),
         (MapTopology.Chain,       "Chain",       new MarkupString(ChainSvg)),
         (MapTopology.Random,      "Random",      new MarkupString(RandomSvg)),
+        (MapTopology.Balanced,    "Balanced",    new MarkupString(BalancedSvg)),
     };
 
     private const string RingSvg =
@@ -96,5 +97,20 @@
         + "<line x1='17' y1='21' x2='49' y2='44'/>"
         + "<line x1='44' y1='17' x2='22' y2='47'/>"
         + "<line x1='14' y1='22' x2='20' y2='46'/>"
+        + "</svg>";
+
+    private const string BalancedSvg =
+        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='48' height='48' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>"
+        + "<circle cx='32' cy='32' r='4' fill='currentColor'/>"
+        + "<circle cx='32' cy='32' r='12'/>"
+        + "<circle cx='32' cy='32' r='22'/>"
+        + "<circle cx='32' cy='10' r='3' fill='currentColor'/>"
+        + "<circle cx='54' cy='32' r='3' fill='currentColor'/>"
+        + "<circle cx='32' cy='54' r='3' fill='currentColor'/>"
+        + "<circle cx='10' cy='32' r='3' fill='currentColor'/>"
+        + "<circle cx='32' cy='20' r='3' fill='currentColor'/>"
+        + "<circle cx='44' cy='32' r='3' fill='currentColor'/>"
+        + "<circle cx='32' cy='44' r='3' fill='currentColor'/>"
+        + "<circle cx='20' cy='32' r='3' fill='currentColor'/>"
         + "</svg>";
 }

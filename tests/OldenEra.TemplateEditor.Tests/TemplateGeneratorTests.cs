@@ -463,7 +463,6 @@ public class TemplateGeneratorTests
 
             },
             Topology = MapTopology.Default,
-            ExperimentalBalancedZonePlacement = true
         };
 
         Variant variant = SingleVariant(TemplateGenerator.Generate(settings));
@@ -502,7 +501,6 @@ public class TemplateGeneratorTests
 
             },
             Topology = MapTopology.SharedWeb,
-            ExperimentalBalancedZonePlacement = true
         };
 
         Variant variant = SingleVariant(TemplateGenerator.Generate(settings));

@@ -23,6 +23,13 @@ public static class SettingsMapper
         bool needsExperimentalMapSizes = s.ExperimentalMapSizes || KnownValues.IsExperimentalMapSize(s.MapSize);
         bool advanced = s.AdvancedMode || needsExperimentalMapSizes || hasCustomZoneSizes;
 
+        // Migration: pre-Balanced files used `Topology=Random` + the legacy
+        // `experimentalBalancedZonePlacement` flag to mean the same thing as today's
+        // `MapTopology.Balanced`. Promote to the new topology on load.
+        var migratedTopology = s.Topology == MapTopology.Random && s.ExperimentalBalancedZonePlacement
+            ? MapTopology.Balanced
+            : s.Topology;
+
         var settings = new GeneratorSettings
         {
             TemplateName = string.IsNullOrEmpty(s.TemplateName) ? "Custom Template" : s.TemplateName,
@@ -93,7 +100,7 @@ public static class SettingsMapper
                     ? new()
                     : new Dictionary<string, string?>(s.FixedStartingHeroByFaction),
             },
-            Topology = s.Topology,
+            Topology = migratedTopology,
             RandomPortals = s.RandomPortals,
             MaxPortalConnections = Math.Clamp(s.MaxPortalConnections, 1, 32),
             SpawnRemoteFootholds = s.SpawnRemoteFootholds,
@@ -101,7 +108,6 @@ public static class SettingsMapper
             NoDirectPlayerConnections = s.NoDirectPlayerConn,
             MatchPlayerCastleFactions = s.MatchPlayerCastleFactions,
             MinNeutralZonesBetweenPlayers = s.MinNeutralZonesBetweenPlayers,
-            ExperimentalBalancedZonePlacement = s.ExperimentalBalancedZonePlacement,
             FactionLawsExpPercent = Math.Clamp(s.FactionLawsExpPercent, 25, 200),
             AstrologyExpPercent = Math.Clamp(s.AstrologyExpPercent, 25, 200),
             ZoneCfg = new ZoneConfiguration
@@ -190,7 +196,8 @@ public static class SettingsMapper
             NeutralHighCastleCount = a.NeutralHighCastleCount,
             MatchPlayerCastleFactions = g.MatchPlayerCastleFactions,
             MinNeutralZonesBetweenPlayers = g.MinNeutralZonesBetweenPlayers,
-            ExperimentalBalancedZonePlacement = g.ExperimentalBalancedZonePlacement,
+            // ExperimentalBalancedZonePlacement: legacy field, no longer written. Kept on
+            // SettingsFile for back-compat reads only; SettingsMapper.FromFile migrates it.
             ExperimentalMapSizes = experimentalMapSizes,
             PlayerZoneSize = a.PlayerZoneSize,
             NeutralZoneSize = a.NeutralZoneSize,

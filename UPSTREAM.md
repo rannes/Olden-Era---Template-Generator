@@ -47,6 +47,16 @@ intend to port but tracked as its own initiative.
 | `4ae647c` | auto-update download + UpdateProgressWindow | port (this PR) | Reimplemented under `src/OldenEra.TemplateEditor/Services/AutoUpdate/`. Adds checker / downloader / batch-installer split, logging to `%LOCALAPPDATA%/OldenEraTemplateGenerator/update.log`, and a "Check for updates on startup" toggle. Browser fallback preserved. |
 | `bc93dc5` | auto-update Cancel button + CancellationToken | port (this PR) | Folded into the v2 design — `UpdateProgressWindow` exposes a `CancellationToken` consumed by the downloader. |
 | `76ee588` | monolithic MainWindow XAML edit + version bump | skip (partial) | The `UpdateProgressWindow.xaml.cs` slice was absorbed into this PR. The monolithic MainWindow XAML edit is rejected — our `MainWindow.xaml` is decomposed into per-panel UserControls. We pick our own version (0.7.0) rather than copying upstream's. |
+| `6d28ef0` | implemented balance layout for tournaments | port (balanced-topology) | Reimplemented in `BuildTournamentBalancedCluster`. Tournament Balanced clusters share the same concentric-ring structure mirrored across canvas halves. |
+| `3f46209` | fix random map preview | port (balanced-topology) | Renderer ring-snap is gated on `topology == Balanced`; Random falls through to the spring/Delaunay layout. |
+| `0e31576` | seperated random and balanced logic | port (balanced-topology) | `BuildVariantRandom` and `BuildVariantBalanced` are now separate paths that share `BuildVariantFromDelaunay`. |
+| `6dd070e` | Added balanced map layout | port (balanced-topology) | Added `MapTopology.Balanced` (additive — `Default`/`Random` defaults unchanged). Legacy `ExperimentalBalancedZonePlacement` migrated on load by `SettingsMapper`. |
+| `3c4fbf8` | improved balance city placement | port (balanced-topology) | Tier-aware Delaunay edge filter + `ZoneQualityGroup` reproduce the upstream city-placement behaviour. |
+| `460d2c7` | improved balanced preview | port (balanced-topology) | Reimplemented as `TryRingSnap` in our `TemplatePreviewRenderer.cs`. |
+| `721ac24` | further balancing improvements | port (balanced-topology) | Bundled into the reimplementation. |
+| `6ad5250` | balance city map placement | port (balanced-topology) | Bundled into the reimplementation. |
+| `90b09b6` | improved balanced random map layout | port (balanced-topology) | Bundled into the reimplementation. |
+| `48b731d` | improved balanced random map layout | port (balanced-topology) | Bundled into the reimplementation. |
 
 ## Sync workflow
 
