@@ -97,7 +97,7 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
 
         RebuildScopeItems();
         _warnings = ZoneContentWarningProjection.Project(_settings);
-        DistributeWarningsToItems();
+        DistributeWarningsSuppressed();
 
         // Wire per-zone aggregate INPC. Per-zone scopes are not added/removed
         // after construction (deferred materialization) so a single subscription
@@ -185,12 +185,12 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
 
     private void OnItemEdited(object? sender, PropertyChangedEventArgs e)
     {
-        // Filter out properties we set ourselves while distributing warnings,
-        // otherwise CommitToSettings -> SetWarnings -> PropertyChanged would
-        // reenter OnLiveEdit.
-        if (e.PropertyName is nameof(ZoneContentItemViewModel.Warnings)
-            or nameof(ZoneContentItemViewModel.WarningCount)
-            or nameof(ZoneContentItemViewModel.HasWarnings)) return;
+        // Reentry is prevented by _suppressLiveEdit (set around every
+        // DistributeWarningsToItems call below). The previous version filtered
+        // by property-name and was fragile: every new derived warning
+        // projection had to be added to the list or the
+        // CommitToSettings -> SetWarnings -> PropertyChanged -> OnLiveEdit
+        // cycle recursed. Guarding the producer side is structural.
         OnLiveEdit();
     }
 
@@ -239,7 +239,7 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
 
             RebuildScopeItems();
             _warnings = ZoneContentWarningProjection.Project(_settings);
-            DistributeWarningsToItems();
+            DistributeWarningsSuppressed();
 
             RaisePropertyChanged(nameof(IsDefaultsCompareActive));
             RaisePropertyChanged(nameof(IsReadOnly));
@@ -296,7 +296,7 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
         }
 
         _warnings = ZoneContentWarningProjection.Project(_settings);
-        DistributeWarningsToItems();
+        DistributeWarningsSuppressed();
         RaisePropertyChanged(nameof(Warnings));
         Changed?.Invoke(this, EventArgs.Empty);
     }
@@ -379,6 +379,21 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
         DistributeForScope(byScope, new ZoneContentScopeKey(ZoneContentScopeKind.NeutralRich), _rich);
         foreach (var (letter, scope) in _perZone)
             DistributeForScope(byScope, new ZoneContentScopeKey(ZoneContentScopeKind.NeutralPerZone, letter), scope);
+    }
+
+    /// <summary>
+    /// Calls <see cref="DistributeWarningsToItems"/> with live-edit suppressed,
+    /// preventing the SetWarnings -&gt; PropertyChanged -&gt; OnLiveEdit cycle from
+    /// re-entering CommitToSettings. The guard is structural: it doesn't matter
+    /// which derived warning property fires, the producer-side flag blocks the
+    /// loop.
+    /// </summary>
+    private void DistributeWarningsSuppressed()
+    {
+        var prev = _suppressLiveEdit;
+        _suppressLiveEdit = true;
+        try { DistributeWarningsToItems(); }
+        finally { _suppressLiveEdit = prev; }
     }
 
     private static void DistributeForScope(
