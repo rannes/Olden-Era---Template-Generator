@@ -115,7 +115,10 @@
                     </div>
                     <GameModePanel Settings="Settings" OnChanged="OnChanged" />
                     <StartingBonusesPanel Settings="Settings" OnChanged="OnChanged" />
-                    <ExperimentalZonePanel Settings="Settings" OnChanged="OnChanged" />
+                    <ExperimentalZonePanel Settings="Settings"
+                                           OnChanged="OnChanged"
+                                           ZoneContentCompareDefaults="@_zoneContentCompareDefaults"
+                                           ZoneContentCompareDefaultsChanged="@OnZoneContentCompareDefaultsChanged" />
                     <MapBordersRoadsPanel Settings="Settings" OnChanged="OnChanged" />
                     <PerTierOverridesPanel Settings="Settings" OnChanged="OnChanged" />
                     break;
@@ -230,6 +233,8 @@
 
     private bool ShowLargeMapConfirm;
     private bool IsGenerating;
+
+    private bool _zoneContentCompareDefaults;
 
     // Debounced localStorage save state.
     private System.Threading.CancellationTokenSource? _saveCts;
@@ -412,6 +417,14 @@
         return total >= LargeMapZoneThreshold;
     }
 
+    private async Task OnZoneContentCompareDefaultsChanged(bool value)
+    {
+        _zoneContentCompareDefaults = value;
+        if (!IsValid || IsGenerating) return;
+        // Trigger a regenerate so the preview reflects the new mode immediately.
+        await RunGenerationAsync();
+    }
+
     private async Task OnGenerateClick()
     {
         if (!IsValid || IsGenerating) return;
@@ -455,8 +468,11 @@
                 Settings.ZoneCfg.Advanced.GuardRandomization = 0.05;
             }
 
-            GeneratedTemplate = TemplateGenerator.Generate(Settings);
-            PreviewPng = TemplatePreviewRenderer.RenderPng(GeneratedTemplate, Settings.Topology);
+            var settingsForGenerate = _zoneContentCompareDefaults
+                ? ZoneContentCloning.CloneWithDefaultsBlanked(Settings)
+                : Settings;
+            GeneratedTemplate = TemplateGenerator.Generate(settingsForGenerate);
+            PreviewPng = TemplatePreviewRenderer.RenderPng(GeneratedTemplate, settingsForGenerate.Topology);
         }
         finally
         {

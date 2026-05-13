@@ -1,0 +1,85 @@
+@using OldenEra.Generator.Models
+@using OldenEra.Generator.Services.ZoneContent
+@using OldenEra.Web.Services
+
+<div class="oe-zc-list">
+    <div class="oe-zc-list-toolbar">
+        <button type="button" class="oe-btn ghost" disabled="@ReadOnly" @onclick="AddBlank">+ Add</button>
+        <select disabled="@ReadOnly" value="" @onchange="OnPresetChosen">
+            <option value="">+ Add from preset…</option>
+            @foreach (var preset in ZoneContentPresets.All())
+            {
+                <option value="@preset.Name">@preset.Name</option>
+            }
+        </select>
+    </div>
+    @if (Items.Count == 0)
+    {
+        <div class="oe-hint">No items yet.</div>
+    }
+    else
+    {
+        <ul class="oe-zc-list-rows">
+            @foreach (var (item, idx) in Items.Select((it, i) => (it, i)))
+            {
+                var key = item.Handle is { Length: > 0 } h ? h : $"#{idx}";
+                var selected = SelectedKey == key;
+                <li class="oe-zc-row @(selected ? "selected" : "")"
+                    @onclick="@(() => SelectKey(key))">
+                    <span class="oe-zc-row-sid">@(string.IsNullOrEmpty(item.Sid) ? "(no sid)" : item.Sid)</span>
+                    <span class="oe-zc-row-handle">@(item.Handle ?? "—")</span>
+                    <span class="oe-zc-row-count">@item.MinCount-@item.MaxCount</span>
+                    <ZoneContentWarningBadge Warnings="@WarningsForRow(item, idx)" />
+                    <button type="button" class="oe-link-btn"
+                            disabled="@ReadOnly"
+                            @onclick:stopPropagation
+                            @onclick="@(() => Remove(idx))" aria-label="Remove">✕</button>
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<ZoneContentItem> Items { get; set; } = default!;
+    [Parameter] public string? SelectedKey { get; set; }
+    [Parameter] public EventCallback<string?> SelectedKeyChanged { get; set; }
+    [Parameter] public EventCallback OnItemsChanged { get; set; }
+    [Parameter] public IReadOnlyDictionary<string, IReadOnlyList<EmitWarning>> WarningsByKey { get; set; }
+        = new Dictionary<string, IReadOnlyList<EmitWarning>>();
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private IReadOnlyList<EmitWarning> WarningsForRow(ZoneContentItem item, int idx)
+    {
+        var key = item.Handle is { Length: > 0 } h ? h : $"#{idx}";
+        return WarningsByKey.TryGetValue(key, out var ws) ? ws : Array.Empty<EmitWarning>();
+    }
+
+    private async Task AddBlank()
+    {
+        Items.Add(new ZoneContentItem { Sid = "" });
+        await OnItemsChanged.InvokeAsync();
+    }
+
+    private async Task Remove(int idx)
+    {
+        if (idx < 0 || idx >= Items.Count) return;
+        Items.RemoveAt(idx);
+        await OnItemsChanged.InvokeAsync();
+    }
+
+    private Task SelectKey(string key) => SelectedKeyChanged.InvokeAsync(key);
+
+    private async Task OnPresetChosen(ChangeEventArgs e)
+    {
+        var name = e.Value?.ToString();
+        if (string.IsNullOrEmpty(name)) return;
+        var preset = ZoneContentPresets.All().FirstOrDefault(p => p.Name == name);
+        if (preset is null) return;
+        var clone = ZoneContentCloning.CloneItem(preset.Item);
+        Items.Add(clone);
+        var newKey = clone.Handle is { Length: > 0 } h ? h : $"#{Items.Count - 1}";
+        await SelectedKeyChanged.InvokeAsync(newKey);
+        await OnItemsChanged.InvokeAsync();
+    }
+}

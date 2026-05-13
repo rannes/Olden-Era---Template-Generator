@@ -1,0 +1,209 @@
+@using OldenEra.Generator.Models
+@using OldenEra.Generator.Services.ZoneContent
+@using OldenEra.Web.Services
+
+<div class="oe-zone-content-editor">
+    <div class="oe-zc-toolbar">
+        <label class="oe-checkbox">
+            <input type="checkbox" @bind="CompareDefaultsOnLocal" @bind:after="OnCompareToggled" />
+            Compare against defaults (read-only)
+        </label>
+        @if (CompareDefaultsOn)
+        {
+            <span class="oe-banner">Showing defaults — editing paused.</span>
+        }
+    </div>
+
+    <ZoneContentScopeTabs Selected="@_selected"
+                          SelectedChanged="@OnScopeChanged" />
+
+    @if (_selected.Kind == ZoneContentScopeKind.NeutralPerZone)
+    {
+        <PerZoneOverridesPicker Neutral="@Settings.NeutralZoneContent"
+                                SelectedLetter="@_selectedLetter"
+                                SelectedLetterChanged="@OnLetterChanged"
+                                OnNeutralChanged="@NotifyChanged"
+                                ReadOnly="@CompareDefaultsOn" />
+    }
+
+    <div class="oe-zone-content-body">
+        <div class="oe-hint">Selection: @ScopeDescription()</div>
+        @if (_selected.Kind == ZoneContentScopeKind.RoadDecorations)
+        {
+            <ZoneRoadDecorationsEditor Decorations="@Settings.ZoneRoadDecorations"
+                                       OnChanged="@NotifyChanged"
+                                       ReadOnly="@CompareDefaultsOn" />
+        }
+        else
+        {
+            var items = ResolveItems();
+            if (items is null)
+            {
+                <div class="oe-hint">Pick a zone letter above (or add one).</div>
+            }
+            else
+            {
+                <div class="oe-zc-master-detail">
+                    <ZoneContentItemList Items="@items"
+                                         SelectedKey="@_selectedKey"
+                                         SelectedKeyChanged="@OnItemSelected"
+                                         OnItemsChanged="@NotifyChanged"
+                                         WarningsByKey="@WarningsForCurrentScope()"
+                                         ReadOnly="@CompareDefaultsOn" />
+                    <ZoneContentItemDetail Item="@ResolveSelectedItem(items)"
+                                           OnChanged="@NotifyChanged"
+                                           Warnings="@WarningsForSelectedItem(items)"
+                                           ReadOnly="@CompareDefaultsOn" />
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public GeneratorSettings Settings { get; set; } = default!;
+    [Parameter] public EventCallback OnChanged { get; set; }
+    [Parameter] public bool CompareDefaultsOn { get; set; }
+    [Parameter] public EventCallback<bool> CompareDefaultsOnChanged { get; set; }
+
+    private bool CompareDefaultsOnLocal { get; set; }
+
+    private ZoneContentScopeKey _selected = new(ZoneContentScopeKind.Player);
+    private string _selectedLetter = "";
+    private string? _selectedKey;
+    private IReadOnlyList<ZoneContentWarning> _warnings = Array.Empty<ZoneContentWarning>();
+
+    protected override void OnParametersSet()
+    {
+        CompareDefaultsOnLocal = CompareDefaultsOn;
+        _warnings = ZoneContentWarningProjection.Project(Settings);
+    }
+
+    private async Task OnCompareToggled()
+    {
+        await CompareDefaultsOnChanged.InvokeAsync(CompareDefaultsOnLocal);
+    }
+
+    private Task OnScopeChanged(ZoneContentScopeKey next)
+    {
+        _selected = next;
+        _selectedKey = null;
+        return Task.CompletedTask;
+    }
+
+    private Task OnLetterChanged(string letter)
+    {
+        _selectedLetter = letter;
+        _selectedKey = null;
+        return Task.CompletedTask;
+    }
+
+    private Task OnItemSelected(string? key)
+    {
+        _selectedKey = key;
+        return Task.CompletedTask;
+    }
+
+    private async Task NotifyChanged()
+    {
+        MaterializeTransientIfDirty();
+        _warnings = ZoneContentWarningProjection.Project(Settings);
+        await OnChanged.InvokeAsync();
+    }
+
+    private void MaterializeTransientIfDirty()
+    {
+        if (_pendingTransientList is null || _pendingTransientList.Count == 0) return;
+        if (_pendingTransientTier is { } tier
+            && !Settings.NeutralZoneContent.ByTier.ContainsKey(tier))
+        {
+            Settings.NeutralZoneContent.ByTier[tier] = new ZoneContentList { Items = _pendingTransientList };
+        }
+    }
+
+    private IReadOnlyDictionary<string, IReadOnlyList<EmitWarning>> WarningsForCurrentScope()
+    {
+        var scope = _selected.Kind == ZoneContentScopeKind.NeutralPerZone
+            ? new ZoneContentScopeKey(ZoneContentScopeKind.NeutralPerZone, _selectedLetter)
+            : new ZoneContentScopeKey(_selected.Kind);
+
+        var dict = new Dictionary<string, List<EmitWarning>>();
+        foreach (var w in _warnings.Where(w => w.Scope.Equals(scope)))
+        {
+            var key = w.Handle is { Length: > 0 } h ? h : $"#{w.ItemIndex}";
+            if (!dict.TryGetValue(key, out var list))
+            {
+                list = new List<EmitWarning>();
+                dict[key] = list;
+            }
+            list.Add(w.Warning);
+        }
+        return dict.ToDictionary(kv => kv.Key, kv => (IReadOnlyList<EmitWarning>)kv.Value);
+    }
+
+    private IReadOnlyList<EmitWarning> WarningsForSelectedItem(List<ZoneContentItem> items)
+    {
+        if (_selectedKey is null) return Array.Empty<EmitWarning>();
+        int idx = -1;
+        if (_selectedKey.StartsWith("#") && int.TryParse(_selectedKey[1..], out var n))
+            idx = n;
+        else
+            idx = items.FindIndex(it => it.Handle == _selectedKey);
+        if (idx < 0 || idx >= items.Count) return Array.Empty<EmitWarning>();
+        var item = items[idx];
+        var key = item.Handle is { Length: > 0 } h ? h : $"#{idx}";
+        return WarningsForCurrentScope().TryGetValue(key, out var ws) ? ws : Array.Empty<EmitWarning>();
+    }
+
+    // Transient list bookkeeping: don't mutate Settings.NeutralZoneContent.ByTier on tab click
+    // (i.e. inside the render block). Only materialize the dictionary entry on first user edit.
+    // See the Round 4 review (item 1).
+    private List<ZoneContentItem>? _pendingTransientList;
+    private NeutralZoneTier? _pendingTransientTier;
+
+    private List<ZoneContentItem>? ResolveItems()
+    {
+        _pendingTransientList = null;
+        _pendingTransientTier = null;
+
+        return _selected.Kind switch
+        {
+            ZoneContentScopeKind.Player          => Settings.PlayerZoneContent.Items,
+            ZoneContentScopeKind.NeutralGlobal   => Settings.NeutralZoneContent.Global.Items,
+            ZoneContentScopeKind.NeutralPoor     => ResolveTierTransient(NeutralZoneTier.Poor),
+            ZoneContentScopeKind.NeutralNormal   => ResolveTierTransient(NeutralZoneTier.Normal),
+            ZoneContentScopeKind.NeutralRich     => ResolveTierTransient(NeutralZoneTier.Rich),
+            ZoneContentScopeKind.NeutralPerZone  => string.IsNullOrEmpty(_selectedLetter)
+                ? null
+                : (Settings.NeutralZoneContent.ByZoneLetter.TryGetValue(_selectedLetter, out var l) ? l.Items : null),
+            _ => null,
+        };
+    }
+
+    private List<ZoneContentItem> ResolveTierTransient(NeutralZoneTier tier)
+    {
+        if (Settings.NeutralZoneContent.ByTier.TryGetValue(tier, out var existing))
+            return existing.Items;
+        var transient = new List<ZoneContentItem>();
+        _pendingTransientList = transient;
+        _pendingTransientTier = tier;
+        return transient;
+    }
+
+    private ZoneContentItem? ResolveSelectedItem(List<ZoneContentItem> items)
+    {
+        if (_selectedKey is null) return null;
+        if (_selectedKey.StartsWith("#") && int.TryParse(_selectedKey[1..], out var idx))
+            return idx < items.Count ? items[idx] : null;
+        return items.FirstOrDefault(it => it.Handle == _selectedKey);
+    }
+
+    private string ScopeDescription() => _selected.Kind switch
+    {
+        ZoneContentScopeKind.NeutralPerZone =>
+            string.IsNullOrEmpty(_selectedLetter)
+                ? "Per-zone (no letter selected)"
+                : $"Per-zone · {_selectedLetter}",
+        _ => _selected.Kind.ToString(),
+    };
+}

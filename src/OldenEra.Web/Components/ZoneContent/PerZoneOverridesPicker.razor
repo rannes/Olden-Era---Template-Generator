@@ -1,0 +1,47 @@
+@using OldenEra.Generator.Models
+
+<div class="oe-stacked">
+    <label class="oe-label">Zone letter</label>
+    <div class="oe-row" style="grid-template-columns: 1fr 100px;">
+        <select @bind="_localSelected" @bind:after="NotifyLetter" disabled="@(ReadOnly || !HasOverrides)">
+            @if (!HasOverrides)
+            {
+                <option value="">(none yet)</option>
+            }
+            @foreach (var letter in Neutral.ByZoneLetter.Keys.OrderBy(x => x))
+            {
+                <option value="@letter">@letter</option>
+            }
+        </select>
+        <button type="button" class="oe-btn ghost" disabled="@ReadOnly" @onclick="AddLetter">+ Add letter</button>
+    </div>
+    <input type="text" placeholder="New letter (e.g. A)" disabled="@ReadOnly" @bind="PendingLetter" />
+</div>
+
+@code {
+    [Parameter, EditorRequired] public NeutralZoneContent Neutral { get; set; } = default!;
+    [Parameter] public string SelectedLetter { get; set; } = "";
+    [Parameter] public EventCallback<string> SelectedLetterChanged { get; set; }
+    [Parameter] public EventCallback OnNeutralChanged { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private string _localSelected = "";
+    private string PendingLetter { get; set; } = "";
+    private bool HasOverrides => Neutral.ByZoneLetter.Count > 0;
+
+    protected override void OnParametersSet() => _localSelected = SelectedLetter;
+
+    private async Task NotifyLetter() => await SelectedLetterChanged.InvokeAsync(_localSelected);
+
+    private async Task AddLetter()
+    {
+        var letter = PendingLetter.Trim().ToUpperInvariant();
+        if (letter.Length != 1 || !char.IsLetter(letter[0])) return;
+        if (Neutral.ByZoneLetter.ContainsKey(letter)) return;
+        Neutral.ByZoneLetter[letter] = new ZoneContentList();
+        PendingLetter = "";
+        _localSelected = letter;
+        await SelectedLetterChanged.InvokeAsync(_localSelected);
+        await OnNeutralChanged.InvokeAsync();
+    }
+}

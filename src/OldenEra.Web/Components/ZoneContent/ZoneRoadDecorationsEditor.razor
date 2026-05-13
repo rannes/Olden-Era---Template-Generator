@@ -1,0 +1,83 @@
+@using OldenEra.Generator.Models
+
+<div class="oe-zc-roads">
+    <div class="oe-zc-list-toolbar">
+        <button type="button" class="oe-btn ghost"
+                disabled="@ReadOnly" @onclick="AddBlank">+ Add road decoration</button>
+    </div>
+    @if (Decorations.Count == 0)
+    {
+        <div class="oe-hint">No road decorations.</div>
+    }
+    else
+    {
+        @foreach (var (deco, idx) in Decorations.Select((d, i) => (d, i)))
+        {
+            <fieldset class="oe-zc-road-row">
+                <legend>Decoration @(idx + 1)</legend>
+                <div class="oe-row" style="grid-template-columns: 100px 1fr 32px;">
+                    <input type="text" placeholder="Zone" disabled="@ReadOnly"
+                           @bind="deco.Zone" @bind:after="NotifyChanged" />
+                    <select @bind="deco.RoadType" @bind:after="NotifyChanged" disabled="@ReadOnly">
+                        @foreach (var t in Enum.GetValues<ZoneRoadType>())
+                        {
+                            <option value="@t">@t</option>
+                        }
+                    </select>
+                    <button type="button" class="oe-link-btn"
+                            disabled="@ReadOnly"
+                            @onclick="@(() => Remove(idx))" aria-label="Remove">✕</button>
+                </div>
+
+                <div class="oe-stacked">
+                    <label class="oe-label">From</label>
+                    <div class="oe-row" style="grid-template-columns: 1fr 1fr;">
+                        <select @bind="deco.From.Kind" @bind:after="NotifyChanged" disabled="@ReadOnly">
+                            @foreach (var k in Enum.GetValues<ZoneRoadEndpointKind>())
+                            {
+                                <option value="@k">@k</option>
+                            }
+                        </select>
+                        <input type="text" placeholder="Arg" disabled="@ReadOnly"
+                               @bind="deco.From.Arg" @bind:after="NotifyChanged" />
+                    </div>
+                </div>
+
+                <div class="oe-stacked">
+                    <label class="oe-label">To</label>
+                    <div class="oe-row" style="grid-template-columns: 1fr 1fr;">
+                        <select @bind="deco.To.Kind" @bind:after="NotifyChanged" disabled="@ReadOnly">
+                            @foreach (var k in Enum.GetValues<ZoneRoadEndpointKind>())
+                            {
+                                <option value="@k">@k</option>
+                            }
+                        </select>
+                        <input type="text" placeholder="Arg" disabled="@ReadOnly"
+                               @bind="deco.To.Arg" @bind:after="NotifyChanged" />
+                    </div>
+                </div>
+            </fieldset>
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<ZoneRoadDecoration> Decorations { get; set; } = default!;
+    [Parameter] public EventCallback OnChanged { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    private async Task AddBlank()
+    {
+        Decorations.Add(new ZoneRoadDecoration());
+        await NotifyChanged();
+    }
+
+    private async Task Remove(int idx)
+    {
+        if (idx < 0 || idx >= Decorations.Count) return;
+        Decorations.RemoveAt(idx);
+        await NotifyChanged();
+    }
+}

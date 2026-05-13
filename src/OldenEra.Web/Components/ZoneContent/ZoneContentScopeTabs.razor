@@ -1,0 +1,34 @@
+@using OldenEra.Web.Services
+
+<div class="oe-tabstrip" role="tablist">
+    @foreach (var tab in Tabs)
+    {
+        var active = tab.Kind == Selected.Kind;
+        <button type="button"
+                role="tab"
+                class="oe-tab @(active ? "active" : "")"
+                aria-selected="@active"
+                @onclick="@(() => Choose(tab.Kind))">
+            @tab.Label
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ZoneContentScopeKey Selected { get; set; }
+    [Parameter] public EventCallback<ZoneContentScopeKey> SelectedChanged { get; set; }
+
+    private static readonly (ZoneContentScopeKind Kind, string Label)[] Tabs =
+    {
+        (ZoneContentScopeKind.Player,          "Player"),
+        (ZoneContentScopeKind.NeutralGlobal,   "Neutral · Global"),
+        (ZoneContentScopeKind.NeutralPoor,     "Neutral · Poor"),
+        (ZoneContentScopeKind.NeutralNormal,   "Neutral · Normal"),
+        (ZoneContentScopeKind.NeutralRich,     "Neutral · Rich"),
+        (ZoneContentScopeKind.NeutralPerZone,  "Per-zone"),
+        (ZoneContentScopeKind.RoadDecorations, "Road decorations"),
+    };
+
+    private Task Choose(ZoneContentScopeKind kind) =>
+        SelectedChanged.InvokeAsync(new ZoneContentScopeKey(kind));
+}
