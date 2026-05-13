@@ -9,7 +9,7 @@ namespace OldenEra.Generator.Services.ZoneContent
     /// configure every knob from scratch when adding common rows. Each preset
     /// is hand-picked and guaranteed to pass <see cref="ZoneContentItemValidator"/>.
     /// </summary>
-    public sealed record ZoneContentPreset(string Name, ZoneContentItem Item);
+    public sealed record ZoneContentPreset(string Name, string Category, ZoneContentItem Item);
 
     /// <summary>
     /// Static catalog of curated <see cref="ZoneContentPreset"/> entries. The host
@@ -20,22 +20,22 @@ namespace OldenEra.Generator.Services.ZoneContent
     {
         public static IReadOnlyList<ZoneContentPreset> All() => new ZoneContentPreset[]
         {
-            new("Mana Well x1 (guarded)", new ZoneContentItem
+            new("Mana Well x1 (guarded)", "Mandatory", new ZoneContentItem
             {
                 Sid = "name_mana_well", MinCount = 1, MaxCount = 1,
                 Pool = ZoneContentPool.Mandatory, IsGuarded = true,
             }),
-            new("Pandora Army x1 (guarded, near castle)", new ZoneContentItem
+            new("Pandora Army x1 (guarded, near castle)", "Mandatory", new ZoneContentItem
             {
                 Sid = "name_pandora_box_army", MinCount = 1, MaxCount = 1,
                 Pool = ZoneContentPool.Mandatory, IsGuarded = true, NearCastle = true,
             }),
-            new("Pandora Resources x1", new ZoneContentItem
+            new("Pandora Resources x1", "Mandatory", new ZoneContentItem
             {
                 Sid = "name_pandora_box_resources", MinCount = 1, MaxCount = 1,
                 Pool = ZoneContentPool.Mandatory,
             }),
-            new("Pandora XP x1", new ZoneContentItem
+            new("Pandora XP x1", "Mandatory", new ZoneContentItem
             {
                 Sid = "name_pandora_box_xp", MinCount = 1, MaxCount = 1,
                 Pool = ZoneContentPool.Mandatory,
