@@ -22,9 +22,11 @@ public partial class ZoneContentPanel : UserControl
         // Apply StringComparer.Ordinal to the grouped-presets view so
         // category/name ordering matches the Web optgroup order exactly,
         // regardless of the user's culture. Default SortDescriptions use
-        // the current culture's collator.
+        // the current culture's collator. Loaded fires every time we re-enter
+        // the visual tree (e.g. tab switches), so guard against re-applying.
         if (Resources["GroupedPresets"] is CollectionViewSource cvs &&
-            cvs.View is ListCollectionView view)
+            cvs.View is ListCollectionView view &&
+            view.CustomSort is null)
         {
             view.CustomSort = new PresetOrdinalComparer();
         }
@@ -49,22 +51,25 @@ public partial class ZoneContentPanel : UserControl
     /// <summary>
     /// Removes the row's item-VM from its owning scope. The Button's
     /// DataContext is the <see cref="ZoneContentItemViewModel"/>; the
-    /// enclosing <see cref="ItemsControl"/>'s DataContext is the
-    /// owning <see cref="ZoneContentScopeViewModel"/>.
+    /// enclosing rows-<see cref="ItemsControl"/> binds its DataContext to
+    /// the owning <see cref="ZoneContentScopeViewModel"/>. The row template
+    /// also contains an inner ItemsControl for the warnings tooltip — walk
+    /// up by DataContext type rather than the first ItemsControl we hit so
+    /// that template change can't silently break this lookup.
     /// </summary>
     private void DeleteRow_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button btn) return;
         if (btn.DataContext is not ZoneContentItemViewModel item) return;
-        var owner = FindAncestor<ItemsControl>(btn);
-        if (owner?.DataContext is not ZoneContentScopeViewModel scope) return;
+        var scope = FindAncestorWithDataContext<ZoneContentScopeViewModel>(btn);
+        if (scope is null) return;
         scope.Items.Remove(item);
     }
 
-    private static T? FindAncestor<T>(DependencyObject start) where T : DependencyObject
+    private static T? FindAncestorWithDataContext<T>(DependencyObject start) where T : class
     {
         for (var d = VisualTreeHelper.GetParent(start); d is not null; d = VisualTreeHelper.GetParent(d))
-            if (d is T t) return t;
+            if (d is FrameworkElement fe && fe.DataContext is T t) return t;
         return null;
     }
 
