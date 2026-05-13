@@ -43,6 +43,7 @@ intend to port but tracked as its own initiative.
 | `f47fae3` | Customizable starting zone content (impl) | deferred (PR #17) | Adds `PlayerZoneMandatoryContent` setting + WPF UI + `Services/ContentManagement/` layer. See `docs/plans/2026-05-11-upstream-sync.md` for design notes. |
 | `4a76ce2` | Added guards to default content | deferred (PR #17) | Tail end of the same feature. |
 | `edb64cb` | zone customization UI improvements | deferred (PR #17) | Polish on top of the above. |
+| `b062d10` | add patch notes button | port | Idea ported: Patch Notes ghost button in `MainWindow.xaml`/`.cs` action toolbar (reuses `GitHubReleasesPage` constant) and matching link in `OldenEra.Web/Pages/Home.razor` header. |
 
 ## Sync workflow
 
