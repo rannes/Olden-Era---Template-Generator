@@ -191,6 +191,7 @@
                         <ListBoxItem Content="Heroes"         Tag="Heroes"/>
                         <ListBoxItem Content="Topology"       Tag="Topology"/>
                         <ListBoxItem Content="Zones"          Tag="Zones"/>
+                        <ListBoxItem Content="Zone content"   Tag="ZoneContent"/>
                         <ListBoxItem Content="Win Conditions" Tag="WinConditions"/>
                         <ListBoxItem x:Name="LstNavExperimental" Content="Experimental ⚗" Tag="Experimental" Visibility="Collapsed"/>
                     </ListBox>
@@ -202,6 +203,7 @@
                         <views:HeroesPanel          x:Name="PnlHeroes"     Visibility="Collapsed"/>
                         <views:TopologyPanel        x:Name="PnlTopology"   Visibility="Collapsed"/>
                         <views:ZonesPanel           x:Name="PnlZones"      Visibility="Collapsed"/>
+                        <views:ZoneContentPanel     x:Name="PnlZoneContent" Visibility="Collapsed"/>
                         <views:WinConditionsPanel   x:Name="PnlGameRules"  Visibility="Collapsed"/>
                         <views:ExperimentalPanel    x:Name="PnlExperimental" Visibility="Collapsed"/>
                     </Grid>
