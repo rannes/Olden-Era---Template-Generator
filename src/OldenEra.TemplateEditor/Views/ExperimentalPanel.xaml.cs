@@ -89,16 +89,36 @@ public partial class ExperimentalPanel : UserControl
         SldNeutralGuardChance.ValueChanged  += (_, _) => TxtNeutralGuardChance.Text  = ((int)SldNeutralGuardChance.Value).ToString();
         SldConnectionLength.ValueChanged    += (_, _) => TxtConnectionLength.Text    = ((int)SldConnectionLength.Value).ToString();
         // Connection-default combos: index 0 = "(unset)" sentinel.
-        CmbConnectionGatePlacement.ItemsSource  = new System.Collections.Generic.List<string> { "(unset)", "Center" };
+        var gatePlacements = new System.Collections.Generic.List<string> { "(unset)" };
+        gatePlacements.AddRange(KnownValues.GatePlacements);
+        CmbConnectionGatePlacement.ItemsSource  = gatePlacements;
         CmbConnectionGatePlacement.SelectedIndex = 0;
         CmbConnectionGuardEscape.ItemsSource     = new System.Collections.Generic.List<string> { "(unset)", "false", "true" };
         CmbConnectionGuardEscape.SelectedIndex   = 0;
         CmbConnectionSimTurnSquad.ItemsSource    = new System.Collections.Generic.List<string> { "(unset)", "false", "true" };
         CmbConnectionSimTurnSquad.SelectedIndex  = 0;
+        // Mirror Blazor: contentBiomeArg is only meaningful for MatchMainObject / FromList.
+        // For "" (auto) and "MatchZone" the arg has no schema role — clear + disable it.
+        CmbZoneContentBiome.SelectionChanged += (_, _) => UpdateZoneContentBiomeArgState();
+        UpdateZoneContentBiomeArgState();
         SldNeutralGuardValue.ValueChanged   += (_, _) => TxtNeutralGuardValue.Text   = ((int)SldNeutralGuardValue.Value).ToString();
         SldLowTierGuardWeekly.ValueChanged    += (_, _) => TxtLowTierGuardWeekly.Text    = ((int)SldLowTierGuardWeekly.Value).ToString();
         SldMediumTierGuardWeekly.ValueChanged += (_, _) => TxtMediumTierGuardWeekly.Text = ((int)SldMediumTierGuardWeekly.Value).ToString();
         SldHighTierGuardWeekly.ValueChanged   += (_, _) => TxtHighTierGuardWeekly.Text   = ((int)SldHighTierGuardWeekly.Value).ToString();
+    }
+
+    /// <summary>
+    /// Mirrors the Blazor host: contentBiomeArg is only relevant when the
+    /// selector is MatchMainObject (numeric index) or FromList (biome name).
+    /// For "" (auto, generator default) and MatchZone the arg has no schema
+    /// role, so clear it and disable the box to avoid silently emitting junk.
+    /// </summary>
+    private void UpdateZoneContentBiomeArgState()
+    {
+        var tag = (CmbZoneContentBiome.SelectedItem as System.Windows.Controls.ComboBoxItem)?.Tag as string ?? "";
+        bool argRelevant = tag is "MatchMainObject" or "FromList";
+        TxtZoneContentBiomeArg.IsEnabled = argRelevant;
+        if (!argRelevant) TxtZoneContentBiomeArg.Text = "";
     }
 
     /// <summary>

@@ -938,7 +938,9 @@ namespace OldenEra.TemplateEditor
             int idx = Math.Max(0, PnlExperimental.CmbGuardReactionPreset.SelectedIndex);
             if (idx <= 0 || idx >= GuardReactionPresetOrder.Length)
                 return new GuardReactionSettings();
-            var preset = (GuardReactionPreset)idx; // enum order matches XAML order by design.
+            // Single source of truth: GuardReactionPresetOrder. Going through Enum.Parse
+            // keeps this robust against future enum reorders (vs. raw (GuardReactionPreset)idx).
+            var preset = Enum.Parse<GuardReactionPreset>(GuardReactionPresetOrder[idx]);
             var custom = new List<int>();
             if (preset == GuardReactionPreset.Custom)
             {
@@ -1148,8 +1150,13 @@ namespace OldenEra.TemplateEditor
             // Zone overrides (T-005)
             PnlExperimental.TxtZoneDiplomacy.Text = s.ZoneDiplomacyModifier?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
             SetTagCombo(PnlExperimental.CmbZoneCrossroads, s.ZoneCrossroadsPosition?.ToString() ?? "");
-            SetTagCombo(PnlExperimental.CmbZoneContentBiome, s.ZoneContentBiomeType ?? "");
+            // Order matters: SetTagCombo fires SelectionChanged which routes through
+            // UpdateZoneContentBiomeArgState and clears the textbox when the new
+            // type is MatchZone/empty. Setting Text first then the combo lets the
+            // disabled-state clear win, preventing stale text from re-emitting on
+            // save into a field the user can no longer see edit.
             PnlExperimental.TxtZoneContentBiomeArg.Text = s.ZoneContentBiomeArg ?? "";
+            SetTagCombo(PnlExperimental.CmbZoneContentBiome, s.ZoneContentBiomeType ?? "");
 
             ReinitZoneContentPanel(s);
         }

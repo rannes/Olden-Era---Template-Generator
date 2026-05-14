@@ -144,7 +144,7 @@ namespace OldenEra.Generator.Models
         [JsonPropertyName("neutralCityGuardValuePercent")]  public int    NeutralCityGuardValuePercent  { get; set; } = 100;
         [JsonPropertyName("neutralCityRemoveGuardIfHasOwner")] public bool NeutralCityRemoveGuardIfHasOwner { get; set; } = false;
 
-        [JsonPropertyName("globalBans")]            public List<string> GlobalBans                = new();
+        [JsonPropertyName("globalBans")]            public List<string> GlobalBans              { get; set; } = new();
         [JsonPropertyName("contentCountLimits")]    public List<ContentLimitFile> ContentCountLimits = new();
         [JsonPropertyName("valueOverrides")]        public List<ValueOverrideFile> ValueOverrides { get; set; } = new();
 

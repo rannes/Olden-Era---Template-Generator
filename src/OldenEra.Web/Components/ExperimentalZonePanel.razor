@@ -97,7 +97,10 @@
         <label class="oe-label">Gate placement</label>
         <select @bind="Settings.ConnectionDefaults.GatePlacement" @bind:after="NotifyChanged">
             <option value="">Default (unset)</option>
-            <option value="Center">Center</option>
+            @foreach (var gp in KnownValues.GatePlacements)
+            {
+                <option value="@gp">@gp</option>
+            }
         </select>
     </div>
     <div class="oe-stacked">
@@ -323,7 +326,9 @@
     {
         if (int.TryParse(e.Value?.ToString(), out int v))
         {
-            Settings.Content.ValueOverrides[idx].Variant = v;
+            // Clamp to >= -1 (schema sentinel: -1 = any-variant). Negative values
+            // below -1 have no meaning and would be silently rejected by the game.
+            Settings.Content.ValueOverrides[idx].Variant = Math.Max(-1, v);
             await NotifyChanged();
         }
     }
