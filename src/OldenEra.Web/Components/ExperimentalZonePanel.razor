@@ -251,6 +251,23 @@
                    @onchange="OnContentBiomeArgChanged" />
         }
     </div>
+    @* T-203: metaObjectsBiome — same selector shape as content biome. *@
+    <div class="oe-stacked">
+        <label class="oe-label">Meta-objects biome</label>
+        <select value="@Settings.ZoneOverrides.MetaObjectsBiomeType" @onchange="OnMetaObjectsBiomeTypeChanged">
+            <option value="">Auto (generator default)</option>
+            <option value="MatchMainObject">Match main object</option>
+            <option value="MatchZone">Match zone</option>
+            <option value="FromList">From list</option>
+        </select>
+        @if (Settings.ZoneOverrides.MetaObjectsBiomeType is "MatchMainObject" or "FromList")
+        {
+            <input type="text"
+                   placeholder="@(Settings.ZoneOverrides.MetaObjectsBiomeType == "MatchMainObject" ? "Main object index (0)" : "Biome name (e.g. Sand, Snow, Deathland)")"
+                   value="@Settings.ZoneOverrides.MetaObjectsBiomeArg"
+                   @onchange="OnMetaObjectsBiomeArgChanged" />
+        }
+    </div>
 
     @* T-006: per-zone caps / cutoff / pool refs. Each defaults to empty = no change. *@
     <div class="oe-stacked">
@@ -479,6 +496,21 @@
     private async Task OnContentBiomeArgChanged(ChangeEventArgs e)
     {
         Settings.ZoneOverrides.ContentBiomeArg = e.Value?.ToString()?.Trim() ?? "";
+        await NotifyChanged();
+    }
+
+    // T-203: metaObjectsBiome handlers mirror the content biome ones above.
+    private async Task OnMetaObjectsBiomeTypeChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.MetaObjectsBiomeType = e.Value?.ToString() ?? "";
+        if (string.IsNullOrEmpty(Settings.ZoneOverrides.MetaObjectsBiomeType))
+            Settings.ZoneOverrides.MetaObjectsBiomeArg = "";
+        await NotifyChanged();
+    }
+
+    private async Task OnMetaObjectsBiomeArgChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.MetaObjectsBiomeArg = e.Value?.ToString()?.Trim() ?? "";
         await NotifyChanged();
     }
 

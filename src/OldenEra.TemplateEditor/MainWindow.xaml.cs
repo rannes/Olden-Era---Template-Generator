@@ -830,6 +830,8 @@ namespace OldenEra.TemplateEditor
             ZoneCrossroadsPosition = TagAsNullableInt(PnlExperimental.CmbZoneCrossroads.SelectedItem),
             ZoneContentBiomeType   = TagAsString(PnlExperimental.CmbZoneContentBiome.SelectedItem),
             ZoneContentBiomeArg    = PnlExperimental.TxtZoneContentBiomeArg.Text?.Trim() ?? "",
+            ZoneMetaObjectsBiomeType = TagAsString(PnlExperimental.CmbZoneMetaObjectsBiome.SelectedItem),
+            ZoneMetaObjectsBiomeArg  = PnlExperimental.TxtZoneMetaObjectsBiomeArg.Text?.Trim() ?? "",
             ZoneGuardCutoffValue   = ParseNullableInt(PnlExperimental.TxtZoneGuardCutoff.Text),
             ZoneGuardedContentPool = NormalizeSidCsv(PnlExperimental.TxtZoneGuardedPool.Text),
             ZoneUnguardedContentPool = NormalizeSidCsv(PnlExperimental.TxtZoneUnguardedPool.Text),
@@ -1161,6 +1163,9 @@ namespace OldenEra.TemplateEditor
             // save into a field the user can no longer see edit.
             PnlExperimental.TxtZoneContentBiomeArg.Text = s.ZoneContentBiomeArg ?? "";
             SetTagCombo(PnlExperimental.CmbZoneContentBiome, s.ZoneContentBiomeType ?? "");
+            // T-203: same ordering invariant for metaObjectsBiome (text first, then combo).
+            PnlExperimental.TxtZoneMetaObjectsBiomeArg.Text = s.ZoneMetaObjectsBiomeArg ?? "";
+            SetTagCombo(PnlExperimental.CmbZoneMetaObjectsBiome, s.ZoneMetaObjectsBiomeType ?? "");
 
             // T-006 zone overrides: scalar + three CSV fields.
             PnlExperimental.TxtZoneGuardCutoff.Text =
@@ -1636,6 +1641,8 @@ namespace OldenEra.TemplateEditor
                 CrossroadsPosition = TagAsNullableInt(PnlExperimental.CmbZoneCrossroads.SelectedItem),
                 ContentBiomeType = TagAsString(PnlExperimental.CmbZoneContentBiome.SelectedItem),
                 ContentBiomeArg = PnlExperimental.TxtZoneContentBiomeArg.Text?.Trim() ?? "",
+                MetaObjectsBiomeType = TagAsString(PnlExperimental.CmbZoneMetaObjectsBiome.SelectedItem),
+                MetaObjectsBiomeArg = PnlExperimental.TxtZoneMetaObjectsBiomeArg.Text?.Trim() ?? "",
                 GuardCutoffValue = ParseNullableInt(PnlExperimental.TxtZoneGuardCutoff.Text),
                 GuardedContentPool = ParseSidList(PnlExperimental.TxtZoneGuardedPool.Text),
                 UnguardedContentPool = ParseSidList(PnlExperimental.TxtZoneUnguardedPool.Text),

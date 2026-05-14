@@ -292,14 +292,16 @@ namespace OldenEra.Generator.Services
             bool hasDip = o.DiplomacyModifier.HasValue;
             bool hasXr = o.CrossroadsPosition.HasValue;
             bool hasBiome = !string.IsNullOrEmpty(o.ContentBiomeType);
+            bool hasMetaBiome = !string.IsNullOrEmpty(o.MetaObjectsBiomeType);
             bool hasCutoff = o.GuardCutoffValue.HasValue;
             bool hasGuarded = o.GuardedContentPool is { Count: > 0 };
             bool hasUnguarded = o.UnguardedContentPool is { Count: > 0 };
             bool hasLimits = o.ContentCountLimitRefs is { Count: > 0 };
-            if (!hasDip && !hasXr && !hasBiome && !hasCutoff && !hasGuarded && !hasUnguarded && !hasLimits)
+            if (!hasDip && !hasXr && !hasBiome && !hasMetaBiome && !hasCutoff && !hasGuarded && !hasUnguarded && !hasLimits)
                 return;
 
-            BiomeSelector? biome = hasBiome ? BuildBiomeOverride(o) : null;
+            BiomeSelector? biome = hasBiome ? BuildBiomeOverride(o.ContentBiomeType, o.ContentBiomeArg) : null;
+            BiomeSelector? metaBiome = hasMetaBiome ? BuildBiomeOverride(o.MetaObjectsBiomeType, o.MetaObjectsBiomeArg) : null;
 
             foreach (var variant in template.Variants)
             {
@@ -317,6 +319,15 @@ namespace OldenEra.Generator.Services
                             Args = biome.Args is null ? null : new List<string>(biome.Args),
                         };
                     }
+                    if (metaBiome is not null)
+                    {
+                        // Clone per zone so downstream mutation doesn't alias.
+                        zone.MetaObjectsBiome = new BiomeSelector
+                        {
+                            Type = metaBiome.Type,
+                            Args = metaBiome.Args is null ? null : new List<string>(metaBiome.Args),
+                        };
+                    }
                     if (hasCutoff) zone.GuardCutoffValue = o.GuardCutoffValue;
                     // Clone each list per zone so a later mutation on one zone
                     // doesn't leak through the alias to its siblings.
@@ -327,16 +338,16 @@ namespace OldenEra.Generator.Services
             }
         }
 
-        private static BiomeSelector BuildBiomeOverride(ZoneOverridesSettings o)
+        private static BiomeSelector BuildBiomeOverride(string type, string arg)
         {
             // MatchZone takes no args — shipped templates emit "args": [].
             // MatchMainObject takes a single index arg ("0", "1") — match shipped shape.
             // FromList takes zero-or-more biome / "differentFrom: …" tokens; we expose a
-            // single-token UI for now (T-006 may grow this to a list editor).
-            string type = o.ContentBiomeType;
+            // single-token UI for now. Shared by contentBiome (T-005) and
+            // metaObjectsBiome (T-203) — the schema shape is identical.
             var args = new List<string>();
-            if (!string.IsNullOrWhiteSpace(o.ContentBiomeArg) && type != "MatchZone")
-                args.Add(o.ContentBiomeArg.Trim());
+            if (!string.IsNullOrWhiteSpace(arg) && type != "MatchZone")
+                args.Add(arg.Trim());
             return new BiomeSelector { Type = type, Args = args };
         }
 

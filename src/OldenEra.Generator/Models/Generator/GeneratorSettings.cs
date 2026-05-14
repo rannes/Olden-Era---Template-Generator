@@ -303,6 +303,24 @@ namespace OldenEra.Generator.Models
         /// </summary>
         public string ContentBiomeArg { get; set; } = "";
 
+        // ── T-203: metaObjectsBiome selector (mirrors contentBiome shape) ──
+
+        /// <summary>
+        /// Override <c>metaObjectsBiome</c> selector type on every zone. Empty / null
+        /// = generator default (zones today omit the field, letting the engine pick;
+        /// shipped templates use <c>MatchMainObject</c> "0" most commonly).
+        /// Valid values: "MatchMainObject", "MatchZone", "FromList".
+        /// </summary>
+        public string MetaObjectsBiomeType { get; set; } = "";
+
+        /// <summary>
+        /// Single argument forwarded into the override <c>metaObjectsBiome.args</c>.
+        /// Same conventions as <see cref="ContentBiomeArg"/>: index for
+        /// <c>MatchMainObject</c>, biome name ("Sand", "Snow", …) for <c>FromList</c>.
+        /// Ignored when <see cref="MetaObjectsBiomeType"/> is empty / "MatchZone".
+        /// </summary>
+        public string MetaObjectsBiomeArg { get; set; } = "";
+
         // ── T-006: per-zone caps / cutoff / content pools ───────────────────
 
         /// <summary>

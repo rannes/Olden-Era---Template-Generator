@@ -219,7 +219,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 - **Acceptance:** Rules round-trip; an example preset uses one to demonstrate.
 
 ### T-203 — MetaObjectsBiome selectors and themed pools
-- **Status:** in-progress
+- **Status:** done
 - **Owner:** orchestrator (Phase 3+4 batch)
 - **Effort:** S
 - **Files:** Zone builders, settings models, both UI hosts.
