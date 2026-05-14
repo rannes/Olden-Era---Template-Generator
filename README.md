@@ -188,8 +188,30 @@ Issues and pull requests are welcome. Keep in mind this is a hobby project — r
 The bundled hero, unit, spell, skill, subclass, and faction reference data
 in `src/OldenEra.Generator/CommunityData/` is sourced from
 [**alcaras/homm-olden**](https://github.com/alcaras/homm-olden), a community
-datamine of the game's `Core.zip`. Re-fetch via
-`python3 src/OldenEra.Generator/CommunityData/scripts/fetch-from-alcaras.py`.
+datamine of the game's `Core.zip`.
+
+### Refreshing community data
+
+The bundled snapshot can drift as the game patches and the upstream datamine
+updates. The repo handles this two ways:
+
+- **Manual refresh.** From the repo root:
+
+  ```bash
+  python3 src/OldenEra.Generator/CommunityData/scripts/fetch-from-alcaras.py
+  ```
+
+  This rewrites `factions.json`, `heroes.json`, `units.json`, `subclasses.json`,
+  `skills.json`, `skill-columns.json`, and `spells.json` in place. Review the
+  diff, run the tests, and commit if it looks clean.
+
+- **Automated weekly refresh.** `.github/workflows/refresh-community-data.yml`
+  runs the fetch script every Monday at 08:00 UTC (and on-demand via
+  `workflow_dispatch`). If catalog files change, it opens a PR against `main`
+  with the diff summary and a link to the upstream commit being mirrored. The
+  repo's `tests` workflow runs against the PR — if tests pass, the PR is
+  reviewable; if they fail, the data shape likely shifted upstream and the C#
+  loaders need a follow-up before the refresh can merge.
 
 ---
 
