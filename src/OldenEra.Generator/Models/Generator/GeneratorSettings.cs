@@ -136,6 +136,41 @@ namespace OldenEra.Generator.Models
         public double ConnectionGuardWeeklyIncrement { get; set; } = 0.0;
     }
 
+    /// <summary>
+    /// Preset shape for <see cref="Zone.GuardReactionDistribution"/>. The array is
+    /// six weekly buckets (week 0..week 5). Higher values relative to the others
+    /// mean guards are more likely to spawn that week.
+    /// </summary>
+    public enum GuardReactionPreset
+    {
+        /// <summary>Use the generator's per-zone defaults. Existing snapshots stay byte-identical.</summary>
+        Default = 0,
+        /// <summary>Most guards on day 1; tapers off. Like Spawn zones today: [60,20,10,10,2,0].</summary>
+        FrontLoaded,
+        /// <summary>Roughly uniform across weeks: [10,10,10,10,10,10].</summary>
+        Even,
+        /// <summary>Light early, heavy late: [0,2,10,20,30,40].</summary>
+        BackLoaded,
+        /// <summary>Use <see cref="GuardReactionSettings.CustomDistribution"/> verbatim.</summary>
+        Custom,
+    }
+
+    public class GuardReactionSettings
+    {
+        /// <summary>
+        /// Curve preset applied to every zone the generator emits. Default = leave
+        /// each zone's per-type baked-in array untouched.
+        /// </summary>
+        public GuardReactionPreset Preset { get; set; } = GuardReactionPreset.Default;
+
+        /// <summary>
+        /// Six non-negative weekly weights (week 0..week 5). Only consulted when
+        /// <see cref="Preset"/> is <see cref="GuardReactionPreset.Custom"/>. Empty
+        /// = falls back to the default behavior.
+        /// </summary>
+        public List<int> CustomDistribution { get; set; } = new();
+    }
+
     public class NeutralCitySettings
     {
         /// <summary>0 = use generator default. Otherwise the chance any neutral city is guarded (0..1).</summary>
@@ -258,6 +293,7 @@ namespace OldenEra.Generator.Models
         public TerrainSettings Terrain { get; set; } = new TerrainSettings();
         public BuildingPresetSettings BuildingPresets { get; set; } = new BuildingPresetSettings();
         public GuardProgressionSettings GuardProgression { get; set; } = new GuardProgressionSettings();
+        public GuardReactionSettings GuardReaction { get; set; } = new GuardReactionSettings();
         public NeutralCitySettings NeutralCities { get; set; } = new NeutralCitySettings();
         public ContentControlSettings Content { get; set; } = new ContentControlSettings();
         public StartingBonusSettings Bonuses { get; set; } = new StartingBonusSettings();

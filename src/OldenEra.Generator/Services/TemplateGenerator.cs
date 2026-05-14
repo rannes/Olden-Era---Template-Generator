@@ -58,7 +58,8 @@ namespace OldenEra.Generator.Services
                 settings.ZoneCfg.StructureDensityPercent / 100.0,
                 settings.ZoneCfg.NeutralStackStrengthPercent / 100.0,
                 settings.ZoneCfg.BorderGuardStrengthPercent / 100.0,
-                EffectiveGuardRandomization(settings));
+                EffectiveGuardRandomization(settings),
+                ResolveGuardReactionOverride(settings.GuardReaction));
 
             string effectiveVictoryCondition = settings.GameEndConditions.VictoryCondition;
 
@@ -782,7 +783,31 @@ namespace OldenEra.Generator.Services
             double StructureDensityMultiplier,
             double NeutralStackStrengthMultiplier,
             double BorderGuardStrengthMultiplier,
-            double GuardRandomization);
+            double GuardRandomization,
+            // null = leave each zone's per-type baked-in array untouched.
+            // non-null = override every zone (hub, neutral, spawn) with this 6-bucket curve.
+            int[]? GuardReactionOverride);
+
+        /// <summary>
+        /// Resolve the user-selected <see cref="GuardReactionPreset"/> into a 6-bucket
+        /// weekly array, or null to keep the generator's per-zone-type defaults.
+        /// </summary>
+        internal static int[]? ResolveGuardReactionOverride(GuardReactionSettings? gr)
+        {
+            if (gr is null) return null;
+            return gr.Preset switch
+            {
+                GuardReactionPreset.Default     => null,
+                GuardReactionPreset.FrontLoaded => [60, 20, 10, 10, 2, 0],
+                GuardReactionPreset.Even        => [10, 10, 10, 10, 10, 10],
+                GuardReactionPreset.BackLoaded  => [0, 2, 10, 20, 30, 40],
+                GuardReactionPreset.Custom      =>
+                    gr.CustomDistribution is { Count: 6 } cd && cd.TrueForAll(v => v >= 0)
+                        ? cd.ToArray()
+                        : null,
+                _ => null,
+            };
+        }
 
         private static int ScaleValue(double value, double multiplier) =>
             Math.Max(0, (int)(value * multiplier));
@@ -2165,7 +2190,7 @@ namespace OldenEra.Generator.Services
             GuardRandomization = 0.05,
             GuardMultiplier = ScaleGuardMultiplier(1.5, tuning),
             GuardWeeklyIncrement = 0.20,
-            GuardReactionDistribution = [0, 10, 10, 20, 10, 0],
+            GuardReactionDistribution = [.. (tuning.GuardReactionOverride ?? new[] { 0, 10, 10, 20, 10, 0 })],
             DiplomacyModifier = -0.5,
             GuardedContentPool = [.. T3GuardedPools],
             UnguardedContentPool = [.. T3UnguardedPools],
@@ -2525,7 +2550,7 @@ namespace OldenEra.Generator.Services
                 GuardRandomization = tuning.GuardRandomization,
                 GuardMultiplier = ScaleGuardMultiplier(1.0, tuning),
                 GuardWeeklyIncrement = 0.20,
-                GuardReactionDistribution = [60, 20, 10, 10, 2, 0],
+                GuardReactionDistribution = [.. (tuning.GuardReactionOverride ?? new[] { 60, 20, 10, 10, 2, 0 })],
                 DiplomacyModifier = -0.5,
                 GuardedContentPool = [.. T2GuardedPools],
                 UnguardedContentPool = [.. T2UnguardedPools],
@@ -2599,7 +2624,7 @@ namespace OldenEra.Generator.Services
                 GuardRandomization = tuning.GuardRandomization,
                 GuardMultiplier = ScaleGuardMultiplier(profile.GuardMultiplier, tuning),
                 GuardWeeklyIncrement = 0.20,
-                GuardReactionDistribution = plan.Quality == NeutralZoneQuality.High ? [0, 10, 10, 20, 10, 0] : [0, 10, 10, 10, 10, 0],
+                GuardReactionDistribution = [.. (tuning.GuardReactionOverride ?? (plan.Quality == NeutralZoneQuality.High ? new[] { 0, 10, 10, 20, 10, 0 } : new[] { 0, 10, 10, 10, 10, 0 }))],
                 DiplomacyModifier = -0.5,
                 GuardedContentPool = [.. profile.GuardedContentPool],
                 UnguardedContentPool = [.. profile.UnguardedContentPool],

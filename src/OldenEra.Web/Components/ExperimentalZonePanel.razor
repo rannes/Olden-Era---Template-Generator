@@ -55,6 +55,34 @@
                ValueChanged="@(v => { Settings.GuardProgression.ConnectionGuardWeeklyIncrement = v / 100.0; NotifyChanged(); })" />
 </ExperimentalCard>
 
+<ExperimentalCard Key="guard-reaction" Title="Guard reaction curve">
+    <div class="oe-hint">
+        Per-zone <code>guardReactionDistribution</code>: 6 weekly weights (week 0..5)
+        controlling how guard stacks spawn over time. Default = each zone keeps its
+        baked-in shape (front-loaded for spawns, hub-heavy for the centre).
+    </div>
+    <div class="oe-stacked">
+        <label class="oe-label">Preset</label>
+        <select value="@Settings.GuardReaction.Preset.ToString()"
+                @onchange="OnPresetChanged">
+            <option value="@nameof(GuardReactionPreset.Default)">Default (per-zone baseline)</option>
+            <option value="@nameof(GuardReactionPreset.FrontLoaded)">Front-loaded (60,20,10,10,2,0)</option>
+            <option value="@nameof(GuardReactionPreset.Even)">Even (10,10,10,10,10,10)</option>
+            <option value="@nameof(GuardReactionPreset.BackLoaded)">Back-loaded (0,2,10,20,30,40)</option>
+            <option value="@nameof(GuardReactionPreset.Custom)">Custom…</option>
+        </select>
+    </div>
+    @if (Settings.GuardReaction.Preset == GuardReactionPreset.Custom)
+    {
+        <div class="oe-stacked">
+            <label class="oe-label">Custom distribution (6 ints, comma-separated)</label>
+            <input type="text" value="@CustomCsv" @onchange="OnCustomCsvChanged"
+                   placeholder="0, 10, 10, 10, 10, 0" />
+            <div class="oe-hint">Length must be 6 and values non-negative, otherwise the default is used.</div>
+        </div>
+    }
+</ExperimentalCard>
+
 <ExperimentalCard Key="neutral-cities" Title="Neutral cities">
     <div class="oe-hint">
         Chance that a neutral city gets a guarding stack, and how strong it is relative to the zone baseline (100%).
@@ -219,6 +247,34 @@
             Settings.Content.ValueOverrides[idx].GuardValue = Math.Max(0, v);
             await NotifyChanged();
         }
+    }
+
+    private string CustomCsv =>
+        Settings.GuardReaction.CustomDistribution is { Count: > 0 } cd
+            ? string.Join(", ", cd)
+            : "";
+
+    private async Task OnPresetChanged(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<GuardReactionPreset>(e.Value?.ToString(), ignoreCase: true, out var preset))
+        {
+            Settings.GuardReaction.Preset = preset;
+            await NotifyChanged();
+        }
+    }
+
+    private async Task OnCustomCsvChanged(ChangeEventArgs e)
+    {
+        var raw = e.Value?.ToString() ?? "";
+        var parsed = new List<int>();
+        bool ok = true;
+        foreach (var token in raw.Split(',', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (int.TryParse(token.Trim(), out int v) && v >= 0) parsed.Add(v);
+            else { ok = false; break; }
+        }
+        Settings.GuardReaction.CustomDistribution = ok ? parsed : new List<int>();
+        await NotifyChanged();
     }
 
     private static string FriendlyPreset(string sid)

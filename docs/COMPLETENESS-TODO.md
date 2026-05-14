@@ -94,8 +94,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   list emits as the game expects. New unit test for emission shape.
 
 ### T-004 — Zone.guardReactionDistribution
-- **Status:** in-progress
-- **Owner:** orchestrator (Phase 1 batch)
+- **Status:** done
+- **Owner:** Rannes (Phase 1 batch)
 - **Effort:** M
 - **Files:** `TemplateGenerator.cs` (`BuildNeutralZone`, `BuildSpawnZone`),
   `GeneratorSettings.cs` (new TuningSettings field).
