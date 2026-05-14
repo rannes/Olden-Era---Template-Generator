@@ -47,7 +47,7 @@
                 </TextBlock>
 
                 <!-- ── Game mode ────────────────────────────────────────────── -->
-                <Expander Header="Game mode" Margin="0,4,0,4">
+                <Expander x:Name="ExpGameMode" Header="Game mode" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">
                         <CheckBox x:Name="ChkSingleHero" Content="Single Hero mode"
                                   Checked="ChkSingleHero_Changed" Unchecked="ChkSingleHero_Changed"/>
@@ -80,7 +80,7 @@
                 </Expander>
 
                 <!-- ── Starting bonuses ────────────────────────────────────── -->
-                <Expander Header="Starting bonuses" Margin="0,4,0,4">
+                <Expander x:Name="ExpStartingBonuses" Header="Starting bonuses" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">
                         <TextBlock Style="{StaticResource HintText}">
                             Same bonuses apply to every player. 0 / empty = no bonus.
@@ -188,7 +188,7 @@
                 </Expander>
 
                 <!-- ── Terrain density ─────────────────────────────────────── -->
-                <Expander Header="Terrain density" Margin="0,4,0,4">
+                <Expander x:Name="ExpTerrainDensity" Header="Terrain density" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">
                         <TextBlock Style="{StaticResource HintText}">
                             0 % = generator default. Higher values create more chokepoints.
@@ -214,7 +214,7 @@
                 </Expander>
 
                 <!-- ── Map borders & roads ─────────────────────────────── -->
-                <Expander Header="Map borders &amp; roads" Margin="0,4,0,4">
+                <Expander x:Name="ExpMapBordersRoads" Header="Map borders &amp; roads" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">
                         <TextBlock Style="{StaticResource HintText}">
                             Override the generator's border + road defaults. Off / "Default" = unchanged.
@@ -253,7 +253,7 @@
                 </Expander>
 
                 <!-- ── Building presets ────────────────────────────────────── -->
-                <Expander Header="Building presets" Margin="0,4,0,4">
+                <Expander x:Name="ExpBuildingPresets" Header="Building presets" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">
                         <TextBlock Style="{StaticResource HintText}">
                             Force a specific build path. Default = let the generator pick.
@@ -276,7 +276,7 @@
                 </Expander>
 
                 <!-- ── Guard progression ───────────────────────────────────── -->
-                <Expander Header="Guard progression" Margin="0,4,0,4">
+                <Expander x:Name="ExpGuardProgression" Header="Guard progression" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">
                         <TextBlock Style="{StaticResource HintText}">
                             Weekly guard growth. 0 % = generator defaults (15 % zone, 15–20 % connection).
@@ -302,7 +302,7 @@
                 </Expander>
 
                 <!-- ── Guard reaction curve ────────────────────────────────── -->
-                <Expander Header="Guard reaction curve" Margin="0,4,0,4">
+                <Expander x:Name="ExpGuardReactionCurve" Header="Guard reaction curve" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">
                         <TextBlock Style="{StaticResource HintText}">
                             Per-zone guardReactionDistribution: 6 weekly weights (week 0..5).
@@ -332,7 +332,7 @@
                 </Expander>
 
                 <!-- ── Neutral cities ──────────────────────────────────────── -->
-                <Expander Header="Neutral cities" Margin="0,4,0,4">
+                <Expander x:Name="ExpNeutralCities" Header="Neutral cities" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -359,7 +359,7 @@
                 </Expander>
 
                 <!-- ── Connection defaults ─────────────────────────────────── -->
-                <Expander Header="Connection defaults" Margin="0,4,0,4">
+                <Expander x:Name="ExpConnectionDefaults" Header="Connection defaults" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">
                         <TextBlock Style="{StaticResource HintText}">
                             Per-connection knobs the schema accepts. Each defaults to "unset" — leave alone
@@ -392,7 +392,7 @@
                 </Expander>
 
                 <!-- ── Content control ────────────────────────────────────── -->
-                <Expander Header="Content control" Margin="0,4,0,4">
+                <Expander x:Name="ExpContentControl" Header="Content control" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">
                         <TextBlock Style="{StaticResource HintText}">
                             Ban specific units / objects. Pick from the catalog (grouped by faction × tier)
@@ -436,7 +436,7 @@
                 </Expander>
 
                 <!-- ── Zone overrides (T-005) ─────────────────────────────── -->
-                <Expander Header="Zone overrides" Margin="0,4,0,4">
+                <Expander x:Name="ExpZoneOverrides" Header="Zone overrides" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">
                         <TextBlock Style="{StaticResource HintText}">
                             Stamp schema knobs the generator currently bakes to a
@@ -516,7 +516,7 @@
                 </Expander>
 
                 <!-- ── Encounter holes (T-201) ─────────────────────────────── -->
-                <Expander Header="Encounter holes (multi-stack battles)" Margin="0,4,0,4">
+                <Expander x:Name="ExpEncounterHoles" Header="Encounter holes (multi-stack battles)" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">
                         <TextBlock Style="{StaticResource HintText}">
                             Off (default) = single-stack battles, byte-identical to current output.
@@ -546,7 +546,7 @@
                 </Expander>
 
                 <!-- ── Per-tier overrides ─────────────────────────────────── -->
-                <Expander Header="Per-tier overrides" Margin="0,4,0,4">
+                <Expander x:Name="ExpPerTierOverrides" Header="Per-tier overrides" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">
                         <TextBlock Style="{StaticResource HintText}">
                             Override per neutral tier. Empty / 0 = fall through to global.

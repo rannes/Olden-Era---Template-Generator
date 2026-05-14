@@ -87,8 +87,23 @@ namespace OldenEra.Generator.Models
         [JsonPropertyName("tournamentSaveArmy")] public bool TournamentSaveArmy             { get; set; } = true;
 
         // ── Experimental ────────────────────────────────────────────────────────
-        /// <summary>Master toggle. When false, the UI hides every experimental control.</summary>
+        /// <summary>
+        /// Legacy master toggle. Pre-T-302 .oetgs files persisted only this
+        /// flag; on load (see <see cref="OldenEra.Generator.Services.SettingsMapper.FromFile"/>)
+        /// a true value with all per-feature flags at default migrates to all
+        /// per-feature flags = true. Still written on save for older clients
+        /// — set to true when any per-feature flag is on so old readers still
+        /// see the experimental nav.
+        /// </summary>
         [JsonPropertyName("experimentalEnabled")] public bool  ExperimentalEnabled          { get; set; } = false;
+
+        // T-302 — per-feature flags. Each gates one experimental section card.
+        // All are share-codec-safe (plain bool).
+        [JsonPropertyName("expFeatureGameMode")]          public bool ExpFeatureGameMode          { get; set; } = false;
+        [JsonPropertyName("expFeatureStartingBonuses")]   public bool ExpFeatureStartingBonuses   { get; set; } = false;
+        [JsonPropertyName("expFeatureZoneContent")]       public bool ExpFeatureZoneContent       { get; set; } = false;
+        [JsonPropertyName("expFeatureBordersRoads")]      public bool ExpFeatureBordersRoads      { get; set; } = false;
+        [JsonPropertyName("expFeaturePerTierOverrides")]  public bool ExpFeaturePerTierOverrides  { get; set; } = false;
         [JsonPropertyName("gameMode")]          public string  GameMode                     { get; set; } = "Classic";
         [JsonPropertyName("heroHireBan")]       public bool    HeroHireBan                  { get; set; } = false;
         [JsonPropertyName("desertionDay")]      public int     DesertionDay                 { get; set; } = 0;

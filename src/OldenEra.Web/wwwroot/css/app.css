@@ -248,6 +248,99 @@ code { color: var(--oe-accent); background: var(--oe-surface-2); padding: 0 4px;
 .oe-exp-card-title { flex: 1; }
 .oe-exp-card-body { padding: 10px 14px 12px; }
 
+/* ── Graduated badge (T-302) ─────────────────────────────── */
+.oe-graduated-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px 2px;
+    border-radius: 9px;
+    background: linear-gradient(180deg, #4c8a4c 0%, #2f6b2f 100%);
+    color: #0c1c0c;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1.4;
+    border: 1px solid #1c4b1c;
+    box-shadow: inset 0 1px 0 rgba(220, 255, 200, 0.35);
+    cursor: help;
+    user-select: none;
+    vertical-align: middle;
+    margin-left: 6px;
+}
+
+/* ── Experimental features menu (T-302) ──────────────────── */
+.oe-exp-menu {
+    position: relative;
+    margin-right: 8px;
+}
+.oe-exp-menu-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.oe-exp-menu-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--oe-accent, #4c8ad9);
+    color: #0c1828;
+    font-size: 11px;
+    font-weight: 700;
+}
+.oe-exp-menu-popover {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 10;
+    min-width: 320px;
+    max-width: 400px;
+    background: var(--oe-panel, #1f2735);
+    border: 1px solid var(--oe-border);
+    border-radius: 6px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+    padding: 6px 0;
+}
+.oe-exp-menu-header {
+    padding: 8px 12px 4px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--oe-text-dim);
+    text-transform: uppercase;
+}
+.oe-exp-menu-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+.oe-exp-menu-row:hover { background: rgba(255,255,255,0.04); }
+.oe-exp-menu-row > input[type=checkbox] { margin-top: 3px; }
+.oe-exp-menu-row-label {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.oe-exp-menu-row-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--oe-text);
+}
+.oe-exp-menu-row-desc {
+    font-size: 11px;
+    color: var(--oe-text-dim);
+    line-height: 1.35;
+}
+
 /* ── Tier tabs ──────────────────────────────────────────── */
 .oe-tier-tabs {
     display: flex;

@@ -340,6 +340,74 @@ namespace OldenEra.TemplateEditor
                 LstNav.SelectedIndex = 0;
         }
 
+        /// <summary>
+        /// T-302 — fired when any per-feature experimental checkbox toggles.
+        /// Recomputes the legacy master flag (= any per-feature on) and
+        /// reapplies the corresponding expander visibility on
+        /// <see cref="PnlExperimental"/>.
+        /// </summary>
+        private void ExpFeatureFlag_Changed(object sender, RoutedEventArgs e)
+        {
+            if (ChkExperimentalEnabled is null || ChkExpFeatureGameMode is null) return;
+            bool any = (ChkExpFeatureGameMode.IsChecked == true)
+                || (ChkExpFeatureStartingBonuses.IsChecked == true)
+                || (ChkExpFeatureZoneContent.IsChecked == true)
+                || (ChkExpFeatureBordersRoads.IsChecked == true)
+                || (ChkExpFeaturePerTierOverrides.IsChecked == true);
+            ChkExperimentalEnabled.IsChecked = any;
+            UpdateExperimentalFeatureVisibility();
+        }
+
+        /// <summary>
+        /// T-302 — show / collapse experimental-panel expanders based on the
+        /// per-feature flags. Mapping (web parity):
+        ///   GameMode → Game mode
+        ///   StartingBonuses → Starting bonuses
+        ///   ZoneContent → Terrain density, Guard reaction curve, Neutral cities,
+        ///                 Connection defaults, Content control, Zone overrides,
+        ///                 Encounter holes
+        ///   BordersRoads → Map borders &amp; roads
+        ///   PerTierOverrides → Building presets, Guard progression, Per-tier overrides
+        /// </summary>
+        private void UpdateExperimentalFeatureVisibility()
+        {
+            if (PnlExperimental is null) return;
+            Visibility V(bool on) => on ? Visibility.Visible : Visibility.Collapsed;
+
+            bool gameMode         = ChkExpFeatureGameMode.IsChecked == true;
+            bool startingBonuses  = ChkExpFeatureStartingBonuses.IsChecked == true;
+            bool zoneContent      = ChkExpFeatureZoneContent.IsChecked == true;
+            bool bordersRoads     = ChkExpFeatureBordersRoads.IsChecked == true;
+            bool perTierOverrides = ChkExpFeaturePerTierOverrides.IsChecked == true;
+
+            PnlExperimental.ExpGameMode.Visibility          = V(gameMode);
+            PnlExperimental.ExpStartingBonuses.Visibility   = V(startingBonuses);
+            PnlExperimental.ExpTerrainDensity.Visibility    = V(zoneContent);
+            PnlExperimental.ExpGuardReactionCurve.Visibility = V(zoneContent);
+            PnlExperimental.ExpNeutralCities.Visibility     = V(zoneContent);
+            PnlExperimental.ExpConnectionDefaults.Visibility = V(zoneContent);
+            PnlExperimental.ExpContentControl.Visibility    = V(zoneContent);
+            PnlExperimental.ExpZoneOverrides.Visibility     = V(zoneContent);
+            PnlExperimental.ExpEncounterHoles.Visibility    = V(zoneContent);
+            PnlExperimental.ExpMapBordersRoads.Visibility   = V(bordersRoads);
+            PnlExperimental.ExpBuildingPresets.Visibility   = V(perTierOverrides);
+            PnlExperimental.ExpGuardProgression.Visibility  = V(perTierOverrides);
+            PnlExperimental.ExpPerTierOverrides.Visibility  = V(perTierOverrides);
+
+            // Update the count badge on the toggle button.
+            int count = 0;
+            if (gameMode)         count++;
+            if (startingBonuses)  count++;
+            if (zoneContent)      count++;
+            if (bordersRoads)     count++;
+            if (perTierOverrides) count++;
+            if (TxtExpFeatureCount is not null && ExpFeatureCountBadge is not null)
+            {
+                TxtExpFeatureCount.Text = count.ToString();
+                ExpFeatureCountBadge.Visibility = count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
         private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (e.ClickCount == 2)
@@ -814,7 +882,19 @@ namespace OldenEra.TemplateEditor
             TournamentPointsToWin = (int)PnlGameRules.SldTournamentPointsToWin.Value,
 
             // ── Experimental ─────────────────────────────────────────────────
-            ExperimentalEnabled = ChkExperimentalEnabled.IsChecked == true,
+            // T-302 — per-feature flags are the source of truth; legacy
+            // ExperimentalEnabled is "any feature on" so older readers still
+            // see the experimental nav.
+            ExpFeatureGameMode         = ChkExpFeatureGameMode.IsChecked == true,
+            ExpFeatureStartingBonuses  = ChkExpFeatureStartingBonuses.IsChecked == true,
+            ExpFeatureZoneContent      = ChkExpFeatureZoneContent.IsChecked == true,
+            ExpFeatureBordersRoads     = ChkExpFeatureBordersRoads.IsChecked == true,
+            ExpFeaturePerTierOverrides = ChkExpFeaturePerTierOverrides.IsChecked == true,
+            ExperimentalEnabled = (ChkExpFeatureGameMode.IsChecked == true)
+                || (ChkExpFeatureStartingBonuses.IsChecked == true)
+                || (ChkExpFeatureZoneContent.IsChecked == true)
+                || (ChkExpFeatureBordersRoads.IsChecked == true)
+                || (ChkExpFeaturePerTierOverrides.IsChecked == true),
             GameMode            = PnlExperimental.ChkSingleHero.IsChecked == true ? "SingleHero" : "Classic",
             HeroHireBan         = PnlExperimental.ChkHeroHireBan.IsChecked == true,
             DesertionDay        = ParseInt(PnlExperimental.TxtDesertionDay.Text),
@@ -1097,8 +1177,28 @@ namespace OldenEra.TemplateEditor
             UpdateWinConditionDetailVisibility();
 
             // ── Experimental ─────────────────────────────────────────────────
-            ChkExperimentalEnabled.IsChecked = s.ExperimentalEnabled;
-            LstNavExperimental.Visibility = s.ExperimentalEnabled ? Visibility.Visible : Visibility.Collapsed;
+            // T-302 — apply per-feature flags. Legacy `experimentalEnabled` only
+            // gets respected when no per-feature flag is set yet (auto-migration
+            // from pre-T-302 .oetgs files).
+            bool legacyMaster = s.ExperimentalEnabled
+                && !s.ExpFeatureGameMode
+                && !s.ExpFeatureStartingBonuses
+                && !s.ExpFeatureZoneContent
+                && !s.ExpFeatureBordersRoads
+                && !s.ExpFeaturePerTierOverrides;
+            bool gameMode         = s.ExpFeatureGameMode         || legacyMaster;
+            bool startingBonuses  = s.ExpFeatureStartingBonuses  || legacyMaster;
+            bool zoneContent      = s.ExpFeatureZoneContent      || legacyMaster;
+            bool bordersRoads     = s.ExpFeatureBordersRoads     || legacyMaster;
+            bool perTierOverrides = s.ExpFeaturePerTierOverrides || legacyMaster;
+            ChkExpFeatureGameMode.IsChecked         = gameMode;
+            ChkExpFeatureStartingBonuses.IsChecked  = startingBonuses;
+            ChkExpFeatureZoneContent.IsChecked      = zoneContent;
+            ChkExpFeatureBordersRoads.IsChecked     = bordersRoads;
+            ChkExpFeaturePerTierOverrides.IsChecked = perTierOverrides;
+            ChkExperimentalEnabled.IsChecked        = gameMode || startingBonuses || zoneContent || bordersRoads || perTierOverrides;
+            LstNavExperimental.Visibility = (ChkExperimentalEnabled.IsChecked == true) ? Visibility.Visible : Visibility.Collapsed;
+            UpdateExperimentalFeatureVisibility();
             PnlExperimental.ChkSingleHero.IsChecked = s.GameMode == "SingleHero";
             PnlExperimental.ChkHeroHireBan.IsChecked = s.HeroHireBan;
             PnlExperimental.ChkHeroHireBan.IsEnabled = s.GameMode != "SingleHero";

@@ -18,11 +18,7 @@
                 <input type="checkbox" checked="@AdvancedMode" @onchange="OnAdvancedHeaderToggled" />
                 <span>Advanced</span>
             </label>
-            <label class="oe-check inline" style="margin-right:8px;">
-                <input type="checkbox" checked="@ExperimentalEnabled" @onchange="OnExperimentalEnabledChanged" />
-                <span>Experimental</span>
-                <ExperimentalBadge />
-            </label>
+            <ExperimentalFeaturesMenu Flags="ExperimentalFlags" OnChanged="OnExperimentalFlagsChanged" />
             <button class="oe-btn ghost" @onclick="OpenPresetPicker">Load preset…</button>
             <button class="oe-btn ghost" @onclick="OpenSettingsClick">Open settings…</button>
             <button class="oe-btn ghost" @onclick="SaveSettingsClick">Save settings…</button>
@@ -110,18 +106,34 @@
                         <div class="oe-hint">
                             These features change template fields the game has not been
                             extensively tested against. Generated maps may behave
-                            unpredictably. Each card is collapsed by default — open the
-                            ones you want to use.
+                            unpredictably. Use the <strong>Experimental</strong> menu in
+                            the header to toggle individual features; each enabled
+                            feature shows up as a card below.
                         </div>
                     </div>
-                    <GameModePanel Settings="Settings" OnChanged="OnChanged" />
-                    <StartingBonusesPanel Settings="Settings" OnChanged="OnChanged" />
-                    <ExperimentalZonePanel Settings="Settings"
-                                           OnChanged="OnChanged"
-                                           ZoneContentCompareDefaults="@_zoneContentCompareDefaults"
-                                           ZoneContentCompareDefaultsChanged="@OnZoneContentCompareDefaultsChanged" />
-                    <MapBordersRoadsPanel Settings="Settings" OnChanged="OnChanged" />
-                    <PerTierOverridesPanel Settings="Settings" OnChanged="OnChanged" />
+                    @if (ExperimentalFlags.GameMode)
+                    {
+                        <GameModePanel Settings="Settings" OnChanged="OnChanged" />
+                    }
+                    @if (ExperimentalFlags.StartingBonuses)
+                    {
+                        <StartingBonusesPanel Settings="Settings" OnChanged="OnChanged" />
+                    }
+                    @if (ExperimentalFlags.ZoneContent)
+                    {
+                        <ExperimentalZonePanel Settings="Settings"
+                                               OnChanged="OnChanged"
+                                               ZoneContentCompareDefaults="@_zoneContentCompareDefaults"
+                                               ZoneContentCompareDefaultsChanged="@OnZoneContentCompareDefaultsChanged" />
+                    }
+                    @if (ExperimentalFlags.BordersRoads)
+                    {
+                        <MapBordersRoadsPanel Settings="Settings" OnChanged="OnChanged" />
+                    }
+                    @if (ExperimentalFlags.PerTierOverrides)
+                    {
+                        <PerTierOverridesPanel Settings="Settings" OnChanged="OnChanged" />
+                    }
                     break;
             }
         </section>
@@ -204,7 +216,14 @@
     private GeneratorSettings Settings { get; set; } = new();
     private bool AdvancedMode { get; set; }
     private bool ExperimentalMapSizes { get; set; }
-    private bool ExperimentalEnabled { get; set; }
+
+    /// <summary>
+    /// T-302 — per-feature experimental flags. Replaces the old single
+    /// <c>ExperimentalEnabled</c> bool. The Experimental section is shown
+    /// in the nav whenever any flag is on.
+    /// </summary>
+    private ExperimentalFlags ExperimentalFlags { get; set; } = new();
+    private bool ExperimentalEnabled => ExperimentalFlags.AnyEnabled;
 
     private OldenEra.Generator.Models.Unfrozen.RmgTemplate? GeneratedTemplate;
     private byte[]? PreviewPng;
@@ -252,11 +271,11 @@
 
         if (sourceOfTruth is not null)
         {
-            var (mapped, advanced, experimental, expEnabled) = SettingsMapper.FromFile(sourceOfTruth);
+            var (mapped, advanced, experimental, expFlags) = SettingsMapper.FromFile(sourceOfTruth);
             Settings = mapped;
             AdvancedMode = advanced;
             ExperimentalMapSizes = experimental;
-            ExperimentalEnabled = expEnabled;
+            ExperimentalFlags = expFlags;
         }
         _hasLoadedFromStorage = true;
 
@@ -282,12 +301,11 @@
     private static string FormatVersion(Version v)
         => v.Build > 0 ? $"v{v.Major}.{v.Minor}.{v.Build}" : $"v{v.Major}.{v.Minor}";
 
-    private void OnExperimentalEnabledChanged(ChangeEventArgs e)
+    private void OnExperimentalFlagsChanged()
     {
-        ExperimentalEnabled = (bool)e.Value!;
-        // If user just disabled experimental mode and was sitting on that
-        // section, bounce them back to Map so the empty content area doesn't
-        // linger. Their experimental settings stay intact in memory.
+        // T-302 — when the user toggled the last per-feature flag off and was
+        // sitting on the Experimental section, bounce back to Map so the
+        // section nav doesn't appear empty. Settings stay in memory either way.
         if (!ExperimentalEnabled && ActiveSection == Section.Experimental)
             ActiveSection = Section.Map;
         OnChanged();
@@ -365,7 +383,7 @@
         catch (TaskCanceledException) { return; }
 
         if (ct.IsCancellationRequested) return;
-        var snapshot = SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalEnabled);
+        var snapshot = SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalFlags);
         await SettingsStore.SaveAsync(snapshot);
     }
 
@@ -457,7 +475,7 @@
 
     private async Task SaveSettingsClick()
     {
-        var snapshot = SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalEnabled);
+        var snapshot = SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalFlags);
         byte[] bytes = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(snapshot, JsonOptions);
         string name = string.IsNullOrWhiteSpace(Settings.TemplateName) ? "My Settings" : Settings.TemplateName.Trim();
         await Downloader.DownloadAsync($"{name}.oetgs", "application/json", bytes);
@@ -487,13 +505,13 @@
         try
         {
             var s = PresetCatalog.Load(id);
-            var (mapped, advanced, experimental, expEnabled) = SettingsMapper.FromFile(s);
+            var (mapped, advanced, experimental, expFlags) = SettingsMapper.FromFile(s);
             Settings = mapped;
             AdvancedMode = advanced;
             ExperimentalMapSizes = experimental;
-            ExperimentalEnabled = expEnabled;
+            ExperimentalFlags = expFlags;
             Validate();
-            await SettingsStore.SaveAsync(SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalEnabled));
+            await SettingsStore.SaveAsync(SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalFlags));
             StateHasChanged();
         }
         catch (Exception ex)
@@ -515,14 +533,14 @@
             var s = System.Text.Json.JsonSerializer.Deserialize<SettingsFile>(json);
             if (s is null) return;
 
-            var (mapped, advanced, experimental, expEnabled) = SettingsMapper.FromFile(s);
+            var (mapped, advanced, experimental, expFlags) = SettingsMapper.FromFile(s);
             Settings = mapped;
             AdvancedMode = advanced;
             ExperimentalMapSizes = experimental;
-            ExperimentalEnabled = expEnabled;
+            ExperimentalFlags = expFlags;
             Validate();
             // Persist the freshly imported settings so they survive a reload.
-            await SettingsStore.SaveAsync(SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalEnabled));
+            await SettingsStore.SaveAsync(SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalFlags));
             StateHasChanged();
         }
         catch (Exception ex)
@@ -561,7 +579,7 @@
 
     private async Task ShareSettingsClick()
     {
-        var snapshot = SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalEnabled);
+        var snapshot = SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalFlags);
         string encoded = SettingsShareCodec.Encode(snapshot);
         if (encoded.Length > SettingsShareCodec.MaxEncodedLength)
         {

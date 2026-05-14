@@ -276,14 +276,18 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   downloads a template.
 
 ### T-302 — Per-experimental-feature toggles
-- **Status:** in-progress
+- **Status:** done
 - **Owner:** orchestrator (Phase 3+4 batch 2)
 - **Effort:** M
-- **Files:** Both UI hosts, `GeneratorSettings.cs`, `SettingsFile.cs`.
-- **Scope:** Today `Experimental ⚗` bundles 5+ unrelated features at different
-  stability levels. Split into per-feature flags (game-mode, starting-bonuses,
-  zone-content, borders/roads, per-tier overrides) with a "graduated" marker
-  for each so stable ones can promote without removing the toggle.
+- **Files:** Both UI hosts, `SettingsFile.cs`, `SettingsMapper.cs`,
+  new `Services/ExperimentalFeatures.cs`,
+  `Components/ExperimentalFeaturesMenu.razor`,
+  `Views/ExperimentalPanel.xaml`.
+- **Scope:** `Experimental ⚗` bundled 5 unrelated features at different
+  stability levels. Split into per-feature flags (game-mode,
+  starting-bonuses, zone-content, borders/roads, per-tier overrides) with a
+  registry-driven "graduated" marker so stable ones can promote without
+  removing the toggle.
 - **Acceptance:** Existing experimental settings auto-migrate. Per-feature
   state round-trips through `.oetgs`.
 

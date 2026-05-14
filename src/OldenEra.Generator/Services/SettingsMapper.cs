@@ -10,13 +10,64 @@ namespace OldenEra.Generator.Services;
 /// the web equivalent of MainWindow's GatherSettings/ApplySettings/BuildSettings
 /// trio — there's only one in-memory model in the WASM app, so we map directly.
 /// </summary>
+/// <summary>
+/// T-302 — bag of per-feature experimental flags reconstructed from a loaded
+/// <see cref="SettingsFile"/>. Indexed by the keys in
+/// <see cref="ExperimentalFeatures"/>. Plain dictionary instead of named
+/// fields so adding a feature only touches the registry + SettingsFile.
+/// </summary>
+public sealed class ExperimentalFlags
+{
+    public bool GameMode         { get; set; }
+    public bool StartingBonuses  { get; set; }
+    public bool ZoneContent      { get; set; }
+    public bool BordersRoads     { get; set; }
+    public bool PerTierOverrides { get; set; }
+
+    public bool AnyEnabled =>
+        GameMode || StartingBonuses || ZoneContent || BordersRoads || PerTierOverrides;
+
+    public bool Get(string key) => key switch
+    {
+        ExperimentalFeatures.GameMode         => GameMode,
+        ExperimentalFeatures.StartingBonuses  => StartingBonuses,
+        ExperimentalFeatures.ZoneContent      => ZoneContent,
+        ExperimentalFeatures.BordersRoads     => BordersRoads,
+        ExperimentalFeatures.PerTierOverrides => PerTierOverrides,
+        _ => throw new ArgumentException($"Unknown experimental feature key: {key}", nameof(key)),
+    };
+
+    public void Set(string key, bool value)
+    {
+        switch (key)
+        {
+            case ExperimentalFeatures.GameMode:         GameMode = value; break;
+            case ExperimentalFeatures.StartingBonuses:  StartingBonuses = value; break;
+            case ExperimentalFeatures.ZoneContent:      ZoneContent = value; break;
+            case ExperimentalFeatures.BordersRoads:     BordersRoads = value; break;
+            case ExperimentalFeatures.PerTierOverrides: PerTierOverrides = value; break;
+            default:
+                throw new ArgumentException($"Unknown experimental feature key: {key}", nameof(key));
+        }
+    }
+
+    public ExperimentalFlags Clone() => new()
+    {
+        GameMode = GameMode,
+        StartingBonuses = StartingBonuses,
+        ZoneContent = ZoneContent,
+        BordersRoads = BordersRoads,
+        PerTierOverrides = PerTierOverrides,
+    };
+}
+
 public static class SettingsMapper
 {
     /// <summary>
     /// Build a fresh <see cref="GeneratorSettings"/> from a loaded file.
     /// Returns the new settings and the reconstructed advanced/experimental flags.
     /// </summary>
-    public static (GeneratorSettings Settings, bool AdvancedMode, bool ExperimentalMapSizes, bool ExperimentalEnabled) FromFile(SettingsFile s)
+    public static (GeneratorSettings Settings, bool AdvancedMode, bool ExperimentalMapSizes, ExperimentalFlags Experimental) FromFile(SettingsFile s)
     {
         bool hasCustomZoneSizes = Math.Abs(s.PlayerZoneSize - 1.0) > 0.0001
                                 || Math.Abs(s.NeutralZoneSize - 1.0) > 0.0001;
@@ -209,15 +260,37 @@ public static class SettingsMapper
         settings.NeutralZoneContent  = s.NeutralZoneContent  ?? new();
         settings.ZoneRoadDecorations = s.ZoneRoadDecorations ?? new();
 
-        return (settings, advanced, needsExperimentalMapSizes, s.ExperimentalEnabled);
+        var flags = new ExperimentalFlags
+        {
+            GameMode         = s.ExpFeatureGameMode,
+            StartingBonuses  = s.ExpFeatureStartingBonuses,
+            ZoneContent      = s.ExpFeatureZoneContent,
+            BordersRoads     = s.ExpFeatureBordersRoads,
+            PerTierOverrides = s.ExpFeaturePerTierOverrides,
+        };
+
+        // T-302 migration: pre-T-302 .oetgs files had only the master flag.
+        // If the master is on but no per-feature flag is set, light all five
+        // so users keep access to whatever they were already using.
+        if (s.ExperimentalEnabled && !flags.AnyEnabled)
+        {
+            flags.GameMode = true;
+            flags.StartingBonuses = true;
+            flags.ZoneContent = true;
+            flags.BordersRoads = true;
+            flags.PerTierOverrides = true;
+        }
+
+        return (settings, advanced, needsExperimentalMapSizes, flags);
     }
 
     /// <summary>
     /// Capture the current in-memory state into a <see cref="SettingsFile"/>
     /// so it can be JSON-serialized.
     /// </summary>
-    public static SettingsFile ToFile(GeneratorSettings g, bool advancedMode, bool experimentalMapSizes, bool experimentalEnabled = false)
+    public static SettingsFile ToFile(GeneratorSettings g, bool advancedMode, bool experimentalMapSizes, ExperimentalFlags? experimental = null)
     {
+        experimental ??= new ExperimentalFlags();
         var a = g.ZoneCfg.Advanced;
         var file = new SettingsFile
         {
@@ -276,7 +349,16 @@ public static class SettingsMapper
             TournamentInterval = g.TournamentRules.Interval,
             TournamentPointsToWin = g.TournamentRules.PointsToWin,
             TournamentSaveArmy = g.TournamentRules.SaveArmy,
-            ExperimentalEnabled = experimentalEnabled,
+            // Master flag is now derived from the per-feature flags so older
+            // readers (pre-T-302) still see the experimental nav when any
+            // per-feature toggle is on. New per-feature flags below are the
+            // source of truth.
+            ExperimentalEnabled        = experimental.AnyEnabled,
+            ExpFeatureGameMode         = experimental.GameMode,
+            ExpFeatureStartingBonuses  = experimental.StartingBonuses,
+            ExpFeatureZoneContent      = experimental.ZoneContent,
+            ExpFeatureBordersRoads     = experimental.BordersRoads,
+            ExpFeaturePerTierOverrides = experimental.PerTierOverrides,
             GameMode = g.GameMode,
             HeroHireBan = g.HeroHireBan,
             DesertionDay = g.DesertionDay,
