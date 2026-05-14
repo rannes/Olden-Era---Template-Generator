@@ -302,6 +302,42 @@ namespace OldenEra.Generator.Models
         /// Ignored when <see cref="ContentBiomeType"/> is empty / "MatchZone".
         /// </summary>
         public string ContentBiomeArg { get; set; } = "";
+
+        // ── T-006: per-zone caps / cutoff / content pools ───────────────────
+
+        /// <summary>
+        /// Override <c>guardCutoffValue</c> on every zone. <c>null</c> = generator
+        /// default (today: 2000 on neutrals/spawns/center). Shipped templates use
+        /// 2000–2500. Below the cutoff the game can drop guard stacks; raising the
+        /// cutoff means more objects sit unguarded.
+        /// </summary>
+        public int? GuardCutoffValue { get; set; }
+
+        /// <summary>
+        /// Override <c>guardedContentPool</c> on every zone. Empty list = generator
+        /// default (the tier-derived pools chosen by <c>BuildSpawnZone</c> /
+        /// <c>BuildNeutralZone</c>). When non-empty, the listed content-pool SIDs
+        /// replace the generator's choice on every emitted zone.
+        /// <para>List of catalog SIDs like <c>template_pool_arcade_guarded_treasure_zone</c>.
+        /// Round-trips through <see cref="SettingsFile"/> as a CSV string because
+        /// the share codec only supports value types.</para>
+        /// </summary>
+        public List<string> GuardedContentPool { get; set; } = new();
+
+        /// <summary>
+        /// Override <c>unguardedContentPool</c> on every zone. Same shape and rules
+        /// as <see cref="GuardedContentPool"/>.
+        /// </summary>
+        public List<string> UnguardedContentPool { get; set; } = new();
+
+        /// <summary>
+        /// Override <c>contentCountLimits</c> on every zone. List of catalog SIDs
+        /// (e.g. <c>content_limits_spawn</c>, <c>content_limits_side</c>). Empty list
+        /// = leave whatever the zone builder chose. Distinct from the global
+        /// <c>ContentControlSettings.ContentCountLimits</c>, which authors fresh
+        /// definitions on the template root rather than referencing existing ones.
+        /// </summary>
+        public List<string> ContentCountLimitRefs { get; set; } = new();
     }
 
     public class BordersRoadsSettings

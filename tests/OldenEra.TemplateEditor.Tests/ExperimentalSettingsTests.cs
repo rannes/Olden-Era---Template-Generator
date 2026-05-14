@@ -513,4 +513,166 @@ public class ExperimentalSettingsTests
         Assert.Equal("MatchMainObject", decoded.ZoneContentBiomeType);
         Assert.Equal("0", decoded.ZoneContentBiomeArg);
     }
+
+    // ── T-006: per-zone caps / cutoff / content pools ──────────────────────
+
+    [Fact]
+    public void ZoneOverrides_T006_DefaultsAreNoOp()
+    {
+        // Acceptance: with no T-006 override set, no zone gains a custom
+        // contentCountLimits / pool / cutoff override beyond what the builder
+        // already wrote. We assert structural identity by comparing two
+        // independent generations with the same seed.
+        var seed = 12345;
+        var a = TemplateGenerator.Generate(new GeneratorSettings { PlayerCount = 2, Seed = seed });
+        var b = TemplateGenerator.Generate(new GeneratorSettings
+        {
+            PlayerCount = 2,
+            Seed = seed,
+            ZoneOverrides = new ZoneOverridesSettings(), // all defaults
+        });
+
+        var zonesA = a.Variants![0].Zones!;
+        var zonesB = b.Variants![0].Zones!;
+        Assert.Equal(zonesA.Count, zonesB.Count);
+        for (int i = 0; i < zonesA.Count; i++)
+        {
+            Assert.Equal(zonesA[i].GuardCutoffValue, zonesB[i].GuardCutoffValue);
+            Assert.Equal(zonesA[i].GuardedContentPool, zonesB[i].GuardedContentPool);
+            Assert.Equal(zonesA[i].UnguardedContentPool, zonesB[i].UnguardedContentPool);
+            Assert.Equal(zonesA[i].ContentCountLimits, zonesB[i].ContentCountLimits);
+        }
+    }
+
+    [Fact]
+    public void ZoneOverrides_T006_GuardCutoff_StampsEveryZone()
+    {
+        var s = new GeneratorSettings
+        {
+            PlayerCount = 2,
+            ZoneOverrides = new ZoneOverridesSettings { GuardCutoffValue = 4242 },
+        };
+        var template = TemplateGenerator.Generate(s);
+        Assert.All(template.Variants![0].Zones!, z => Assert.Equal(4242, z.GuardCutoffValue));
+    }
+
+    [Fact]
+    public void ZoneOverrides_T006_ContentPools_ReplaceBuilderChoice()
+    {
+        var s = new GeneratorSettings
+        {
+            PlayerCount = 2,
+            ZoneOverrides = new ZoneOverridesSettings
+            {
+                GuardedContentPool = new() { "template_pool_custom_guarded" },
+                UnguardedContentPool = new() { "template_pool_custom_unguarded_a", "template_pool_custom_unguarded_b" },
+            },
+        };
+        var template = TemplateGenerator.Generate(s);
+        Assert.All(template.Variants![0].Zones!, z =>
+        {
+            Assert.Equal(new[] { "template_pool_custom_guarded" }, z.GuardedContentPool);
+            Assert.Equal(new[] { "template_pool_custom_unguarded_a", "template_pool_custom_unguarded_b" }, z.UnguardedContentPool);
+        });
+    }
+
+    [Fact]
+    public void ZoneOverrides_T006_ContentPools_ClonedPerZone_NoAliasing()
+    {
+        var s = new GeneratorSettings
+        {
+            PlayerCount = 2,
+            ZoneOverrides = new ZoneOverridesSettings
+            {
+                GuardedContentPool = new() { "pool_a" },
+            },
+        };
+        var template = TemplateGenerator.Generate(s);
+        var zones = template.Variants![0].Zones!;
+        zones[0].GuardedContentPool!.Add("extra");
+        Assert.DoesNotContain("extra", zones[1].GuardedContentPool!);
+    }
+
+    [Fact]
+    public void ZoneOverrides_T006_ContentCountLimits_OverrideZoneBuilderDefaults()
+    {
+        var s = new GeneratorSettings
+        {
+            PlayerCount = 2,
+            ZoneOverrides = new ZoneOverridesSettings
+            {
+                ContentCountLimitRefs = new() { "content_limits_custom" },
+            },
+        };
+        var template = TemplateGenerator.Generate(s);
+        Assert.All(template.Variants![0].Zones!, z =>
+            Assert.Equal(new[] { "content_limits_custom" }, z.ContentCountLimits));
+    }
+
+    [Fact]
+    public void SettingsMapper_T006_RoundTripsValues()
+    {
+        var original = new GeneratorSettings
+        {
+            ZoneOverrides = new ZoneOverridesSettings
+            {
+                GuardCutoffValue = 2500,
+                GuardedContentPool = new() { "g1", "g2" },
+                UnguardedContentPool = new() { "u1" },
+                ContentCountLimitRefs = new() { "content_limits_spawn", "content_limits_side" },
+            },
+        };
+        var file = SettingsMapper.ToFile(original, advancedMode: false, experimentalMapSizes: false);
+        // The CSV strings on the wire shape are the load-bearing contract for
+        // share-code round-trip; assert them explicitly.
+        Assert.Equal(2500, file.ZoneGuardCutoffValue);
+        Assert.Equal("g1,g2", file.ZoneGuardedContentPool);
+        Assert.Equal("u1", file.ZoneUnguardedContentPool);
+        Assert.Equal("content_limits_spawn,content_limits_side", file.ZoneContentCountLimits);
+
+        var (restored, _, _, _) = SettingsMapper.FromFile(file);
+        Assert.Equal(2500, restored.ZoneOverrides.GuardCutoffValue);
+        Assert.Equal(new[] { "g1", "g2" }, restored.ZoneOverrides.GuardedContentPool);
+        Assert.Equal(new[] { "u1" }, restored.ZoneOverrides.UnguardedContentPool);
+        Assert.Equal(new[] { "content_limits_spawn", "content_limits_side" },
+            restored.ZoneOverrides.ContentCountLimitRefs);
+    }
+
+    [Fact]
+    public void SettingsMapper_T006_DefaultsRoundTripAsUnset()
+    {
+        var file = SettingsMapper.ToFile(new GeneratorSettings(), advancedMode: false, experimentalMapSizes: false);
+        Assert.Null(file.ZoneGuardCutoffValue);
+        Assert.Equal("", file.ZoneGuardedContentPool);
+        Assert.Equal("", file.ZoneUnguardedContentPool);
+        Assert.Equal("", file.ZoneContentCountLimits);
+
+        var (restored, _, _, _) = SettingsMapper.FromFile(file);
+        Assert.Null(restored.ZoneOverrides.GuardCutoffValue);
+        Assert.Empty(restored.ZoneOverrides.GuardedContentPool);
+        Assert.Empty(restored.ZoneOverrides.UnguardedContentPool);
+        Assert.Empty(restored.ZoneOverrides.ContentCountLimitRefs);
+    }
+
+    [Fact]
+    public void SettingsShareCodec_T006_RoundTripsAcrossEncoded()
+    {
+        // The share codec only round-trips scalars / strings — lists must travel
+        // as CSV. This test guards that contract.
+        var file = new SettingsFile
+        {
+            ZoneGuardCutoffValue = 2200,
+            ZoneGuardedContentPool = "pool_a,pool_b",
+            ZoneUnguardedContentPool = "pool_u",
+            ZoneContentCountLimits = "content_limits_center",
+        };
+        string encoded = SettingsShareCodec.Encode(file);
+        var decoded = SettingsShareCodec.TryDecode(encoded, out var status);
+        Assert.Equal(SettingsShareCodec.DecodeStatus.Ok, status);
+        Assert.NotNull(decoded);
+        Assert.Equal(2200, decoded!.ZoneGuardCutoffValue);
+        Assert.Equal("pool_a,pool_b", decoded.ZoneGuardedContentPool);
+        Assert.Equal("pool_u", decoded.ZoneUnguardedContentPool);
+        Assert.Equal("content_limits_center", decoded.ZoneContentCountLimits);
+    }
 }

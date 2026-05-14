@@ -278,20 +278,26 @@ namespace OldenEra.Generator.Services
             ApplyZoneOverrides(template, settings.ZoneOverrides);
         }
 
-        // ── Per-zone schema knobs (T-005) ────────────────────────────────────────
+        // ── Per-zone schema knobs (T-005, T-006) ─────────────────────────────────
         // Stamps each non-default ZoneOverrides value onto every zone in every
         // variant. When every field is null / empty (the default), this is a no-op
         // and existing snapshots stay byte-identical.
         //
-        // T-006 will extend this method (and the matching UI panel) with per-zone
-        // content caps, guardCutoffValue, and content-pool overrides.
+        // T-006 added guardCutoffValue and the three content-pool / count-limits
+        // SID lists. List overrides replace whatever the zone builder chose
+        // (BuildSpawnZone / BuildNeutralZone wire the tier-derived defaults).
         private static void ApplyZoneOverrides(RmgTemplate template, ZoneOverridesSettings o)
         {
             if (template.Variants is null) return;
             bool hasDip = o.DiplomacyModifier.HasValue;
             bool hasXr = o.CrossroadsPosition.HasValue;
             bool hasBiome = !string.IsNullOrEmpty(o.ContentBiomeType);
-            if (!hasDip && !hasXr && !hasBiome) return;
+            bool hasCutoff = o.GuardCutoffValue.HasValue;
+            bool hasGuarded = o.GuardedContentPool is { Count: > 0 };
+            bool hasUnguarded = o.UnguardedContentPool is { Count: > 0 };
+            bool hasLimits = o.ContentCountLimitRefs is { Count: > 0 };
+            if (!hasDip && !hasXr && !hasBiome && !hasCutoff && !hasGuarded && !hasUnguarded && !hasLimits)
+                return;
 
             BiomeSelector? biome = hasBiome ? BuildBiomeOverride(o) : null;
 
@@ -311,6 +317,12 @@ namespace OldenEra.Generator.Services
                             Args = biome.Args is null ? null : new List<string>(biome.Args),
                         };
                     }
+                    if (hasCutoff) zone.GuardCutoffValue = o.GuardCutoffValue;
+                    // Clone each list per zone so a later mutation on one zone
+                    // doesn't leak through the alias to its siblings.
+                    if (hasGuarded) zone.GuardedContentPool = new List<string>(o.GuardedContentPool);
+                    if (hasUnguarded) zone.UnguardedContentPool = new List<string>(o.UnguardedContentPool);
+                    if (hasLimits) zone.ContentCountLimits = new List<string>(o.ContentCountLimitRefs);
                 }
             }
         }

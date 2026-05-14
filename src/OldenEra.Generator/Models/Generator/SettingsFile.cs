@@ -110,6 +110,15 @@ namespace OldenEra.Generator.Models
         [JsonPropertyName("zoneContentBiomeType")]    public string  ZoneContentBiomeType    { get; set; } = "";
         [JsonPropertyName("zoneContentBiomeArg")]     public string  ZoneContentBiomeArg     { get; set; } = "";
 
+        // Per-zone overrides (T-006). null / "" = generator default; emit nothing.
+        // Lists are stored as CSV strings so the share codec's value-equality
+        // "non-default" check (see SettingsShareCodec.CopyNonDefault) keeps working —
+        // adding List<string> here would silently break per-field recovery.
+        [JsonPropertyName("zoneGuardCutoffValue")]    public int?    ZoneGuardCutoffValue    { get; set; }
+        [JsonPropertyName("zoneGuardedContentPool")]  public string  ZoneGuardedContentPool  { get; set; } = "";
+        [JsonPropertyName("zoneUnguardedContentPool")] public string ZoneUnguardedContentPool { get; set; } = "";
+        [JsonPropertyName("zoneContentCountLimits")] public string  ZoneContentCountLimits  { get; set; } = "";
+
         [JsonPropertyName("buildingPresetPlayer")]  public string BuildingPresetPlayer      { get; set; } = "";
         [JsonPropertyName("buildingPresetNeutral")] public string BuildingPresetNeutral     { get; set; } = "";
 

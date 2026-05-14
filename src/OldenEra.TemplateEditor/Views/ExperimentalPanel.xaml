@@ -442,8 +442,6 @@
                             Stamp schema knobs the generator currently bakes to a
                             single value across every zone. Empty / "Auto" = no
                             change (existing snapshots stay byte-identical).
-                            T-006 will extend this surface with per-zone content
-                            caps and pool selection.
                         </TextBlock>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -456,6 +454,14 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="6"/>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="6"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="6"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="6"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="6"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <Label   Grid.Row="0" Grid.Column="0" Content="Diplomacy modifier" Padding="5,2"/>
@@ -478,6 +484,19 @@
                             <TextBox Grid.Row="5" Grid.Column="1" x:Name="TxtZoneContentBiomeArg"
                                      Margin="0,4,0,0"
                                      ToolTip="MatchMainObject: index (0). FromList: biome name (Sand, Deathland, …)."/>
+                            <!-- T-006: per-zone caps / cutoff / content pools. Empty = no change. -->
+                            <Label   Grid.Row="7" Grid.Column="0" Content="Guard cutoff value" Padding="5,2"/>
+                            <TextBox Grid.Row="7" Grid.Column="1" x:Name="TxtZoneGuardCutoff"
+                                     ToolTip="Empty = generator default (2000). Shipped templates use 2000–2500."/>
+                            <Label   Grid.Row="9" Grid.Column="0" Content="Guarded content pool" Padding="5,2"/>
+                            <TextBox Grid.Row="9" Grid.Column="1" x:Name="TxtZoneGuardedPool"
+                                     ToolTip="Comma-separated SIDs (e.g. template_pool_arcade_guarded_treasure_zone). Empty = leave generator's tier-derived choice."/>
+                            <Label   Grid.Row="11" Grid.Column="0" Content="Unguarded content pool" Padding="5,2"/>
+                            <TextBox Grid.Row="11" Grid.Column="1" x:Name="TxtZoneUnguardedPool"
+                                     ToolTip="Comma-separated SIDs. Empty = generator default."/>
+                            <Label   Grid.Row="13" Grid.Column="0" Content="Content count limits" Padding="5,2"/>
+                            <TextBox Grid.Row="13" Grid.Column="1" x:Name="TxtZoneContentCountLimits"
+                                     ToolTip="Comma-separated SIDs (e.g. content_limits_spawn). References named limits the generator emits at the template root."/>
                         </Grid>
                     </StackPanel>
                 </Expander>
