@@ -212,6 +212,65 @@ public class ExperimentalSettingsTests
     }
 
     [Fact]
+    public void NeutralCities_GuardChance_OverridesNeutralCityGuardChance()
+    {
+        var s = new GeneratorSettings
+        {
+            ZoneCfg = new ZoneConfiguration { NeutralZoneCount = 1, NeutralZoneCastles = 1 },
+            NeutralCities = new NeutralCitySettings { GuardChance = 0.3 },
+        };
+        var template = TemplateGenerator.Generate(s);
+        var neutralCities = template.Variants![0].Zones!
+            .SelectMany(z => z.MainObjects ?? new List<MainObject>())
+            .Where(m => m.Type == "City" && string.IsNullOrEmpty(m.Spawn))
+            .ToList();
+        Assert.NotEmpty(neutralCities);
+        Assert.All(neutralCities, m => Assert.Equal(0.3, m.GuardChance));
+
+        // Spawn (player) cities are unaffected — still fully guarded.
+        var spawns = template.Variants![0].Zones!
+            .SelectMany(z => z.MainObjects ?? new List<MainObject>())
+            .Where(m => m.Type == "Spawn")
+            .ToList();
+        Assert.NotEmpty(spawns);
+        Assert.All(spawns, m => Assert.Equal(1.0, m.GuardChance));
+    }
+
+    [Fact]
+    public void NeutralCities_RemoveGuardIfHasOwner_EmitsOnNeutralOnly()
+    {
+        var s = new GeneratorSettings
+        {
+            ZoneCfg = new ZoneConfiguration { NeutralZoneCount = 1, NeutralZoneCastles = 1 },
+            NeutralCities = new NeutralCitySettings { RemoveGuardIfHasOwner = true },
+        };
+        var template = TemplateGenerator.Generate(s);
+        var neutralCities = template.Variants![0].Zones!
+            .SelectMany(z => z.MainObjects ?? new List<MainObject>())
+            .Where(m => m.Type == "City" && string.IsNullOrEmpty(m.Spawn))
+            .ToList();
+        Assert.NotEmpty(neutralCities);
+        Assert.All(neutralCities, m => Assert.True(m.RemoveGuardIfHasOwner));
+    }
+
+    [Fact]
+    public void NeutralCities_DefaultSettings_DoNotEmitRemoveGuardIfHasOwner_OnNeutralCities()
+    {
+        // Default behavior must remain byte-identical: neutral City entries should not have removeGuardIfHasOwner set.
+        var s = new GeneratorSettings
+        {
+            ZoneCfg = new ZoneConfiguration { NeutralZoneCount = 1, NeutralZoneCastles = 1 },
+        };
+        var template = TemplateGenerator.Generate(s);
+        var neutralCities = template.Variants![0].Zones!
+            .SelectMany(z => z.MainObjects ?? new List<MainObject>())
+            .Where(m => m.Type == "City" && string.IsNullOrEmpty(m.Spawn))
+            .ToList();
+        Assert.NotEmpty(neutralCities);
+        Assert.All(neutralCities, m => Assert.Null(m.RemoveGuardIfHasOwner));
+    }
+
+    [Fact]
     public void SettingsMapper_RoundTripsExperimentalFields()
     {
         var g = new GeneratorSettings
@@ -223,7 +282,7 @@ public class ExperimentalSettingsTests
             Terrain = new TerrainSettings { ObstaclesFill = 0.3, LakesFill = 0.1 },
             BuildingPresets = new BuildingPresetSettings { PlayerZonePreset = "rich_buildings_construction" },
             GuardProgression = new GuardProgressionSettings { ZoneGuardWeeklyIncrement = 0.2 },
-            NeutralCities = new NeutralCitySettings { GuardChance = 0.75, GuardValuePercent = 150 },
+            NeutralCities = new NeutralCitySettings { GuardChance = 0.75, GuardValuePercent = 150, RemoveGuardIfHasOwner = true },
         };
         g.Content.GlobalBans.Add("dragon_utopia");
         g.Content.ContentCountLimits.Add(new ContentLimit { Sid = "mine_gold", MaxPerPlayer = 3 });
@@ -243,6 +302,7 @@ public class ExperimentalSettingsTests
         Assert.Equal(0.2, back.GuardProgression.ZoneGuardWeeklyIncrement);
         Assert.Equal(0.75, back.NeutralCities.GuardChance);
         Assert.Equal(150, back.NeutralCities.GuardValuePercent);
+        Assert.True(back.NeutralCities.RemoveGuardIfHasOwner);
         Assert.Contains("dragon_utopia", back.Content.GlobalBans);
         Assert.Single(back.Content.ContentCountLimits);
         Assert.Equal(3, back.Content.ContentCountLimits[0].MaxPerPlayer);

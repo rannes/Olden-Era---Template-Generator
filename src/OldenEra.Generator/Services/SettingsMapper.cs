@@ -66,6 +66,7 @@ public static class SettingsMapper
             {
                 GuardChance = s.NeutralCityGuardChance,
                 GuardValuePercent = s.NeutralCityGuardValuePercent <= 0 ? 100 : s.NeutralCityGuardValuePercent,
+                RemoveGuardIfHasOwner = s.NeutralCityRemoveGuardIfHasOwner,
             },
             Content = new ContentControlSettings
             {
@@ -254,6 +255,7 @@ public static class SettingsMapper
             ConnectionGuardWeeklyIncrement = g.GuardProgression.ConnectionGuardWeeklyIncrement,
             NeutralCityGuardChance = g.NeutralCities.GuardChance,
             NeutralCityGuardValuePercent = g.NeutralCities.GuardValuePercent,
+            NeutralCityRemoveGuardIfHasOwner = g.NeutralCities.RemoveGuardIfHasOwner,
             GlobalBans = new List<string>(g.Content.GlobalBans),
             ContentCountLimits = g.Content.ContentCountLimits.ConvertAll(
                 l => new ContentLimitFile { Sid = l.Sid, MaxPerPlayer = l.MaxPerPlayer }),

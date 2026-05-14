@@ -321,6 +321,10 @@
                             <Slider  Grid.Row="1" Grid.Column="1" x:Name="SldNeutralGuardValue"  Minimum="25" Maximum="300" Value="100" TickFrequency="5" IsSnapToTickEnabled="True"/>
                             <TextBlock Grid.Row="1" Grid.Column="2" x:Name="TxtNeutralGuardValue" Text="100" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ValueText}"/>
                         </Grid>
+                        <CheckBox x:Name="ChkNeutralRemoveGuardIfHasOwner"
+                                  Content="Drop guards on capture (removeGuardIfHasOwner)"
+                                  Margin="0,4,0,0"
+                                  ToolTip="When set, neutral cities lose their guarding stack as soon as a player captures them."/>
                     </StackPanel>
                 </Expander>
 

@@ -103,6 +103,7 @@ namespace OldenEra.Generator.Models
 
         [JsonPropertyName("neutralCityGuardChance")]        public double NeutralCityGuardChance        { get; set; } = 0.0;
         [JsonPropertyName("neutralCityGuardValuePercent")]  public int    NeutralCityGuardValuePercent  { get; set; } = 100;
+        [JsonPropertyName("neutralCityRemoveGuardIfHasOwner")] public bool NeutralCityRemoveGuardIfHasOwner { get; set; } = false;
 
         [JsonPropertyName("globalBans")]            public List<string> GlobalBans                = new();
         [JsonPropertyName("contentCountLimits")]    public List<ContentLimitFile> ContentCountLimits = new();

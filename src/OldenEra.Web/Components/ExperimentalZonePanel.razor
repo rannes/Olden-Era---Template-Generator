@@ -67,6 +67,12 @@
                Min="25" Max="300" Step="5" Suffix="%"
                Value="Settings.NeutralCities.GuardValuePercent"
                ValueChanged="@(v => { Settings.NeutralCities.GuardValuePercent = (int)v; NotifyChanged(); })" />
+    <label class="oe-checkbox" title="When set, neutral cities lose their guarding stack as soon as a player captures them.">
+        <input type="checkbox"
+               checked="@Settings.NeutralCities.RemoveGuardIfHasOwner"
+               @onchange="@(e => { Settings.NeutralCities.RemoveGuardIfHasOwner = (bool)(e.Value ?? false); NotifyChanged(); })" />
+        Drop guards on capture (removeGuardIfHasOwner)
+    </label>
 </ExperimentalCard>
 
 <ExperimentalCard Key="content-control" Title="Content control">

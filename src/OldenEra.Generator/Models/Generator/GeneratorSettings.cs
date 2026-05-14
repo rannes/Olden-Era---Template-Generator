@@ -142,6 +142,8 @@ namespace OldenEra.Generator.Models
         public double GuardChance { get; set; } = 0.0;
         /// <summary>100 = unmodified. Otherwise scales the per-city guardValue.</summary>
         public int GuardValuePercent { get; set; } = 100;
+        /// <summary>When true, neutral cities drop their guard once captured (emits removeGuardIfHasOwner: true).</summary>
+        public bool RemoveGuardIfHasOwner { get; set; } = false;
     }
 
     public class ContentLimit
