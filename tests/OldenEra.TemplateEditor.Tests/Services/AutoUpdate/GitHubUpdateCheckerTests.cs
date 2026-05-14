@@ -45,7 +45,7 @@ public class GitHubUpdateCheckerTests
             {
               "tag_name":"v0.8.0",
               "assets":[
-                {"name":"OldenEraTemplateGenerator-v0.8.0-win-x64.exe",
+                {"name":"OldenEraTemplates-v0.8.0.exe",
                  "browser_download_url":"https://example.test/download.exe",
                  "size":12345}
               ]
@@ -55,7 +55,7 @@ public class GitHubUpdateCheckerTests
         Assert.NotNull(info);
         Assert.Equal(new Version(0, 8, 0), info!.Version);
         Assert.Equal("https://example.test/download.exe", info.AssetUrl);
-        Assert.Equal("OldenEraTemplateGenerator-v0.8.0-win-x64.exe", info.AssetName);
+        Assert.Equal("OldenEraTemplates-v0.8.0.exe", info.AssetName);
         Assert.Equal(12345, info.AssetSize);
     }
 
@@ -66,7 +66,7 @@ public class GitHubUpdateCheckerTests
             {
               "tag_name":"v0.8.0",
               "assets":[
-                {"name":"OldenEraTemplateGenerator-v0.8.0-win-x64.zip",
+                {"name":"OldenEraTemplates-v0.8.0.zip",
                  "browser_download_url":"https://example.test/download.zip",
                  "size":12345}
               ]
@@ -103,7 +103,7 @@ public class GitHubUpdateCheckerTests
         await MakeChecker(handler).CheckAsync(new Version(0, 7, 0));
         Assert.NotNull(handler.LastRequest);
         Assert.Contains(handler.LastRequest!.Headers.UserAgent,
-            p => p.Product?.Name == "OldenEraTemplateGenerator");
+            p => p.Product?.Name == "OldenEraTemplates");
     }
 
     [Fact]

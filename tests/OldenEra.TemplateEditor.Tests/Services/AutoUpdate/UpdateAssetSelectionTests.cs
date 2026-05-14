@@ -46,16 +46,16 @@ public class UpdateAssetSelectionTests
     public void SelectAsset_picksMatchingExeName()
     {
         var picked = UpdateAssetSelection.SelectAsset(
-            new[] { "OldenEraTemplateGenerator-v0.7.0-win-x64.exe" },
+            new[] { "OldenEraTemplates-v0.7.0.exe" },
             new Version(0, 7, 0));
-        Assert.Equal("OldenEraTemplateGenerator-v0.7.0-win-x64.exe", picked);
+        Assert.Equal("OldenEraTemplates-v0.7.0.exe", picked);
     }
 
     [Fact]
     public void SelectAsset_isCaseInsensitive()
     {
         var picked = UpdateAssetSelection.SelectAsset(
-            new[] { "OLDENERATEMPLATEGENERATOR-V0.7.0-WIN-X64.EXE" },
+            new[] { "OLDENERATEMPLATES-V0.7.0.EXE" },
             new Version(0, 7, 0));
         Assert.NotNull(picked);
     }
@@ -66,11 +66,11 @@ public class UpdateAssetSelectionTests
         var picked = UpdateAssetSelection.SelectAsset(
             new[]
             {
-                "OldenEraTemplateGenerator-v0.6.9-win-x64.exe",
-                "OldenEraTemplateGenerator-v0.7.0-win-x64.exe",
+                "OldenEraTemplates-v0.6.9.exe",
+                "OldenEraTemplates-v0.7.0.exe",
             },
             new Version(0, 7, 0));
-        Assert.Equal("OldenEraTemplateGenerator-v0.7.0-win-x64.exe", picked);
+        Assert.Equal("OldenEraTemplates-v0.7.0.exe", picked);
     }
 
     [Fact]
@@ -78,9 +78,9 @@ public class UpdateAssetSelectionTests
     {
         // Released as `v0.7` (Version.Build == -1). Asset name is the short form.
         var picked = UpdateAssetSelection.SelectAsset(
-            new[] { "OldenEraTemplateGenerator-v0.7-win-x64.exe" },
+            new[] { "OldenEraTemplates-v0.7.exe" },
             new Version(0, 7));
-        Assert.Equal("OldenEraTemplateGenerator-v0.7-win-x64.exe", picked);
+        Assert.Equal("OldenEraTemplates-v0.7.exe", picked);
     }
 
     [Fact]
@@ -90,18 +90,18 @@ public class UpdateAssetSelectionTests
         var picked = UpdateAssetSelection.SelectAsset(
             new[]
             {
-                "OldenEraTemplateGenerator-v0.7-win-x64.exe",
-                "OldenEraTemplateGenerator-v0.7.0-win-x64.exe",
+                "OldenEraTemplates-v0.7.exe",
+                "OldenEraTemplates-v0.7.0.exe",
             },
             new Version(0, 7, 0));
-        Assert.Equal("OldenEraTemplateGenerator-v0.7.0-win-x64.exe", picked);
+        Assert.Equal("OldenEraTemplates-v0.7.0.exe", picked);
     }
 
     [Fact]
     public void SelectAsset_skipsZipAssets()
     {
         var picked = UpdateAssetSelection.SelectAsset(
-            new[] { "OldenEraTemplateGenerator-v0.7.0-win-x64.zip" },
+            new[] { "OldenEraTemplates-v0.7.0.zip" },
             new Version(0, 7, 0));
         Assert.Null(picked);
     }

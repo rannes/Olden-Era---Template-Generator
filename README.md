@@ -98,12 +98,12 @@ Two ways to use the generator:
 
 ### Web version (any OS, no install)
 
-Open [the web version](https://rannes.github.io/Olden-Era---Template-Generator/) in any modern browser. Generation runs entirely on your device — nothing is uploaded. Works on Windows, macOS, Linux, and mobile. After generating, the `.rmg.json` downloads to your usual downloads folder; drop it into the game's `map_templates` folder by hand.
+Open [the web version](https://rannes.github.io/olden-era-templates/) in any modern browser. Generation runs entirely on your device — nothing is uploaded. Works on Windows, macOS, Linux, and mobile. After generating, the `.rmg.json` downloads to your usual downloads folder; drop it into the game's `map_templates` folder by hand.
 
 ### Windows desktop app (Steam auto-detect, save direct to `map_templates`)
 
-1. Download the latest release from the [Releases page](https://github.com/KhanDevelopsGames/Olden-Era---Template-Generator/releases)
-2. Extract and run `OldenEraTemplateGenerator.exe`
+1. Download the latest release from the [Releases page](https://github.com/rannes/olden-era-templates/releases)
+2. Run `OldenEraTemplates.exe`
 3. No installation required — it's a single self-contained executable
 
 > **Requirements:** Windows 10/11 with [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) installed
@@ -173,7 +173,7 @@ The web version auto-deploys to GitHub Pages on every push to `main` via `.githu
 2. **One-time:** in the repo's GitHub UI, go to **Settings → Pages**. Under "Build and deployment", set **Source** to *Deploy from a branch* and pick the `gh-pages` branch (root). Save.
 3. Subsequent pushes to `main` redeploy automatically.
 
-The deployed URL is `https://<owner>.github.io/Olden-Era---Template-Generator/`.
+The deployed URL is `https://<owner>.github.io/olden-era-templates/`.
 
 ---
 

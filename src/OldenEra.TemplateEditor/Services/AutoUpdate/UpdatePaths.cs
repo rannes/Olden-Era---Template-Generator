@@ -5,7 +5,7 @@ namespace OldenEra.TemplateEditor.Services.AutoUpdate;
 
 public static class UpdatePaths
 {
-    public const string AppFolderName = "OldenEraTemplateGenerator";
+    public const string AppFolderName = "OldenEraTemplates";
 
     public static string AppDataFolder =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), AppFolderName);

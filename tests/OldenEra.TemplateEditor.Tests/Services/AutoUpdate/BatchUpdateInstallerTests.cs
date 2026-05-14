@@ -10,11 +10,11 @@ public class BatchUpdateInstallerTests
     {
         string script = BatchUpdateInstaller.BuildInstallScript(
             @"C:\Temp\new.exe",
-            @"C:\Program Files\OldenEra\OldenEraTemplateGenerator.exe");
+            @"C:\Program Files\OldenEra\OldenEraTemplates.exe");
 
         Assert.Contains("timeout /t 2 /nobreak", script);
-        Assert.Contains("move /y \"C:\\Temp\\new.exe\" \"C:\\Program Files\\OldenEra\\OldenEraTemplateGenerator.exe\"", script);
-        Assert.Contains("start \"\" \"C:\\Program Files\\OldenEra\\OldenEraTemplateGenerator.exe\"", script);
+        Assert.Contains("move /y \"C:\\Temp\\new.exe\" \"C:\\Program Files\\OldenEra\\OldenEraTemplates.exe\"", script);
+        Assert.Contains("start \"\" \"C:\\Program Files\\OldenEra\\OldenEraTemplates.exe\"", script);
         Assert.Contains("del \"%~f0\"", script);
     }
 

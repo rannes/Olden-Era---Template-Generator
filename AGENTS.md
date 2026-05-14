@@ -179,7 +179,7 @@ A managed-only build will still produce a deployable site, but every Skia API ca
 
 ## Cutting a release
 
-Releases are produced by `.github/workflows/release.yml` and are triggered by pushing a `v*` tag. The workflow runs on `windows-latest`, publishes the WPF editor as a self-contained single-file `win-x64` exe, zips it as `OldenEraTemplateGenerator-<tag>-win-x64.zip`, and creates a GitHub Release with auto-generated notes.
+Releases are produced by `.github/workflows/release.yml` and are triggered by pushing a `v*` tag. The workflow runs on `windows-latest`, publishes the WPF editor as a self-contained single-file `win-x64` exe named `OldenEraTemplates-<tag>.exe`, and creates a GitHub Release with auto-generated notes.
 
 To cut a release:
 

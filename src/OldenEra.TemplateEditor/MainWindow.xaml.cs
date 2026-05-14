@@ -22,7 +22,7 @@ namespace OldenEra.TemplateEditor
 {
     public partial class MainWindow : Window
     {
-        private const string GitHubReleasesPage     = "https://github.com/rannes/Olden-Era---Template-Generator/releases";
+        private const string GitHubReleasesPage     = "https://github.com/rannes/olden-era-templates/releases";
         private const int SimpleModeMaxZones = 32;
         private const int AdvancedModeMaxZones = 32;
 
@@ -261,7 +261,7 @@ namespace OldenEra.TemplateEditor
             e.Handled = true;
         }
 
-        private const string GitHubProjectPage = "https://github.com/rannes/Olden-Era---Template-Generator";
+        private const string GitHubProjectPage = "https://github.com/rannes/olden-era-templates";
         private const string CommunityDiscordInvite = "https://discord.gg/UqT8KshsxW";
 
         private void BtnGithub_Click(object sender, RoutedEventArgs e) =>

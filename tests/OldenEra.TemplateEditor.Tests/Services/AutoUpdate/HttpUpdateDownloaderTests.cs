@@ -28,7 +28,7 @@ public class HttpUpdateDownloaderTests : IDisposable
     private static UpdateInfo Info(long size = 100)
         => new(new Version(0, 8, 0),
                AssetUrl: "https://example.test/file.exe",
-               AssetName: "OldenEraTemplateGenerator-v0.8.0-win-x64.exe",
+               AssetName: "OldenEraTemplates-v0.8.0.exe",
                AssetSize: size);
 
     private static HttpResponseMessage OkBytes(byte[] body)

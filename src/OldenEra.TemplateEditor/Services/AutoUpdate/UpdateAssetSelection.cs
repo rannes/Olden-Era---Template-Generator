@@ -10,9 +10,9 @@ namespace OldenEra.TemplateEditor.Services.AutoUpdate;
 /// </summary>
 public static class UpdateAssetSelection
 {
-    // Matches OldenEraTemplateGenerator-v{anything}-win-x64.exe (case-insensitive).
+    // Matches OldenEraTemplates-v{anything}.exe (case-insensitive).
     private static readonly Regex AssetPattern = new(
-        @"^OldenEraTemplateGenerator-v.*-win-x64\.exe$",
+        @"^OldenEraTemplates-v.*\.exe$",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     /// <summary>
@@ -34,9 +34,9 @@ public static class UpdateAssetSelection
     {
         if (assetNames is null) return null;
 
-        string longMarker = $"-v{targetVersion.Major}.{targetVersion.Minor}.{Math.Max(0, targetVersion.Build)}-";
+        string longMarker = $"-v{targetVersion.Major}.{targetVersion.Minor}.{Math.Max(0, targetVersion.Build)}.";
         string shortMarker = targetVersion.Build < 0
-            ? $"-v{targetVersion.Major}.{targetVersion.Minor}-"
+            ? $"-v{targetVersion.Major}.{targetVersion.Minor}."
             : null!;
 
         string? longMatch  = null;

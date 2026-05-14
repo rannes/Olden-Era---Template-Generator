@@ -13,7 +13,7 @@ namespace OldenEra.TemplateEditor.Services.AutoUpdate;
 public sealed class GitHubUpdateChecker : IUpdateChecker
 {
     public const string DefaultLatestReleaseUrl =
-        "https://api.github.com/repos/rannes/Olden-Era---Template-Generator/releases/latest";
+        "https://api.github.com/repos/rannes/olden-era-templates/releases/latest";
 
     private readonly HttpClient _http;
     private readonly string _latestReleaseUrl;
@@ -29,7 +29,7 @@ public sealed class GitHubUpdateChecker : IUpdateChecker
         var request = new HttpRequestMessage(HttpMethod.Get, _latestReleaseUrl);
         request.Headers.UserAgent.Clear();
         request.Headers.UserAgent.Add(new ProductInfoHeaderValue(
-            "OldenEraTemplateGenerator", current?.ToString() ?? "0"));
+            "OldenEraTemplates", current?.ToString() ?? "0"));
 
         using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode) return null;

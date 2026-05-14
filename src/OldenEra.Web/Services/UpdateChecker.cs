@@ -11,10 +11,10 @@ namespace OldenEra.Web.Services;
 public sealed class UpdateChecker
 {
     private const string LatestReleaseUrl =
-        "https://api.github.com/repos/KhanDevelopsGames/Olden-Era---Template-Generator/releases/latest";
+        "https://api.github.com/repos/rannes/olden-era-templates/releases/latest";
 
     public const string ReleasesPageUrl =
-        "https://github.com/KhanDevelopsGames/Olden-Era---Template-Generator/releases";
+        "https://github.com/rannes/olden-era-templates/releases";
 
     private readonly HttpClient _http;
 
