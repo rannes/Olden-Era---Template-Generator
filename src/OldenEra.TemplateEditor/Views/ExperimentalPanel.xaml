@@ -301,6 +301,36 @@
                     </StackPanel>
                 </Expander>
 
+                <!-- ── Guard reaction curve ────────────────────────────────── -->
+                <Expander Header="Guard reaction curve" Margin="0,4,0,4">
+                    <StackPanel Margin="8,4,0,8">
+                        <TextBlock Style="{StaticResource HintText}">
+                            Per-zone guardReactionDistribution: 6 weekly weights (week 0..5).
+                            Default = each zone keeps its baked-in shape.
+                        </TextBlock>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="185"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Label   Grid.Row="0" Grid.Column="0" Content="Preset" Padding="5,2"/>
+                            <ComboBox Grid.Row="0" Grid.Column="1" x:Name="CmbGuardReactionPreset" SelectedIndex="0">
+                                <ComboBoxItem Content="Default (per-zone baseline)"/>
+                                <ComboBoxItem Content="Front-loaded (60,20,10,10,2,0)"/>
+                                <ComboBoxItem Content="Even (10,10,10,10,10,10)"/>
+                                <ComboBoxItem Content="Back-loaded (0,2,10,20,30,40)"/>
+                                <ComboBoxItem Content="Custom…"/>
+                            </ComboBox>
+                            <Label   Grid.Row="1" Grid.Column="0" Content="Custom (6 ints, CSV)" Padding="5,2"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtGuardReactionCustom" />
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
                 <!-- ── Neutral cities ──────────────────────────────────────── -->
                 <Expander Header="Neutral cities" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">

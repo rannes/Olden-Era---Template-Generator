@@ -830,6 +830,8 @@ namespace OldenEra.TemplateEditor
             BuildingPresetNeutral = PresetFromCombo(PnlExperimental.CmbNeutralPreset),
             ZoneGuardWeeklyIncrement = PnlExperimental.SldZoneGuardWeekly.Value / 100.0,
             ConnectionGuardWeeklyIncrement = PnlExperimental.SldConnectionGuardWeekly.Value / 100.0,
+            GuardReactionPreset = GuardReactionPresetFromCombo(PnlExperimental.CmbGuardReactionPreset),
+            GuardReactionCustomDistribution = PnlExperimental.TxtGuardReactionCustom.Text?.Trim() ?? "",
             NeutralCityGuardChance = PnlExperimental.SldNeutralGuardChance.Value / 100.0,
             NeutralCityGuardValuePercent = (int)PnlExperimental.SldNeutralGuardValue.Value,
             NeutralCityRemoveGuardIfHasOwner = PnlExperimental.ChkNeutralRemoveGuardIfHasOwner.IsChecked == true,
@@ -865,6 +867,54 @@ namespace OldenEra.TemplateEditor
             if (c.SelectedIndex <= 0) return "";
             return c.SelectedItem as string ?? "";
         }
+        // ── Guard reaction helpers ──────────────────────────────────────────
+        // The XAML ComboBox order must stay in lockstep with these tables.
+        private static readonly string[] GuardReactionPresetOrder =
+        {
+            nameof(GuardReactionPreset.Default),
+            nameof(GuardReactionPreset.FrontLoaded),
+            nameof(GuardReactionPreset.Even),
+            nameof(GuardReactionPreset.BackLoaded),
+            nameof(GuardReactionPreset.Custom),
+        };
+
+        private static string GuardReactionPresetFromCombo(System.Windows.Controls.ComboBox c)
+        {
+            int i = Math.Max(0, c.SelectedIndex);
+            if (i <= 0 || i >= GuardReactionPresetOrder.Length) return ""; // Default → empty CSV.
+            return GuardReactionPresetOrder[i];
+        }
+
+        private static int GuardReactionPresetIndex(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return 0;
+            for (int i = 0; i < GuardReactionPresetOrder.Length; i++)
+            {
+                if (string.Equals(GuardReactionPresetOrder[i], raw, StringComparison.OrdinalIgnoreCase))
+                    return i;
+            }
+            return 0;
+        }
+
+        private GuardReactionSettings BuildGuardReactionSettings()
+        {
+            int idx = Math.Max(0, PnlExperimental.CmbGuardReactionPreset.SelectedIndex);
+            if (idx <= 0 || idx >= GuardReactionPresetOrder.Length)
+                return new GuardReactionSettings();
+            var preset = (GuardReactionPreset)idx; // enum order matches XAML order by design.
+            var custom = new List<int>();
+            if (preset == GuardReactionPreset.Custom)
+            {
+                foreach (var token in (PnlExperimental.TxtGuardReactionCustom.Text ?? "")
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (int.TryParse(token.Trim(), out int v) && v >= 0) custom.Add(v);
+                    else { custom.Clear(); break; }
+                }
+            }
+            return new GuardReactionSettings { Preset = preset, CustomDistribution = custom };
+        }
+
         private static List<string> ParseBansCsv(string raw) =>
             raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                .Where(s => s.Length > 0).ToList();
@@ -1019,6 +1069,8 @@ namespace OldenEra.TemplateEditor
             SetPresetCombo(PnlExperimental.CmbNeutralPreset, s.BuildingPresetNeutral);
             PnlExperimental.SldZoneGuardWeekly.Value = Math.Clamp(s.ZoneGuardWeeklyIncrement * 100.0, 0, 50);
             PnlExperimental.SldConnectionGuardWeekly.Value = Math.Clamp(s.ConnectionGuardWeeklyIncrement * 100.0, 0, 50);
+            PnlExperimental.CmbGuardReactionPreset.SelectedIndex = GuardReactionPresetIndex(s.GuardReactionPreset);
+            PnlExperimental.TxtGuardReactionCustom.Text = s.GuardReactionCustomDistribution ?? "";
             PnlExperimental.SldNeutralGuardChance.Value = Math.Clamp(s.NeutralCityGuardChance * 100.0, 0, 100);
             PnlExperimental.SldNeutralGuardValue.Value = Math.Clamp(s.NeutralCityGuardValuePercent <= 0 ? 100 : s.NeutralCityGuardValuePercent, 25, 300);
             PnlExperimental.ChkNeutralRemoveGuardIfHasOwner.IsChecked = s.NeutralCityRemoveGuardIfHasOwner;
@@ -1477,6 +1529,7 @@ namespace OldenEra.TemplateEditor
                 ZoneGuardWeeklyIncrement = PnlExperimental.SldZoneGuardWeekly.Value / 100.0,
                 ConnectionGuardWeeklyIncrement = PnlExperimental.SldConnectionGuardWeekly.Value / 100.0,
             },
+            GuardReaction = BuildGuardReactionSettings(),
             NeutralCities = new NeutralCitySettings
             {
                 GuardChance = PnlExperimental.SldNeutralGuardChance.Value / 100.0,

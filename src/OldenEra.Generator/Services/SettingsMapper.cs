@@ -62,6 +62,11 @@ public static class SettingsMapper
                 ZoneGuardWeeklyIncrement = s.ZoneGuardWeeklyIncrement,
                 ConnectionGuardWeeklyIncrement = s.ConnectionGuardWeeklyIncrement,
             },
+            GuardReaction = new GuardReactionSettings
+            {
+                Preset = ParseGuardReactionPreset(s.GuardReactionPreset),
+                CustomDistribution = ParseDistributionCsv(s.GuardReactionCustomDistribution),
+            },
             NeutralCities = new NeutralCitySettings
             {
                 GuardChance = s.NeutralCityGuardChance,
@@ -261,6 +266,12 @@ public static class SettingsMapper
             BuildingPresetNeutral = g.BuildingPresets.NeutralZonePreset,
             ZoneGuardWeeklyIncrement = g.GuardProgression.ZoneGuardWeeklyIncrement,
             ConnectionGuardWeeklyIncrement = g.GuardProgression.ConnectionGuardWeeklyIncrement,
+            GuardReactionPreset = g.GuardReaction.Preset == GuardReactionPreset.Default
+                ? ""
+                : g.GuardReaction.Preset.ToString(),
+            GuardReactionCustomDistribution = g.GuardReaction.CustomDistribution is { Count: > 0 }
+                ? string.Join(",", g.GuardReaction.CustomDistribution)
+                : "",
             NeutralCityGuardChance = g.NeutralCities.GuardChance,
             NeutralCityGuardValuePercent = g.NeutralCities.GuardValuePercent,
             NeutralCityRemoveGuardIfHasOwner = g.NeutralCities.RemoveGuardIfHasOwner,
@@ -292,6 +303,29 @@ public static class SettingsMapper
         file.NeutralZoneContent  = g.NeutralZoneContent;
         file.ZoneRoadDecorations = g.ZoneRoadDecorations;
         return file;
+    }
+
+    private static GuardReactionPreset ParseGuardReactionPreset(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return GuardReactionPreset.Default;
+        return Enum.TryParse<GuardReactionPreset>(raw, ignoreCase: true, out var v)
+            ? v
+            : GuardReactionPreset.Default;
+    }
+
+    private static List<int> ParseDistributionCsv(string? csv)
+    {
+        if (string.IsNullOrWhiteSpace(csv)) return new();
+        var parts = csv.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var result = new List<int>(parts.Length);
+        foreach (var p in parts)
+        {
+            if (int.TryParse(p.Trim(), out int v) && v >= 0)
+                result.Add(v);
+            else
+                return new(); // any malformed token → discard whole list, fall through to default.
+        }
+        return result;
     }
 
     private static TierOverrides TierFromFile(TierOverrideFile? f) =>

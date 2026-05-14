@@ -109,6 +109,22 @@ namespace OldenEra.Generator.Models
         [JsonPropertyName("zoneGuardWeeklyIncrement")]       public double ZoneGuardWeeklyIncrement       { get; set; } = 0.0;
         [JsonPropertyName("connectionGuardWeeklyIncrement")] public double ConnectionGuardWeeklyIncrement { get; set; } = 0.0;
 
+        /// <summary>
+        /// Preset selector for the per-zone guardReactionDistribution curve.
+        /// Stored as a string so SettingsShareCodec's value-type comparison
+        /// stays correct. "" / "Default" = leave generator defaults alone.
+        /// </summary>
+        [JsonPropertyName("guardReactionPreset")] public string GuardReactionPreset { get; set; } = "";
+
+        /// <summary>
+        /// Custom distribution as a comma-separated CSV of six non-negative ints
+        /// (e.g. <c>"0,10,10,10,10,0"</c>). Empty string = no custom override.
+        /// Only consulted when <see cref="GuardReactionPreset"/> = "Custom".
+        /// String (not List&lt;int&gt;) to keep SettingsShareCodec's reflection
+        /// "non-default" comparison sound.
+        /// </summary>
+        [JsonPropertyName("guardReactionCustomDistribution")] public string GuardReactionCustomDistribution { get; set; } = "";
+
         [JsonPropertyName("neutralCityGuardChance")]        public double NeutralCityGuardChance        { get; set; } = 0.0;
         [JsonPropertyName("neutralCityGuardValuePercent")]  public int    NeutralCityGuardValuePercent  { get; set; } = 100;
         [JsonPropertyName("neutralCityRemoveGuardIfHasOwner")] public bool NeutralCityRemoveGuardIfHasOwner { get; set; } = false;
