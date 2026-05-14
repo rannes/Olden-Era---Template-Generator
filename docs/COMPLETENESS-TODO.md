@@ -115,8 +115,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 - **Acceptance:** Round-trip through `SettingsFile` and `HostParityTests`.
 
 ### T-006 — Zone.contentCountLimits, guardCutoffValue, content pool assignments
-- **Status:** open
-- **Owner:** —
+- **Status:** in-progress
+- **Owner:** orchestrator (Phase 2 batch)
 - **Blocked by:** T-005 (shares the per-zone settings UI surface)
 - **Effort:** M
 - **Files:** Zone builders, `GeneratorSettings.cs`, UI hosts, possibly new
@@ -132,8 +132,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 ## Phase 2 — Catalog depth
 
 ### T-101 — Expand ZoneContentSidCatalog to broad coverage
-- **Status:** open
-- **Owner:** —
+- **Status:** in-progress
+- **Owner:** orchestrator (Phase 2 batch)
 - **Effort:** L
 - **Files:** `src/OldenEra.Generator/Services/ZoneContent/ZoneContentSidCatalog.cs`,
   `src/OldenEra.Generator/CommunityData/` (read-only), test fixtures.
@@ -149,8 +149,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   - Existing presets still validate.
 
 ### T-102 — Skills + subclasses pickers
-- **Status:** open
-- **Owner:** —
+- **Status:** in-progress
+- **Owner:** orchestrator (Phase 2 batch)
 - **Effort:** M
 - **Files:** New `SkillsPanel` / `SubclassesPanel` in both hosts,
   `CommunityCatalog.cs` (already loads the data), `GeneratorSettings.cs`.
@@ -176,8 +176,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   settings. Each preset has a one-sentence description visible in the picker.
 
 ### T-104 — Community-data refresh workflow
-- **Status:** open
-- **Owner:** —
+- **Status:** in-progress
+- **Owner:** orchestrator (Phase 2 batch)
 - **Effort:** M
 - **Files:** `src/OldenEra.Generator/CommunityData/scripts/fetch-from-alcaras.py`,
   `.github/workflows/`.
