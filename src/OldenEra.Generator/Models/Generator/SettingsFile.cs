@@ -26,6 +26,28 @@ namespace OldenEra.Generator.Models
     }
 
     /// <summary>
+    /// Persisted shape for one per-player bonus override row. Mirrors the uniform
+    /// bonus field surface so adding a new field is a one-place change. T-206.
+    /// </summary>
+    public sealed class PerPlayerBonusFile
+    {
+        [JsonPropertyName("playerSlot")] public int PlayerSlot { get; set; } = 1;
+
+        [JsonPropertyName("resources")]              public Dictionary<string,int> Resources { get; set; } = new();
+        [JsonPropertyName("heroAttack")]             public int HeroAttack { get; set; } = 0;
+        [JsonPropertyName("heroDefense")]            public int HeroDefense { get; set; } = 0;
+        [JsonPropertyName("heroSpellpower")]         public int HeroSpellpower { get; set; } = 0;
+        [JsonPropertyName("heroKnowledge")]          public int HeroKnowledge { get; set; } = 0;
+        [JsonPropertyName("heroStatStartHeroOnly")]  public bool HeroStatStartHeroOnly { get; set; } = false;
+        [JsonPropertyName("itemSid")]                public string ItemSid { get; set; } = "";
+        [JsonPropertyName("itemStartHeroOnly")]      public bool ItemStartHeroOnly { get; set; } = false;
+        [JsonPropertyName("spellSid")]               public string SpellSid { get; set; } = "";
+        [JsonPropertyName("spellStartHeroOnly")]     public bool SpellStartHeroOnly { get; set; } = false;
+        [JsonPropertyName("unitMultiplier")]         public double UnitMultiplier { get; set; } = 0.0;
+        [JsonPropertyName("unitMultiplierStartHeroOnly")] public bool UnitMultiplierStartHeroOnly { get; set; } = false;
+    }
+
+    /// <summary>
     /// Persisted settings file (.oetgs) — all user-configurable UI state.
     /// </summary>
     public sealed class SettingsFile
@@ -196,6 +218,8 @@ namespace OldenEra.Generator.Models
         [JsonPropertyName("bonusSpellStartHeroOnly")] public bool BonusSpellStartHeroOnly { get; set; } = false;
         [JsonPropertyName("bonusUnitMultiplier")]   public double BonusUnitMultiplier { get; set; } = 0.0;
         [JsonPropertyName("bonusUnitMultiplierStartHeroOnly")] public bool BonusUnitMultiplierStartHeroOnly { get; set; } = false;
+        /// <summary>Per-player bonus overrides. Empty list emits no per-slot rows. T-206.</summary>
+        [JsonPropertyName("bonusPerPlayerOverrides")] public List<PerPlayerBonusFile> BonusPerPlayerOverrides { get; set; } = new();
 
         [JsonPropertyName("tierLow")]    public TierOverrideFile TierLow    { get; set; } = new();
         [JsonPropertyName("tierMedium")] public TierOverrideFile TierMedium { get; set; } = new();

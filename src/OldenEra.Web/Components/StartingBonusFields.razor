@@ -1,0 +1,98 @@
+@* Field controls shared by the uniform Starting Bonuses block and each
+   per-player override row. Any new bonus field added to StartingBonusSettings
+   should be wired here once. T-206. *@
+
+<div class="oe-section-header" style="font-size:13px;margin-top:4px;">Resources</div>
+@foreach (var sid in ResourceSids)
+{
+    var current = Bonuses.Resources.TryGetValue(sid, out var v) ? v : 0;
+    <SliderRow Label="@FriendlyResource(sid)" WideLabel="true"
+               Min="0" Max="100" Step="1"
+               Value="current"
+               ValueChanged="@(nv => SetResource(sid, (int)nv))" />
+}
+
+<div class="oe-section-header" style="font-size:13px;margin-top:8px;">
+    Hero stats
+    <label class="oe-check inline" style="margin:0;">
+        <input type="checkbox" checked="@Bonuses.HeroStatStartHeroOnly"
+               @onchange="@(e => { Bonuses.HeroStatStartHeroOnly = (bool)e.Value!; NotifyChanged(); })" />
+        <span class="oe-inline-toggle">Start hero only</span>
+    </label>
+</div>
+<SliderRow Label="Attack" WideLabel="true"
+           Min="0" Max="20" Step="1"
+           Value="Bonuses.HeroAttack"
+           ValueChanged="@(v => { Bonuses.HeroAttack = (int)v; NotifyChanged(); })" />
+<SliderRow Label="Defense" WideLabel="true"
+           Min="0" Max="20" Step="1"
+           Value="Bonuses.HeroDefense"
+           ValueChanged="@(v => { Bonuses.HeroDefense = (int)v; NotifyChanged(); })" />
+<SliderRow Label="Spellpower" WideLabel="true"
+           Min="0" Max="20" Step="1"
+           Value="Bonuses.HeroSpellpower"
+           ValueChanged="@(v => { Bonuses.HeroSpellpower = (int)v; NotifyChanged(); })" />
+<SliderRow Label="Knowledge" WideLabel="true"
+           Min="0" Max="20" Step="1"
+           Value="Bonuses.HeroKnowledge"
+           ValueChanged="@(v => { Bonuses.HeroKnowledge = (int)v; NotifyChanged(); })" />
+
+<div class="oe-section-header" style="font-size:13px;margin-top:8px;">Item / Spell / Units</div>
+
+<div class="oe-stacked">
+    <label class="oe-label">Bonus item SID</label>
+    <input type="text" placeholder="(empty = no bonus item)"
+           value="@Bonuses.ItemSid"
+           @oninput="@(e => { Bonuses.ItemSid = e.Value?.ToString() ?? ""; NotifyChanged(); })" />
+    <label class="oe-check">
+        <input type="checkbox" checked="@Bonuses.ItemStartHeroOnly"
+               @onchange="@(e => { Bonuses.ItemStartHeroOnly = (bool)e.Value!; NotifyChanged(); })" />
+        <span>Apply to start hero only</span>
+    </label>
+</div>
+
+<div class="oe-stacked">
+    <label class="oe-label">Bonus spell</label>
+    <SpellPicker Value="@Bonuses.SpellSid"
+                 ValueChanged="@(v => { Bonuses.SpellSid = v ?? ""; NotifyChanged(); })" />
+    <label class="oe-check">
+        <input type="checkbox" checked="@Bonuses.SpellStartHeroOnly"
+               @onchange="@(e => { Bonuses.SpellStartHeroOnly = (bool)e.Value!; NotifyChanged(); })" />
+        <span>Apply to start hero only</span>
+    </label>
+</div>
+
+<SliderRow Label="Unit multiplier" WideLabel="true"
+           Min="0" Max="500" Step="5" Suffix="%"
+           Value="(int)Math.Round(Bonuses.UnitMultiplier * 100)"
+           ValueChanged="@(v => { Bonuses.UnitMultiplier = v / 100.0; NotifyChanged(); })" />
+<label class="oe-check">
+    <input type="checkbox" checked="@Bonuses.UnitMultiplierStartHeroOnly"
+           @onchange="@(e => { Bonuses.UnitMultiplierStartHeroOnly = (bool)e.Value!; NotifyChanged(); })" />
+    <span>Unit multiplier: start hero only</span>
+</label>
+
+@code {
+    [Parameter, EditorRequired] public StartingBonusSettings Bonuses { get; set; } = default!;
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    private static readonly string[] ResourceSids =
+        ["gold", "wood", "ore", "mercury", "crystals", "gemstones"];
+
+    private async Task SetResource(string sid, int value)
+    {
+        if (value == 0)
+            Bonuses.Resources.Remove(sid);
+        else
+            Bonuses.Resources[sid] = value;
+        await NotifyChanged();
+    }
+
+    private static string FriendlyResource(string sid) => sid switch
+    {
+        "gold" => "Gold (×1000)",
+        _ => char.ToUpper(sid[0]) + sid[1..],
+    };
+}

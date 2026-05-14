@@ -140,7 +140,7 @@ namespace OldenEra.Generator.Services
             }
 
             // Starting bonuses — appended to the generator's default movementBonus entry.
-            template.GameRules?.Bonuses?.AddRange(BuildExperimentalBonuses(settings.Bonuses));
+            template.GameRules?.Bonuses?.AddRange(BuildExperimentalBonuses(settings.Bonuses, settings.PlayerCount));
 
             // Global bans
             if (settings.Content.GlobalBans.Count > 0)
@@ -563,77 +563,184 @@ namespace OldenEra.Generator.Services
             }
         }
 
-        private static IEnumerable<Bonus> BuildExperimentalBonuses(StartingBonusSettings b)
+        private static IEnumerable<Bonus> BuildExperimentalBonuses(StartingBonusSettings b, int playerCount)
         {
+            // Resolve per-slot overrides: last-write-wins for duplicate slots; out-of-range
+            // rows are skipped (validator warns separately).
+            var overridesBySlot = new Dictionary<int, StartingBonusSettings>();
+            foreach (var row in b.PerPlayerOverrides)
+            {
+                if (row.PlayerSlot < 1 || row.PlayerSlot > playerCount) continue;
+                overridesBySlot[row.PlayerSlot] = row.Bonuses;
+            }
+
             var list = new List<Bonus>();
 
-            // Resources
-            foreach (var (sid, amount) in b.Resources)
+            // Resources: when no overrides exist, preserve the original dictionary
+            // iteration order to keep emitted-bonus order byte-identical with the
+            // pre-T-206 emitter. When overrides exist, walk the union of sids; the
+            // uniform sids come first (preserving their original order) and any
+            // override-only sids follow.
+            if (overridesBySlot.Count == 0)
             {
-                if (amount == 0 || string.IsNullOrWhiteSpace(sid)) continue;
-                list.Add(new Bonus
+                foreach (var (sid, amount) in b.Resources)
                 {
-                    Sid = "add_bonus_res",
-                    ReceiverSide = -1,
-                    ReceiverFilter = "all_heroes",
-                    Parameters = new List<string> { sid, amount.ToString(System.Globalization.CultureInfo.InvariantCulture) },
-                });
+                    if (amount == 0 || string.IsNullOrWhiteSpace(sid)) continue;
+                    list.Add(MakeResourceBonus(sid, amount, receiverSide: -1));
+                }
+            }
+            else
+            {
+                var orderedSids = new List<string>();
+                var seen = new HashSet<string>();
+                foreach (var sid in b.Resources.Keys)
+                    if (seen.Add(sid)) orderedSids.Add(sid);
+                foreach (var ov in overridesBySlot.Values)
+                    foreach (var sid in ov.Resources.Keys)
+                        if (seen.Add(sid)) orderedSids.Add(sid);
+
+                foreach (var sid in orderedSids)
+                {
+                    if (string.IsNullOrWhiteSpace(sid)) continue;
+                    int uniform = b.Resources.TryGetValue(sid, out var u) ? u : 0;
+                    bool anyOverride = overridesBySlot.Values.Any(o => o.Resources.ContainsKey(sid));
+                    if (!anyOverride)
+                    {
+                        if (uniform == 0) continue;
+                        list.Add(MakeResourceBonus(sid, uniform, receiverSide: -1));
+                        continue;
+                    }
+                    for (int slot = 1; slot <= playerCount; slot++)
+                    {
+                        int amount = uniform;
+                        if (overridesBySlot.TryGetValue(slot, out var ov)
+                            && ov.Resources.TryGetValue(sid, out var v))
+                            amount = v;
+                        if (amount == 0) continue;
+                        list.Add(MakeResourceBonus(sid, amount, receiverSide: slot));
+                    }
+                }
             }
 
             // Hero stats
-            void AddStat(string statName, int value)
-            {
-                if (value == 0) return;
-                list.Add(new Bonus
-                {
-                    Sid = "add_bonus_hero_stat",
-                    ReceiverSide = -1,
-                    ReceiverFilter = b.HeroStatStartHeroOnly ? "start_hero" : "all_heroes",
-                    Parameters = new List<string> { statName, value.ToString(System.Globalization.CultureInfo.InvariantCulture) },
-                });
-            }
-            AddStat("attack", b.HeroAttack);
-            AddStat("defense", b.HeroDefense);
-            AddStat("spellpower", b.HeroSpellpower);
-            AddStat("knowledge", b.HeroKnowledge);
+            EmitStat("attack", x => x.HeroAttack);
+            EmitStat("defense", x => x.HeroDefense);
+            EmitStat("spellpower", x => x.HeroSpellpower);
+            EmitStat("knowledge", x => x.HeroKnowledge);
 
-            if (!string.IsNullOrWhiteSpace(b.ItemSid))
-            {
-                list.Add(new Bonus
+            // Item
+            EmitField(
+                hasValue: x => !string.IsNullOrWhiteSpace(x.ItemSid),
+                emitOne: (value, startHeroOnly, side) => list.Add(new Bonus
                 {
                     Sid = "add_bonus_hero_item",
-                    ReceiverSide = -1,
-                    ReceiverFilter = b.ItemStartHeroOnly ? "start_hero" : "all_heroes",
-                    Parameters = new List<string> { b.ItemSid },
-                });
-            }
+                    ReceiverSide = side,
+                    ReceiverFilter = startHeroOnly ? "start_hero" : "all_heroes",
+                    Parameters = new List<string> { value },
+                }),
+                getValue: x => x.ItemSid,
+                getStartHeroOnly: x => x.ItemStartHeroOnly);
 
-            if (!string.IsNullOrWhiteSpace(b.SpellSid))
-            {
-                list.Add(new Bonus
+            // Spell
+            EmitField(
+                hasValue: x => !string.IsNullOrWhiteSpace(x.SpellSid),
+                emitOne: (value, startHeroOnly, side) => list.Add(new Bonus
                 {
                     Sid = "add_bonus_hero_spell",
-                    ReceiverSide = -1,
-                    ReceiverFilter = b.SpellStartHeroOnly ? "start_hero" : "all_heroes",
-                    Parameters = new List<string> { b.SpellSid },
-                });
-            }
+                    ReceiverSide = side,
+                    ReceiverFilter = startHeroOnly ? "start_hero" : "all_heroes",
+                    Parameters = new List<string> { value },
+                }),
+                getValue: x => x.SpellSid,
+                getStartHeroOnly: x => x.SpellStartHeroOnly);
 
-            if (b.UnitMultiplier > 0)
-            {
-                list.Add(new Bonus
+            // Unit multiplier
+            EmitField(
+                hasValue: x => x.UnitMultiplier > 0,
+                emitOne: (value, startHeroOnly, side) => list.Add(new Bonus
                 {
                     Sid = "add_bonus_hero_unit_multipler",
-                    ReceiverSide = -1,
-                    ReceiverFilter = b.UnitMultiplierStartHeroOnly ? "start_hero" : "all_heroes",
-                    Parameters = new List<string>
-                    {
-                        b.UnitMultiplier.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)
-                    },
-                });
-            }
+                    ReceiverSide = side,
+                    ReceiverFilter = startHeroOnly ? "start_hero" : "all_heroes",
+                    Parameters = new List<string> { value },
+                }),
+                getValue: x => x.UnitMultiplier.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture),
+                getStartHeroOnly: x => x.UnitMultiplierStartHeroOnly);
 
             return list;
+
+            // Helpers (local to keep capture of b/overridesBySlot/playerCount/list).
+            static Bonus MakeResourceBonus(string sid, int amount, int receiverSide) => new()
+            {
+                Sid = "add_bonus_res",
+                ReceiverSide = receiverSide,
+                ReceiverFilter = "all_heroes",
+                Parameters = new List<string> { sid, amount.ToString(System.Globalization.CultureInfo.InvariantCulture) },
+            };
+
+            void EmitStat(string statName, System.Func<StartingBonusSettings, int> get)
+            {
+                int uniform = get(b);
+                bool anyOverride = overridesBySlot.Values.Any(o => get(o) != 0);
+                if (!anyOverride)
+                {
+                    if (uniform == 0) return;
+                    list.Add(new Bonus
+                    {
+                        Sid = "add_bonus_hero_stat",
+                        ReceiverSide = -1,
+                        ReceiverFilter = b.HeroStatStartHeroOnly ? "start_hero" : "all_heroes",
+                        Parameters = new List<string> { statName, uniform.ToString(System.Globalization.CultureInfo.InvariantCulture) },
+                    });
+                    return;
+                }
+                for (int slot = 1; slot <= playerCount; slot++)
+                {
+                    int value = uniform;
+                    bool startHeroOnly = b.HeroStatStartHeroOnly;
+                    if (overridesBySlot.TryGetValue(slot, out var ov))
+                    {
+                        int ovVal = get(ov);
+                        if (ovVal != 0) { value = ovVal; startHeroOnly = ov.HeroStatStartHeroOnly; }
+                    }
+                    if (value == 0) continue;
+                    list.Add(new Bonus
+                    {
+                        Sid = "add_bonus_hero_stat",
+                        ReceiverSide = slot,
+                        ReceiverFilter = startHeroOnly ? "start_hero" : "all_heroes",
+                        Parameters = new List<string> { statName, value.ToString(System.Globalization.CultureInfo.InvariantCulture) },
+                    });
+                }
+            }
+
+            void EmitField(
+                System.Func<StartingBonusSettings, bool> hasValue,
+                System.Action<string, bool, int> emitOne,
+                System.Func<StartingBonusSettings, string> getValue,
+                System.Func<StartingBonusSettings, bool> getStartHeroOnly)
+            {
+                bool uniformHas = hasValue(b);
+                bool anyOverride = overridesBySlot.Values.Any(hasValue);
+                if (!anyOverride)
+                {
+                    if (!uniformHas) return;
+                    emitOne(getValue(b), getStartHeroOnly(b), -1);
+                    return;
+                }
+                for (int slot = 1; slot <= playerCount; slot++)
+                {
+                    string value = uniformHas ? getValue(b) : "";
+                    bool startHeroOnly = getStartHeroOnly(b);
+                    if (overridesBySlot.TryGetValue(slot, out var ov) && hasValue(ov))
+                    {
+                        value = getValue(ov);
+                        startHeroOnly = getStartHeroOnly(ov);
+                    }
+                    if (string.IsNullOrEmpty(value)) continue;
+                    emitOne(value, startHeroOnly, slot);
+                }
+            }
         }
 
         private static string BuildTemplateDescription(GeneratorSettings settings, int neutralZoneCount)

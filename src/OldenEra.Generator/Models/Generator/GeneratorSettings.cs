@@ -237,6 +237,30 @@ namespace OldenEra.Generator.Models
         /// <summary>0 = unset. Otherwise a multiplier applied to starting unit counts.</summary>
         public double UnitMultiplier { get; set; } = 0.0;
         public bool UnitMultiplierStartHeroOnly { get; set; } = false;
+
+        /// <summary>
+        /// Per-player overrides layered on top of the uniform fields above. Each row
+        /// targets one player slot (1..PlayerCount) and replaces only the fields it
+        /// sets; unset fields inherit the uniform value. Empty list = uniform behavior
+        /// unchanged. Duplicate slots: last-write-wins (validator warns). T-206.
+        /// </summary>
+        public List<PerPlayerBonusOverride> PerPlayerOverrides { get; set; } = new();
+    }
+
+    /// <summary>
+    /// One row of <see cref="StartingBonusSettings.PerPlayerOverrides"/>. Reuses
+    /// <see cref="StartingBonusSettings"/> as the field carrier so new bonus fields
+    /// added later flow through automatically. The nested
+    /// <see cref="StartingBonusSettings.PerPlayerOverrides"/> on <see cref="Bonuses"/>
+    /// is unused and ignored. T-206.
+    /// </summary>
+    public class PerPlayerBonusOverride
+    {
+        /// <summary>1-based player slot. Out-of-range values are skipped on emit (validator warns).</summary>
+        public int PlayerSlot { get; set; } = 1;
+
+        /// <summary>Bonus fields for this slot. Sentinel-default fields inherit uniform.</summary>
+        public StartingBonusSettings Bonuses { get; set; } = new();
     }
 
     /// Per-connection defaults applied uniformly to every <see cref="Connection"/>

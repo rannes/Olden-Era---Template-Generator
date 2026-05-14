@@ -286,6 +286,35 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   beats global `Terrain` for that tier. Unit tests cover defaults,
   single-tier override, and tier-vs-global precedence.
 
+### T-206 — Per-player Starting Bonuses
+- **Status:** in-progress
+- **Owner:** Rannes
+- **Effort:** M
+- **Files:** `src/OldenEra.Generator/Models/Generator/GeneratorSettings.cs`,
+  `src/OldenEra.Generator/Models/Generator/SettingsFile.cs`,
+  `src/OldenEra.Generator/Services/SettingsMapper.cs`,
+  `src/OldenEra.Generator/Services/TemplateGenerator.cs`
+  (`BuildExperimentalBonuses`),
+  `src/OldenEra.Generator/Services/SettingsValidator.cs`,
+  `src/OldenEra.Web/Components/StartingBonusesPanel.razor`,
+  `src/OldenEra.TemplateEditor/Views/ExperimentalPanel.xaml` +
+  `MainWindow.xaml.cs`,
+  `tests/OldenEra.Generator.Tests/`.
+- **Scope:** The experimental Starting Bonuses panel emits a uniform block
+  with `ReceiverSide = -1`. `Bonus` schema already supports `ReceiverSide`
+  (player index). Add a per-player override table on top of the uniform
+  block. Each row carries `PlayerSlot` + a reused `StartingBonusSettings`;
+  fields a row sets replace the uniform value for that slot only (config
+  overlay semantics, last-write-wins on duplicate slot). Empty list →
+  byte-identical output. Emit per-slot rows only for fields that any
+  override touches; other fields stay as `ReceiverSide = -1` to keep diffs
+  minimal. Gated on existing starting-bonuses experimental flag.
+  Design doc: `docs/plans/2026-05-14-t-206-per-player-bonuses-design.md`.
+- **Acceptance:** Defaults byte-identical (snapshot test). Single-slot
+  override emits per-player rows for the touched field only and inherits
+  uniform for the rest. Out-of-range slot warns and is skipped. Round-trip
+  through `SettingsFile`. Both Web and WPF hosts expose the editor.
+
 ---
 
 ## Phase 4 — UX that supports completeness

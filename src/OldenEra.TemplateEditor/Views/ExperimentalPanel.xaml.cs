@@ -1,8 +1,12 @@
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media;
+using OldenEra.Generator.Models;
 using OldenEra.Generator.Models.Unfrozen;
 using OldenEra.Generator.Services;
 
@@ -179,6 +183,204 @@ public partial class ExperimentalPanel : UserControl
         view.GroupDescriptions.Clear();
         view.GroupDescriptions.Add(new PropertyGroupDescription(nameof(BanUnitRow.Faction)));
         CmbBanUnitPicker.ItemsSource = view;
+    }
+
+    // ── T-206: per-player Starting Bonuses overrides ──────────────────────
+    // Rows are stored as PerPlayerBonusFile (the persistence shape) so save/load
+    // is a straight assignment from MainWindow. The UI is rebuilt imperatively
+    // from this list each time it changes — keeps state ownership in one place.
+    private List<PerPlayerBonusFile> _bonusOverrides = new();
+    private int _bonusPlayerCount = 2;
+
+    /// <summary>Replace the stored override rows and rebuild the UI.</summary>
+    public void SetBonusPerPlayerOverrides(IEnumerable<PerPlayerBonusFile>? rows, int playerCount)
+    {
+        _bonusPlayerCount = System.Math.Max(1, playerCount);
+        _bonusOverrides = rows is null
+            ? new List<PerPlayerBonusFile>()
+            : rows.Select(r => new PerPlayerBonusFile
+            {
+                PlayerSlot = r.PlayerSlot,
+                Resources = r.Resources is null ? new() : new Dictionary<string,int>(r.Resources),
+                HeroAttack = r.HeroAttack,
+                HeroDefense = r.HeroDefense,
+                HeroSpellpower = r.HeroSpellpower,
+                HeroKnowledge = r.HeroKnowledge,
+                HeroStatStartHeroOnly = r.HeroStatStartHeroOnly,
+                ItemSid = r.ItemSid ?? "",
+                ItemStartHeroOnly = r.ItemStartHeroOnly,
+                SpellSid = r.SpellSid ?? "",
+                SpellStartHeroOnly = r.SpellStartHeroOnly,
+                UnitMultiplier = r.UnitMultiplier,
+                UnitMultiplierStartHeroOnly = r.UnitMultiplierStartHeroOnly,
+            }).ToList();
+        RebuildBonusOverrideRows();
+    }
+
+    /// <summary>Snapshot the current rows for persistence.</summary>
+    public List<PerPlayerBonusFile> GetBonusPerPlayerOverrides() =>
+        _bonusOverrides.Select(r => new PerPlayerBonusFile
+        {
+            PlayerSlot = r.PlayerSlot,
+            Resources = new Dictionary<string,int>(r.Resources),
+            HeroAttack = r.HeroAttack,
+            HeroDefense = r.HeroDefense,
+            HeroSpellpower = r.HeroSpellpower,
+            HeroKnowledge = r.HeroKnowledge,
+            HeroStatStartHeroOnly = r.HeroStatStartHeroOnly,
+            ItemSid = r.ItemSid,
+            ItemStartHeroOnly = r.ItemStartHeroOnly,
+            SpellSid = r.SpellSid,
+            SpellStartHeroOnly = r.SpellStartHeroOnly,
+            UnitMultiplier = r.UnitMultiplier,
+            UnitMultiplierStartHeroOnly = r.UnitMultiplierStartHeroOnly,
+        }).ToList();
+
+    public void RefreshBonusOverridePlayerCount(int playerCount)
+    {
+        _bonusPlayerCount = System.Math.Max(1, playerCount);
+        RebuildBonusOverrideRows();
+    }
+
+    private void BonusPerPlayerAdd_Click(object sender, RoutedEventArgs e)
+    {
+        var used = new HashSet<int>(_bonusOverrides.Select(r => r.PlayerSlot));
+        int slot = 1;
+        for (; slot <= _bonusPlayerCount; slot++)
+            if (!used.Contains(slot)) break;
+        if (slot > _bonusPlayerCount) slot = 1;
+        _bonusOverrides.Add(new PerPlayerBonusFile { PlayerSlot = slot });
+        RebuildBonusOverrideRows();
+    }
+
+    private void RebuildBonusOverrideRows()
+    {
+        PnlBonusPerPlayerOverrides.Children.Clear();
+        for (int i = 0; i < _bonusOverrides.Count; i++)
+        {
+            int idx = i;
+            var row = _bonusOverrides[idx];
+            PnlBonusPerPlayerOverrides.Children.Add(BuildBonusOverrideRow(idx, row));
+        }
+    }
+
+    private FrameworkElement BuildBonusOverrideRow(int idx, PerPlayerBonusFile row)
+    {
+        var border = new System.Windows.Controls.Border
+        {
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x88, 0xAA, 0xAA, 0xAA)),
+            BorderThickness = new Thickness(1),
+            Padding = new Thickness(6),
+            Margin = new Thickness(0, 4, 0, 0),
+        };
+        var sp = new StackPanel();
+        border.Child = sp;
+
+        // Header: slot picker + remove
+        var header = new DockPanel { LastChildFill = false };
+        header.Children.Add(new TextBlock { Text = "Player slot ", VerticalAlignment = VerticalAlignment.Center });
+        var slotCombo = new ComboBox { Width = 60, VerticalAlignment = VerticalAlignment.Center };
+        for (int s = 1; s <= _bonusPlayerCount; s++) slotCombo.Items.Add(s);
+        slotCombo.SelectedItem = System.Math.Clamp(row.PlayerSlot, 1, _bonusPlayerCount);
+        slotCombo.SelectionChanged += (_, _) =>
+        {
+            if (slotCombo.SelectedItem is int v) row.PlayerSlot = v;
+        };
+        header.Children.Add(slotCombo);
+        var removeBtn = new Button { Content = "Remove", Margin = new Thickness(8, 0, 0, 0) };
+        DockPanel.SetDock(removeBtn, Dock.Right);
+        removeBtn.Click += (_, _) =>
+        {
+            if (idx >= 0 && idx < _bonusOverrides.Count)
+            {
+                _bonusOverrides.RemoveAt(idx);
+                RebuildBonusOverrideRows();
+            }
+        };
+        header.Children.Add(removeBtn);
+        sp.Children.Add(header);
+
+        // Resources (gold + wood are the most common; rarer ones can use the uniform block).
+        sp.Children.Add(MakeIntRow("Gold", row.Resources.TryGetValue("gold", out var g) ? g : 0,
+            v => SetResource(row, "gold", v)));
+        sp.Children.Add(MakeIntRow("Wood", row.Resources.TryGetValue("wood", out var w) ? w : 0,
+            v => SetResource(row, "wood", v)));
+        sp.Children.Add(MakeIntRow("Ore", row.Resources.TryGetValue("ore", out var o) ? o : 0,
+            v => SetResource(row, "ore", v)));
+        sp.Children.Add(MakeIntRow("Mercury", row.Resources.TryGetValue("mercury", out var m) ? m : 0,
+            v => SetResource(row, "mercury", v)));
+        sp.Children.Add(MakeIntRow("Crystals", row.Resources.TryGetValue("crystals", out var c) ? c : 0,
+            v => SetResource(row, "crystals", v)));
+        sp.Children.Add(MakeIntRow("Gemstones", row.Resources.TryGetValue("gemstones", out var gm) ? gm : 0,
+            v => SetResource(row, "gemstones", v)));
+
+        // Hero stats
+        sp.Children.Add(MakeIntRow("Hero Attack", row.HeroAttack, v => row.HeroAttack = v));
+        sp.Children.Add(MakeIntRow("Hero Defense", row.HeroDefense, v => row.HeroDefense = v));
+        sp.Children.Add(MakeIntRow("Hero Spellpower", row.HeroSpellpower, v => row.HeroSpellpower = v));
+        sp.Children.Add(MakeIntRow("Hero Knowledge", row.HeroKnowledge, v => row.HeroKnowledge = v));
+        sp.Children.Add(MakeCheckRow("Hero stats: start hero only",
+            row.HeroStatStartHeroOnly, v => row.HeroStatStartHeroOnly = v));
+
+        // Item / Spell
+        sp.Children.Add(MakeStringRow("Item SID", row.ItemSid, v => row.ItemSid = v));
+        sp.Children.Add(MakeCheckRow("Item: start hero only",
+            row.ItemStartHeroOnly, v => row.ItemStartHeroOnly = v));
+        sp.Children.Add(MakeStringRow("Spell SID", row.SpellSid, v => row.SpellSid = v));
+        sp.Children.Add(MakeCheckRow("Spell: start hero only",
+            row.SpellStartHeroOnly, v => row.SpellStartHeroOnly = v));
+
+        // Unit multiplier (percent)
+        sp.Children.Add(MakeIntRow("Unit multiplier (%)",
+            (int)System.Math.Round(row.UnitMultiplier * 100.0),
+            v => row.UnitMultiplier = v / 100.0));
+        sp.Children.Add(MakeCheckRow("Unit multiplier: start hero only",
+            row.UnitMultiplierStartHeroOnly, v => row.UnitMultiplierStartHeroOnly = v));
+
+        return border;
+    }
+
+    private static void SetResource(PerPlayerBonusFile row, string sid, int value)
+    {
+        if (value <= 0) row.Resources.Remove(sid);
+        else row.Resources[sid] = value;
+    }
+
+    private static Grid MakeIntRow(string label, int initial, System.Action<int> onChanged)
+    {
+        var g = new Grid { Margin = new Thickness(0, 2, 0, 0) };
+        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(180) });
+        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
+        g.Children.Add(new Label { Content = label });
+        var tb = new TextBox { Text = initial.ToString(CultureInfo.InvariantCulture) };
+        Grid.SetColumn(tb, 1);
+        tb.TextChanged += (_, _) =>
+        {
+            onChanged(int.TryParse(tb.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v) ? v : 0);
+        };
+        g.Children.Add(tb);
+        return g;
+    }
+
+    private static Grid MakeStringRow(string label, string initial, System.Action<string> onChanged)
+    {
+        var g = new Grid { Margin = new Thickness(0, 2, 0, 0) };
+        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(180) });
+        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        g.Children.Add(new Label { Content = label });
+        var tb = new TextBox { Text = initial ?? "" };
+        Grid.SetColumn(tb, 1);
+        tb.TextChanged += (_, _) => onChanged(tb.Text ?? "");
+        g.Children.Add(tb);
+        return g;
+    }
+
+    private static CheckBox MakeCheckRow(string label, bool initial, System.Action<bool> onChanged)
+    {
+        var cb = new CheckBox { Content = label, IsChecked = initial, Margin = new Thickness(0, 2, 0, 0) };
+        cb.Checked += (_, _) => onChanged(true);
+        cb.Unchecked += (_, _) => onChanged(false);
+        return cb;
     }
 
     private void CmbBanUnitPicker_SelectionChanged(object sender, SelectionChangedEventArgs e)

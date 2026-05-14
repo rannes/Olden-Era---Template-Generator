@@ -185,10 +185,44 @@ namespace OldenEra.Generator.Services
                 }
             }
 
+            // T-206: per-player starting bonus overrides. Warn (don't block) on
+            // out-of-range slots, duplicate slots (last-write-wins), and rows
+            // that set no fields. The emitter mirrors these rules.
+            if (settings.Bonuses.PerPlayerOverrides.Count > 0)
+            {
+                var seenSlots = new HashSet<int>();
+                foreach (var row in settings.Bonuses.PerPlayerOverrides)
+                {
+                    if (row.PlayerSlot < 1 || row.PlayerSlot > players)
+                    {
+                        Warn(ValidationFieldKeys.BonusPerPlayerOverrides,
+                            $"Per-player bonus override targets slot {row.PlayerSlot} but template has only {players} players. The row will be skipped.");
+                    }
+                    else if (!seenSlots.Add(row.PlayerSlot))
+                    {
+                        Warn(ValidationFieldKeys.BonusPerPlayerOverrides,
+                            $"Duplicate per-player bonus override for slot {row.PlayerSlot}; the later row wins.");
+                    }
+                    if (BonusRowIsEmpty(row.Bonuses))
+                    {
+                        Warn(ValidationFieldKeys.BonusPerPlayerOverrides,
+                            $"Per-player bonus override for slot {row.PlayerSlot} has no fields set. Remove it or fill in a value.");
+                    }
+                }
+            }
+
             var blockers = issues.Where(i => i.Severity == Severity.Blocker).Select(i => i.Message).ToList();
             var warnings = issues.Where(i => i.Severity == Severity.Warning).Select(i => i.Message).ToList();
             return new Result(blockers, warnings, issues);
         }
+
+        private static bool BonusRowIsEmpty(StartingBonusSettings b) =>
+            b.Resources.Count == 0
+            && b.HeroAttack == 0 && b.HeroDefense == 0
+            && b.HeroSpellpower == 0 && b.HeroKnowledge == 0
+            && string.IsNullOrWhiteSpace(b.ItemSid)
+            && string.IsNullOrWhiteSpace(b.SpellSid)
+            && b.UnitMultiplier == 0.0;
 
         public static int TotalNeutralZones(GeneratorSettings settings)
         {
@@ -223,6 +257,8 @@ namespace OldenEra.Generator.Services
         public const string HeroMinMax = "hero.minMax";
         public const string HeroBans = "hero.bans";
         public const string HeroFixedStarting = "hero.fixedStarting";
+
+        public const string BonusPerPlayerOverrides = "bonuses.perPlayerOverrides";
     }
 
     /// <summary>
