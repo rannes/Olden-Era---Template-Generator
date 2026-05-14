@@ -222,6 +222,22 @@ public class SettingsValidatorTests
     }
 
     [Fact]
+    public void Issue_Code_CityHoldNoNeutrals_DiscriminatesFromGenericNeutralRule()
+    {
+        // The City-Hold variant of the neutral-zone-count blocker carries a
+        // stable Code so UIs can offer "switch to Hub layout" without
+        // matching on Message substrings.
+        var s = ValidBaseline();
+        s.ZoneCfg.NeutralZoneCount = 0;
+        s.GameEndConditions.CityHold = true;
+        var result = SettingsValidator.Validate(s);
+        Assert.Contains(result.Issues, i =>
+            i.Severity == SettingsValidator.Severity.Blocker
+            && i.FieldKey == ValidationFieldKeys.NeutralZoneCount
+            && i.Code == ValidationIssueCodes.NeutralZoneCountForCityHold);
+    }
+
+    [Fact]
     public void Issue_FieldKey_TournamentBadPlayerCount_AnchorsOnPlayerCount()
     {
         var s = ValidBaseline();

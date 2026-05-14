@@ -35,7 +35,16 @@
     /// <summary>Mechanical-fix click handler. No-op when null.</summary>
     [Parameter] public EventCallback OnFix { get; set; }
 
-    // Prefer the highest-severity issue on this field (blockers win over warnings).
-    private SettingsValidator.ValidationIssue? Issue =>
-        Result?.ForField(FieldKey).OrderBy(i => i.Severity).FirstOrDefault();
+    // Prefer the highest-severity issue on this field. Explicit blocker-then-warning
+    // selection — don't rely on enum integer ordering.
+    private SettingsValidator.ValidationIssue? Issue
+    {
+        get
+        {
+            if (Result is null) return null;
+            var matches = Result.ForField(FieldKey);
+            return matches.FirstOrDefault(i => i.Severity == SettingsValidator.Severity.Blocker)
+                ?? matches.FirstOrDefault(i => i.Severity == SettingsValidator.Severity.Warning);
+        }
+    }
 }

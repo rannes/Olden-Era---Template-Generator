@@ -12,7 +12,7 @@
     {
         <div class="oe-field-msg" role="alert">
             <span>City Hold also works if the layout is Hub &amp; Spoke (the hub doubles as the neutral hold city).</span>
-            <button type="button" class="oe-field-fix" @onclick="OnFixSwitchToHub">Switch to Hub layout</button>
+            <button type="button" class="oe-field-fix" @onclick="HandleFixSwitchToHub">Switch to Hub layout</button>
         </div>
     }
 
@@ -25,6 +25,7 @@
                     class="oe-topo-tile @(isSelected ? "selected" : "")"
                     role="radio"
                     aria-checked="@isSelected.ToString().ToLower()"
+                    @ref="_topoTileRefs[topo]"
                     @onclick="() => Select(topo)">
                 <span class="oe-topo-svg" aria-hidden="true">@svg</span>
                 <span class="oe-topo-label">@label</span>
@@ -65,7 +66,7 @@
         Validation?.Issues.Any(i =>
             i.Severity == SettingsValidator.Severity.Blocker
             && i.FieldKey == ValidationFieldKeys.NeutralZoneCount
-            && i.Message.Contains("City Hold")) ?? false;
+            && i.Code == ValidationIssueCodes.NeutralZoneCountForCityHold) ?? false;
 
     private async Task Select(MapTopology topo)
     {
@@ -75,6 +76,29 @@
     }
 
     private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    // T-303 follow-up: after the "Switch to Hub layout" fix, move focus to the
+    // Hub tile so screen-reader users land on the now-selected control.
+    private readonly Dictionary<MapTopology, ElementReference> _topoTileRefs = new();
+    private bool _focusHubTileNextRender;
+
+    private async Task HandleFixSwitchToHub()
+    {
+        await OnFixSwitchToHub.InvokeAsync();
+        _focusHubTileNextRender = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusHubTileNextRender)
+        {
+            _focusHubTileNextRender = false;
+            if (_topoTileRefs.TryGetValue(MapTopology.HubAndSpoke, out var tile))
+            {
+                try { await tile.FocusAsync(); } catch { /* element may have been removed */ }
+            }
+        }
+    }
 
     private static readonly (MapTopology Topo, string Label, MarkupString Svg)[] Tiles =
     {

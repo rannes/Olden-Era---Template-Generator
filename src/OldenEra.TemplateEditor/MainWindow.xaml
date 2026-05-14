@@ -100,14 +100,9 @@
                                   Unchecked="ChkAdvancedEnabled_Changed"/>
                         <!-- T-302: per-feature experimental flags. The master
                              Experimental checkbox is now a popup button that
-                             opens a panel of per-feature toggles. The legacy
-                             ChkExperimentalEnabled stays hidden — it tracks
-                             "any per-feature flag on" so the existing nav
-                             gating code keeps working. -->
-                        <CheckBox x:Name="ChkExperimentalEnabled"
-                                  Visibility="Collapsed"
-                                  Checked="ChkExperimentalEnabled_Changed"
-                                  Unchecked="ChkExperimentalEnabled_Changed"/>
+                             opens a panel of per-feature toggles. Nav
+                             visibility is driven directly from the per-feature
+                             flags inside UpdateExperimentalFeatureVisibility. -->
                         <ToggleButton x:Name="BtnExperimentalMenu"
                                       VerticalAlignment="Center" Margin="0,0,12,0"
                                       Padding="8,4"

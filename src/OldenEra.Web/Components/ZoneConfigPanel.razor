@@ -8,7 +8,8 @@
     <div class="oe-hint">All percentages compare to the generator's baseline (100%). Lower = sparser/weaker, higher = denser/stronger.</div>
 
     <div class="oe-field @FieldClass(ValidationFieldKeys.NeutralZoneCount) @FieldClass(ValidationFieldKeys.ZonesTotal)">
-        <SliderRow Label="Additional Neutral Zones" WideLabel="true"
+        <SliderRow @ref="_neutralSlider"
+                   Label="Additional Neutral Zones" WideLabel="true"
                    Min="0" Max="30" Step="1"
                    Disabled="@AdvancedMode"
                    Value="Settings.ZoneCfg.NeutralZoneCount"
@@ -18,7 +19,7 @@
                       FieldKey="@ValidationFieldKeys.NeutralZoneCount"
                       MessageElementId="neutralcount-msg"
                       FixLabel="@(HasBlocker(ValidationFieldKeys.NeutralZoneCount) ? "Add a neutral zone" : null)"
-                      OnFix="OnFixAddNeutralZone" />
+                      OnFix="HandleFixAddNeutralZone" />
     <InlineFieldError Result="Validation"
                       FieldKey="@ValidationFieldKeys.ZonesTotal" />
     @if (AdvancedMode)
@@ -136,4 +137,26 @@
     private bool HasWarning(string key) => Validation?.HasWarningOn(key) ?? false;
     private string FieldClass(string key) =>
         HasBlocker(key) ? "has-error" : HasWarning(key) ? "has-warning" : "";
+
+    // T-303 follow-up: refocus the neutral slider after a one-click fix.
+    private SliderRow? _neutralSlider;
+    private bool _focusNeutralNextRender;
+
+    private async Task HandleFixAddNeutralZone()
+    {
+        await OnFixAddNeutralZone.InvokeAsync();
+        _focusNeutralNextRender = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusNeutralNextRender)
+        {
+            _focusNeutralNextRender = false;
+            if (_neutralSlider is not null)
+            {
+                try { await _neutralSlider.FocusAsync(); } catch { /* element may have been removed */ }
+            }
+        }
+    }
 }
