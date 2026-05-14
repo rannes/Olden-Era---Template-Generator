@@ -566,6 +566,26 @@
                                         <Slider Grid.Column="1" x:Name="SldLowTierGuardWeekly" Minimum="0" Maximum="50" Value="0" TickFrequency="1" IsSnapToTickEnabled="True"/>
                                         <TextBlock Grid.Column="2" x:Name="TxtLowTierGuardWeekly" Text="0" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ValueText}"/>
                                     </Grid>
+                                    <Grid Margin="0,6,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="185"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="40"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="Obstacles (%)" Padding="5,2"/>
+                                        <Slider Grid.Column="1" x:Name="SldLowTierObstacles" Minimum="0" Maximum="80" Value="0" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                        <TextBlock Grid.Column="2" x:Name="TxtLowTierObstacles" Text="0" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ValueText}"/>
+                                    </Grid>
+                                    <Grid Margin="0,6,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="185"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="40"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="Lakes (%)" Padding="5,2"/>
+                                        <Slider Grid.Column="1" x:Name="SldLowTierLakes" Minimum="0" Maximum="50" Value="0" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                        <TextBlock Grid.Column="2" x:Name="TxtLowTierLakes" Text="0" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ValueText}"/>
+                                    </Grid>
                                 </StackPanel>
                             </TabItem>
                             <TabItem Header="Medium" IsSelected="True">
@@ -582,6 +602,26 @@
                                         <Slider Grid.Column="1" x:Name="SldMediumTierGuardWeekly" Minimum="0" Maximum="50" Value="0" TickFrequency="1" IsSnapToTickEnabled="True"/>
                                         <TextBlock Grid.Column="2" x:Name="TxtMediumTierGuardWeekly" Text="0" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ValueText}"/>
                                     </Grid>
+                                    <Grid Margin="0,6,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="185"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="40"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="Obstacles (%)" Padding="5,2"/>
+                                        <Slider Grid.Column="1" x:Name="SldMediumTierObstacles" Minimum="0" Maximum="80" Value="0" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                        <TextBlock Grid.Column="2" x:Name="TxtMediumTierObstacles" Text="0" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ValueText}"/>
+                                    </Grid>
+                                    <Grid Margin="0,6,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="185"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="40"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="Lakes (%)" Padding="5,2"/>
+                                        <Slider Grid.Column="1" x:Name="SldMediumTierLakes" Minimum="0" Maximum="50" Value="0" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                        <TextBlock Grid.Column="2" x:Name="TxtMediumTierLakes" Text="0" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ValueText}"/>
+                                    </Grid>
                                 </StackPanel>
                             </TabItem>
                             <TabItem Header="High">
@@ -597,6 +637,26 @@
                                         <Label Grid.Column="0" Content="Guard / week (%)" Padding="5,2"/>
                                         <Slider Grid.Column="1" x:Name="SldHighTierGuardWeekly" Minimum="0" Maximum="50" Value="0" TickFrequency="1" IsSnapToTickEnabled="True"/>
                                         <TextBlock Grid.Column="2" x:Name="TxtHighTierGuardWeekly" Text="0" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ValueText}"/>
+                                    </Grid>
+                                    <Grid Margin="0,6,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="185"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="40"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="Obstacles (%)" Padding="5,2"/>
+                                        <Slider Grid.Column="1" x:Name="SldHighTierObstacles" Minimum="0" Maximum="80" Value="0" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                        <TextBlock Grid.Column="2" x:Name="TxtHighTierObstacles" Text="0" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ValueText}"/>
+                                    </Grid>
+                                    <Grid Margin="0,6,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="185"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="40"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="Lakes (%)" Padding="5,2"/>
+                                        <Slider Grid.Column="1" x:Name="SldHighTierLakes" Minimum="0" Maximum="50" Value="0" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                                        <TextBlock Grid.Column="2" x:Name="TxtHighTierLakes" Text="0" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ValueText}"/>
                                     </Grid>
                                 </StackPanel>
                             </TabItem>

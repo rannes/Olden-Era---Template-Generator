@@ -110,6 +110,12 @@ public partial class ExperimentalPanel : UserControl
         SldLowTierGuardWeekly.ValueChanged    += (_, _) => TxtLowTierGuardWeekly.Text    = ((int)SldLowTierGuardWeekly.Value).ToString();
         SldMediumTierGuardWeekly.ValueChanged += (_, _) => TxtMediumTierGuardWeekly.Text = ((int)SldMediumTierGuardWeekly.Value).ToString();
         SldHighTierGuardWeekly.ValueChanged   += (_, _) => TxtHighTierGuardWeekly.Text   = ((int)SldHighTierGuardWeekly.Value).ToString();
+        SldLowTierObstacles.ValueChanged    += (_, _) => TxtLowTierObstacles.Text    = ((int)SldLowTierObstacles.Value).ToString();
+        SldMediumTierObstacles.ValueChanged += (_, _) => TxtMediumTierObstacles.Text = ((int)SldMediumTierObstacles.Value).ToString();
+        SldHighTierObstacles.ValueChanged   += (_, _) => TxtHighTierObstacles.Text   = ((int)SldHighTierObstacles.Value).ToString();
+        SldLowTierLakes.ValueChanged    += (_, _) => TxtLowTierLakes.Text    = ((int)SldLowTierLakes.Value).ToString();
+        SldMediumTierLakes.ValueChanged += (_, _) => TxtMediumTierLakes.Text = ((int)SldMediumTierLakes.Value).ToString();
+        SldHighTierLakes.ValueChanged   += (_, _) => TxtHighTierLakes.Text   = ((int)SldHighTierLakes.Value).ToString();
     }
 
     /// <summary>
