@@ -276,6 +276,32 @@ namespace OldenEra.Generator.Services
 
             ApplyBordersAndRoads(template, settings.BordersRoads);
             ApplyZoneOverrides(template, settings.ZoneOverrides);
+            ApplyEncounterHoles(template, settings.EncounterHoles);
+        }
+
+        // ── Encounter holes (T-201) ──────────────────────────────────────────────
+        // When the master toggle is off (default), this is a no-op and zones
+        // emit no encounterHolesSettings — byte-identical to current output.
+        // When on, every zone gets the same per-zone object, matching the shape
+        // shipped templates (Anarchy, Maze, Massacre…) use uniformly across zones.
+        private static void ApplyEncounterHoles(RmgTemplate template, EncounterHolesOptions o)
+        {
+            if (!o.Enabled) return;
+            if (template.Variants is null) return;
+            foreach (var variant in template.Variants)
+            {
+                if (variant.Zones is null) continue;
+                foreach (var zone in variant.Zones)
+                {
+                    // Clone per zone so a later mutation on one zone doesn't
+                    // alias through to its siblings.
+                    zone.EncounterHolesSettings = new Models.Unfrozen.EncounterHolesSettings
+                    {
+                        AffectedEncounters = o.AffectedEncounters,
+                        TwoHoleEncounters = o.TwoHoleEncounters,
+                    };
+                }
+            }
         }
 
         // ── Per-zone schema knobs (T-005, T-006) ─────────────────────────────────
@@ -786,7 +812,7 @@ namespace OldenEra.Generator.Services
             HeroCountMax = settings.HeroSettings.HeroCountMax,
             HeroCountIncrement = settings.HeroSettings.HeroCountIncrement,
             HeroHireBan = false,
-            EncounterHoles = false,
+            EncounterHoles = settings.EncounterHoles.Enabled,
             FactionLawsExpModifier = PercentToModifier(settings.FactionLawsExpPercent),
             AstrologyExpModifier = PercentToModifier(settings.AstrologyExpPercent),
             Bonuses =

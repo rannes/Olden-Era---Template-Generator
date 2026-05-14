@@ -122,6 +122,15 @@ namespace OldenEra.Generator.Models
         [JsonPropertyName("zoneUnguardedContentPool")] public string ZoneUnguardedContentPool { get; set; } = "";
         [JsonPropertyName("zoneContentCountLimits")] public string  ZoneContentCountLimits  { get; set; } = "";
 
+        // T-201 — encounter-holes (multi-stack battles). Disabled by default;
+        // existing snapshots stay byte-identical. When enabled, GameRules.encounterHoles
+        // flips to true and Zone.encounterHolesSettings is stamped uniformly.
+        // Three scalar fields → round-trips cleanly through SettingsShareCodec's
+        // value-equality "non-default" comparison (see CopyNonDefault).
+        [JsonPropertyName("encounterHolesEnabled")]            public bool   EncounterHolesEnabled            { get; set; } = false;
+        [JsonPropertyName("encounterHolesAffectedEncounters")] public double EncounterHolesAffectedEncounters { get; set; } = 0.66;
+        [JsonPropertyName("encounterHolesTwoHoleEncounters")]  public double EncounterHolesTwoHoleEncounters  { get; set; } = 0.66;
+
         [JsonPropertyName("buildingPresetPlayer")]  public string BuildingPresetPlayer      { get; set; } = "";
         [JsonPropertyName("buildingPresetNeutral")] public string BuildingPresetNeutral     { get; set; } = "";
 

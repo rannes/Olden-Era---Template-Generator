@@ -65,6 +65,12 @@ public static class SettingsMapper
                 UnguardedContentPool = SidCsv.Parse(s.ZoneUnguardedContentPool),
                 ContentCountLimitRefs = SidCsv.Parse(s.ZoneContentCountLimits),
             },
+            EncounterHoles = new EncounterHolesOptions
+            {
+                Enabled = s.EncounterHolesEnabled,
+                AffectedEncounters = s.EncounterHolesAffectedEncounters,
+                TwoHoleEncounters = s.EncounterHolesTwoHoleEncounters,
+            },
             BuildingPresets = new BuildingPresetSettings
             {
                 PlayerZonePreset = s.BuildingPresetPlayer ?? "",
@@ -292,6 +298,9 @@ public static class SettingsMapper
             ZoneGuardedContentPool = SidCsv.Join(g.ZoneOverrides.GuardedContentPool),
             ZoneUnguardedContentPool = SidCsv.Join(g.ZoneOverrides.UnguardedContentPool),
             ZoneContentCountLimits = SidCsv.Join(g.ZoneOverrides.ContentCountLimitRefs),
+            EncounterHolesEnabled            = g.EncounterHoles.Enabled,
+            EncounterHolesAffectedEncounters = g.EncounterHoles.AffectedEncounters,
+            EncounterHolesTwoHoleEncounters  = g.EncounterHoles.TwoHoleEncounters,
             BuildingPresetPlayer = g.BuildingPresets.PlayerZonePreset,
             BuildingPresetNeutral = g.BuildingPresets.NeutralZonePreset,
             ZoneGuardWeeklyIncrement = g.GuardProgression.ZoneGuardWeeklyIncrement,

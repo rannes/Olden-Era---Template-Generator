@@ -197,7 +197,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 ## Phase 3 — Generation tuning
 
 ### T-201 — Encounter holes (multi-stack battles)
-- **Status:** in-progress
+- **Status:** done
 - **Owner:** orchestrator (Phase 3+4 batch)
 - **Effort:** M
 - **Files:** `TemplateGenerator.cs` (`Zone.encounterHolesSettings`,
