@@ -98,12 +98,114 @@
                                   ToolTip="Show advanced zone settings (per-tier zone counts, separation tuning)."
                                   Checked="ChkAdvancedEnabled_Changed"
                                   Unchecked="ChkAdvancedEnabled_Changed"/>
+                        <!-- T-302: per-feature experimental flags. The master
+                             Experimental checkbox is now a popup button that
+                             opens a panel of per-feature toggles. The legacy
+                             ChkExperimentalEnabled stays hidden — it tracks
+                             "any per-feature flag on" so the existing nav
+                             gating code keeps working. -->
                         <CheckBox x:Name="ChkExperimentalEnabled"
-                                  Content="Experimental ⚗"
-                                  VerticalAlignment="Center" Margin="0,0,12,0"
-                                  ToolTip="Show experimental features. Generated templates may behave unpredictably."
+                                  Visibility="Collapsed"
                                   Checked="ChkExperimentalEnabled_Changed"
                                   Unchecked="ChkExperimentalEnabled_Changed"/>
+                        <ToggleButton x:Name="BtnExperimentalMenu"
+                                      VerticalAlignment="Center" Margin="0,0,12,0"
+                                      Padding="8,4"
+                                      ToolTip="Toggle individual experimental features. Generated templates may behave unpredictably.">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Experimental ⚗" VerticalAlignment="Center"/>
+                                <Border x:Name="ExpFeatureCountBadge"
+                                        Background="#4c8ad9"
+                                        CornerRadius="9"
+                                        Padding="6,0"
+                                        Margin="6,0,0,0"
+                                        VerticalAlignment="Center"
+                                        Visibility="Collapsed">
+                                    <TextBlock x:Name="TxtExpFeatureCount"
+                                               Text="0"
+                                               Foreground="#0c1828"
+                                               FontWeight="Bold"
+                                               FontSize="11"/>
+                                </Border>
+                                <TextBlock Text="▾" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </ToggleButton>
+                        <Popup x:Name="PopExperimentalMenu"
+                               PlacementTarget="{Binding ElementName=BtnExperimentalMenu}"
+                               Placement="Bottom"
+                               StaysOpen="False"
+                               IsOpen="{Binding IsChecked, ElementName=BtnExperimentalMenu, Mode=TwoWay}"
+                               AllowsTransparency="True">
+                            <Border Background="{StaticResource OeSurfaceBrush}"
+                                    BorderBrush="{StaticResource OeBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="6"
+                                    MinWidth="320">
+                                <StackPanel>
+                                    <TextBlock Text="EXPERIMENTAL FEATURES"
+                                               Foreground="{StaticResource OeTextDimBrush}"
+                                               FontWeight="Bold" FontSize="11"
+                                               Margin="6,4,6,2"/>
+                                    <TextBlock Foreground="{StaticResource OeTextDimBrush}"
+                                               FontSize="11" TextWrapping="Wrap"
+                                               Margin="6,0,6,6">
+                                        Each flag enables one section group. Disabled
+                                        groups stay hidden; their settings remain in memory.
+                                    </TextBlock>
+                                    <CheckBox x:Name="ChkExpFeatureGameMode"
+                                              Margin="6,4"
+                                              Checked="ExpFeatureFlag_Changed"
+                                              Unchecked="ExpFeatureFlag_Changed">
+                                        <StackPanel>
+                                            <TextBlock Text="Game mode" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Single-hero / hire-ban / desertion overrides."
+                                                       Foreground="{StaticResource OeTextDimBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <CheckBox x:Name="ChkExpFeatureStartingBonuses"
+                                              Margin="6,4"
+                                              Checked="ExpFeatureFlag_Changed"
+                                              Unchecked="ExpFeatureFlag_Changed">
+                                        <StackPanel>
+                                            <TextBlock Text="Starting bonuses" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Resources, hero stats, items, spells, unit multipliers."
+                                                       Foreground="{StaticResource OeTextDimBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <CheckBox x:Name="ChkExpFeatureZoneContent"
+                                              Margin="6,4"
+                                              Checked="ExpFeatureFlag_Changed"
+                                              Unchecked="ExpFeatureFlag_Changed">
+                                        <StackPanel>
+                                            <TextBlock Text="Zone content" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Per-zone biome / pool / cutoff / encounter-hole overrides."
+                                                       Foreground="{StaticResource OeTextDimBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <CheckBox x:Name="ChkExpFeatureBordersRoads"
+                                              Margin="6,4"
+                                              Checked="ExpFeatureFlag_Changed"
+                                              Unchecked="ExpFeatureFlag_Changed">
+                                        <StackPanel>
+                                            <TextBlock Text="Map borders &amp; roads" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Border corner radius, water border, road type."
+                                                       Foreground="{StaticResource OeTextDimBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </CheckBox>
+                                    <CheckBox x:Name="ChkExpFeaturePerTierOverrides"
+                                              Margin="6,4"
+                                              Checked="ExpFeatureFlag_Changed"
+                                              Unchecked="ExpFeatureFlag_Changed">
+                                        <StackPanel>
+                                            <TextBlock Text="Per-tier overrides" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Building presets / guard progression per neutral tier."
+                                                       Foreground="{StaticResource OeTextDimBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </CheckBox>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
                         <CheckBox x:Name="ChkCheckForUpdates"
                                   Content="Check for updates on startup"
                                   VerticalAlignment="Center" Margin="0,0,12,0"
