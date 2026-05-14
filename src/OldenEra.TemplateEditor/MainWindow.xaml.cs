@@ -832,6 +832,10 @@ namespace OldenEra.TemplateEditor
             ConnectionGuardWeeklyIncrement = PnlExperimental.SldConnectionGuardWeekly.Value / 100.0,
             GuardReactionPreset = GuardReactionPresetFromCombo(PnlExperimental.CmbGuardReactionPreset),
             GuardReactionCustomDistribution = PnlExperimental.TxtGuardReactionCustom.Text?.Trim() ?? "",
+            ConnectionLength        = PnlExperimental.SldConnectionLength.Value / 100.0,
+            ConnectionGatePlacement = ConnectionStringFromCombo(PnlExperimental.CmbConnectionGatePlacement),
+            ConnectionGuardEscape   = ConnectionTriBoolFromCombo(PnlExperimental.CmbConnectionGuardEscape),
+            ConnectionSimTurnSquad  = ConnectionTriBoolFromCombo(PnlExperimental.CmbConnectionSimTurnSquad),
             NeutralCityGuardChance = PnlExperimental.SldNeutralGuardChance.Value / 100.0,
             NeutralCityGuardValuePercent = (int)PnlExperimental.SldNeutralGuardValue.Value,
             NeutralCityRemoveGuardIfHasOwner = PnlExperimental.ChkNeutralRemoveGuardIfHasOwner.IsChecked == true,
@@ -862,6 +866,35 @@ namespace OldenEra.TemplateEditor
         }
 
         private static int ParseInt(string s) => int.TryParse(s, out int v) && v >= 0 ? v : 0;
+
+        // T-001 — connection-default combo helpers. Index 0 is always the
+        // "(unset)" sentinel; non-zero indexes carry the actual value.
+        private static string ConnectionStringFromCombo(System.Windows.Controls.ComboBox c)
+        {
+            if (c.SelectedIndex <= 0) return "";
+            return c.SelectedItem as string ?? "";
+        }
+        private static bool? ConnectionTriBoolFromCombo(System.Windows.Controls.ComboBox c) =>
+            (c.SelectedItem as string) switch
+            {
+                "true" => true,
+                "false" => false,
+                _ => null,
+            };
+        private static void SetConnectionStringCombo(System.Windows.Controls.ComboBox c, string? value)
+        {
+            if (string.IsNullOrEmpty(value)) { c.SelectedIndex = 0; return; }
+            int idx = (c.ItemsSource as System.Collections.Generic.IList<string>)?.IndexOf(value) ?? -1;
+            c.SelectedIndex = idx >= 0 ? idx : 0;
+        }
+        private static void SetConnectionTriBoolCombo(System.Windows.Controls.ComboBox c, bool? value)
+        {
+            string target = value switch { true => "true", false => "false", _ => "" };
+            if (string.IsNullOrEmpty(target)) { c.SelectedIndex = 0; return; }
+            int idx = (c.ItemsSource as System.Collections.Generic.IList<string>)?.IndexOf(target) ?? -1;
+            c.SelectedIndex = idx >= 0 ? idx : 0;
+        }
+
         private static string PresetFromCombo(System.Windows.Controls.ComboBox c)
         {
             if (c.SelectedIndex <= 0) return "";
@@ -1071,6 +1104,10 @@ namespace OldenEra.TemplateEditor
             PnlExperimental.SldConnectionGuardWeekly.Value = Math.Clamp(s.ConnectionGuardWeeklyIncrement * 100.0, 0, 50);
             PnlExperimental.CmbGuardReactionPreset.SelectedIndex = GuardReactionPresetIndex(s.GuardReactionPreset);
             PnlExperimental.TxtGuardReactionCustom.Text = s.GuardReactionCustomDistribution ?? "";
+            PnlExperimental.SldConnectionLength.Value = Math.Clamp(s.ConnectionLength * 100.0, 0, 500);
+            SetConnectionStringCombo(PnlExperimental.CmbConnectionGatePlacement, s.ConnectionGatePlacement);
+            SetConnectionTriBoolCombo(PnlExperimental.CmbConnectionGuardEscape,  s.ConnectionGuardEscape);
+            SetConnectionTriBoolCombo(PnlExperimental.CmbConnectionSimTurnSquad, s.ConnectionSimTurnSquad);
             PnlExperimental.SldNeutralGuardChance.Value = Math.Clamp(s.NeutralCityGuardChance * 100.0, 0, 100);
             PnlExperimental.SldNeutralGuardValue.Value = Math.Clamp(s.NeutralCityGuardValuePercent <= 0 ? 100 : s.NeutralCityGuardValuePercent, 25, 300);
             PnlExperimental.ChkNeutralRemoveGuardIfHasOwner.IsChecked = s.NeutralCityRemoveGuardIfHasOwner;
@@ -1530,6 +1567,13 @@ namespace OldenEra.TemplateEditor
                 ConnectionGuardWeeklyIncrement = PnlExperimental.SldConnectionGuardWeekly.Value / 100.0,
             },
             GuardReaction = BuildGuardReactionSettings(),
+            ConnectionDefaults = new ConnectionDefaultsSettings
+            {
+                Length = PnlExperimental.SldConnectionLength.Value / 100.0,
+                GatePlacement = ConnectionStringFromCombo(PnlExperimental.CmbConnectionGatePlacement),
+                GuardEscape   = ConnectionTriBoolFromCombo(PnlExperimental.CmbConnectionGuardEscape),
+                SimTurnSquad  = ConnectionTriBoolFromCombo(PnlExperimental.CmbConnectionSimTurnSquad),
+            },
             NeutralCities = new NeutralCitySettings
             {
                 GuardChance = PnlExperimental.SldNeutralGuardChance.Value / 100.0,

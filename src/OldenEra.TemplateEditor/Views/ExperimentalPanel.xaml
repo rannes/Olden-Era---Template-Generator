@@ -358,6 +358,39 @@
                     </StackPanel>
                 </Expander>
 
+                <!-- ── Connection defaults ─────────────────────────────────── -->
+                <Expander Header="Connection defaults" Margin="0,4,0,4">
+                    <StackPanel Margin="8,4,0,8">
+                        <TextBlock Style="{StaticResource HintText}">
+                            Per-connection knobs the schema accepts. Each defaults to "unset" — leave alone
+                            and the generator's per-topology choices are preserved. Length is a relative
+                            path-distance multiplier (shipped templates use 0.0–5.0).
+                        </TextBlock>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="185"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Label   Grid.Row="0" Grid.Column="0" Content="Length (%)" Padding="5,2"/>
+                            <Slider  Grid.Row="0" Grid.Column="1" x:Name="SldConnectionLength" Minimum="0" Maximum="500" Value="0" TickFrequency="5" IsSnapToTickEnabled="True"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2" x:Name="TxtConnectionLength" Text="0" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ValueText}"/>
+                            <Label    Grid.Row="1" Grid.Column="0" Content="Gate placement" Padding="5,2"/>
+                            <ComboBox Grid.Row="1" Grid.Column="1" x:Name="CmbConnectionGatePlacement"/>
+                            <Label    Grid.Row="2" Grid.Column="0" Content="Guard escape" Padding="5,2"/>
+                            <ComboBox Grid.Row="2" Grid.Column="1" x:Name="CmbConnectionGuardEscape"/>
+                            <Label    Grid.Row="3" Grid.Column="0" Content="Sim-turn squad" Padding="5,2"/>
+                            <ComboBox Grid.Row="3" Grid.Column="1" x:Name="CmbConnectionSimTurnSquad"/>
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
                 <!-- ── Content control ────────────────────────────────────── -->
                 <Expander Header="Content control" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">

@@ -125,6 +125,14 @@ namespace OldenEra.Generator.Models
         /// </summary>
         [JsonPropertyName("guardReactionCustomDistribution")] public string GuardReactionCustomDistribution { get; set; } = "";
 
+        // T-001 — connection-level scalar defaults applied uniformly to every
+        // emitted Connection. Sentinel values (0 / "" / null) mean "unset" and
+        // round-trip without altering generator output.
+        [JsonPropertyName("connectionLength")]        public double ConnectionLength       { get; set; } = 0.0;
+        [JsonPropertyName("connectionGatePlacement")] public string ConnectionGatePlacement { get; set; } = "";
+        [JsonPropertyName("connectionGuardEscape")]   public bool?  ConnectionGuardEscape   { get; set; }
+        [JsonPropertyName("connectionSimTurnSquad")]  public bool?  ConnectionSimTurnSquad  { get; set; }
+
         [JsonPropertyName("neutralCityGuardChance")]        public double NeutralCityGuardChance        { get; set; } = 0.0;
         [JsonPropertyName("neutralCityGuardValuePercent")]  public int    NeutralCityGuardValuePercent  { get; set; } = 100;
         [JsonPropertyName("neutralCityRemoveGuardIfHasOwner")] public bool NeutralCityRemoveGuardIfHasOwner { get; set; } = false;
