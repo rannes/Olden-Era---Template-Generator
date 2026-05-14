@@ -10,7 +10,7 @@
 <div class="oe-app">
     <header class="oe-header">
         <div class="oe-header-left">
-            <h1>Olden Era — Simple Template Generator</h1>
+            <h1>Olden Era — Map Template Generator</h1>
             <span class="oe-version-badge">@VersionLabel</span>
         </div>
         <div class="oe-header-actions">
@@ -18,14 +18,26 @@
                 <input type="checkbox" checked="@AdvancedMode" @onchange="OnAdvancedHeaderToggled" />
                 <span>Advanced</span>
             </label>
-            <ExperimentalFeaturesMenu Flags="ExperimentalFlags" OnChanged="OnExperimentalFlagsChanged" />
-            <button class="oe-btn ghost" @onclick="OpenPresetPicker">Load preset…</button>
-            <button class="oe-btn ghost" @onclick="OpenSettingsClick">Open settings…</button>
-            <button class="oe-btn ghost" @onclick="SaveSettingsClick">Save settings…</button>
-            <button class="oe-btn ghost" @onclick="ShareSettingsClick">Share link</button>
-            <a class="oe-btn ghost" href="https://github.com/rannes/olden-era-templates" target="_blank" rel="noopener noreferrer" title="View the project on GitHub">GitHub</a>
-            <a class="oe-btn ghost" href="https://github.com/rannes/olden-era-templates/releases" target="_blank" rel="noopener noreferrer" title="View release notes on GitHub">Patch Notes</a>
-            <a class="oe-btn ghost" href="https://discord.gg/UqT8KshsxW" target="_blank" rel="noopener noreferrer" title="Join the community Discord">Discord</a>
+            <label class="oe-check inline" style="margin-right:8px;">
+                <input type="checkbox" checked="@ExperimentalEnabled" @onchange="OnExperimentalMasterToggled" />
+                <span>Experimental</span>
+                <ExperimentalBadge />
+            </label>
+            <button class="oe-btn ghost" @onclick="OpenPresetPicker">Load Preset…</button>
+            <button class="oe-btn ghost" @onclick="OpenSettingsClick">Open…</button>
+            <button class="oe-btn ghost" @onclick="SaveSettingsClick">Save…</button>
+            <button class="oe-btn ghost oe-icon-btn" @onclick="ShareSettingsClick" title="Copy a share link to these settings" aria-label="Share link">
+                <span aria-hidden="true">🔗</span>
+            </button>
+            <a class="oe-btn ghost oe-icon-btn" href="https://github.com/rannes/olden-era-templates" target="_blank" rel="noopener noreferrer" title="View the project on GitHub" aria-label="GitHub">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M12 .5C5.73.5.75 5.48.75 11.75c0 4.97 3.22 9.18 7.69 10.67.56.1.77-.24.77-.54v-1.9c-3.13.68-3.79-1.51-3.79-1.51-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.63 1.22 3.27.94.1-.73.39-1.22.71-1.5-2.5-.28-5.13-1.25-5.13-5.56 0-1.23.44-2.23 1.16-3.02-.12-.28-.5-1.43.11-2.98 0 0 .94-.3 3.09 1.15a10.7 10.7 0 0 1 5.62 0c2.15-1.45 3.09-1.15 3.09-1.15.61 1.55.23 2.7.11 2.98.72.79 1.16 1.79 1.16 3.02 0 4.32-2.64 5.27-5.15 5.55.4.34.76 1.02.76 2.06v3.05c0 .3.21.65.78.54 4.46-1.49 7.68-5.7 7.68-10.67C23.25 5.48 18.27.5 12 .5z"/></svg>
+            </a>
+            <a class="oe-btn ghost oe-icon-btn" href="https://github.com/rannes/olden-era-templates/releases" target="_blank" rel="noopener noreferrer" title="Patch notes (release history)" aria-label="Patch notes">
+                <span aria-hidden="true">📝</span>
+            </a>
+            <a class="oe-btn ghost oe-icon-btn" href="https://discord.gg/UqT8KshsxW" target="_blank" rel="noopener noreferrer" title="Join the community Discord" aria-label="Discord">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M20.32 4.37A19.79 19.79 0 0 0 16.5 3l-.21.43c1.27.4 2.6 1 3.86 1.83-2.21-1.13-4.5-1.74-7.15-1.74s-4.94.61-7.15 1.74c1.26-.83 2.59-1.43 3.86-1.83L9.5 3a19.79 19.79 0 0 0-3.82 1.37C2.31 9.13 1.42 13.78 1.83 18.36c1.7 1.25 3.36 2 4.99 2.5l.4-.55c-.91-.31-1.86-.74-2.74-1.3.23.16.46.31.7.45 3.5 1.61 7.36 1.61 10.82 0 .25-.14.48-.29.7-.45-.88.56-1.83.99-2.74 1.3l.4.55c1.63-.5 3.29-1.25 4.99-2.5.49-5.22-.92-9.83-3.83-13.99zM8.52 15.33c-.95 0-1.73-.88-1.73-1.96s.77-1.96 1.73-1.96 1.74.88 1.73 1.96c0 1.08-.77 1.96-1.73 1.96zm6.96 0c-.95 0-1.73-.88-1.73-1.96s.77-1.96 1.73-1.96 1.74.88 1.73 1.96c0 1.08-.76 1.96-1.73 1.96z"/></svg>
+            </a>
             @if (!string.IsNullOrEmpty(ShareToast))
             {
                 <span class="oe-toast">@ShareToast</span>
@@ -113,34 +125,17 @@
                         <div class="oe-hint">
                             These features change template fields the game has not been
                             extensively tested against. Generated maps may behave
-                            unpredictably. Use the <strong>Experimental</strong> menu in
-                            the header to toggle individual features; each enabled
-                            feature shows up as a card below.
+                            unpredictably.
                         </div>
                     </div>
-                    @if (ExperimentalFlags.GameMode)
-                    {
-                        <GameModePanel Settings="Settings" OnChanged="OnChanged" />
-                    }
-                    @if (ExperimentalFlags.StartingBonuses)
-                    {
-                        <StartingBonusesPanel Settings="Settings" OnChanged="OnChanged" />
-                    }
-                    @if (ExperimentalFlags.ZoneContent)
-                    {
-                        <ExperimentalZonePanel Settings="Settings"
-                                               OnChanged="OnChanged"
-                                               ZoneContentCompareDefaults="@_zoneContentCompareDefaults"
-                                               ZoneContentCompareDefaultsChanged="@OnZoneContentCompareDefaultsChanged" />
-                    }
-                    @if (ExperimentalFlags.BordersRoads)
-                    {
-                        <MapBordersRoadsPanel Settings="Settings" OnChanged="OnChanged" />
-                    }
-                    @if (ExperimentalFlags.PerTierOverrides)
-                    {
-                        <PerTierOverridesPanel Settings="Settings" OnChanged="OnChanged" />
-                    }
+                    <GameModePanel Settings="Settings" OnChanged="OnChanged" />
+                    <StartingBonusesPanel Settings="Settings" OnChanged="OnChanged" />
+                    <ExperimentalZonePanel Settings="Settings"
+                                           OnChanged="OnChanged"
+                                           ZoneContentCompareDefaults="@_zoneContentCompareDefaults"
+                                           ZoneContentCompareDefaultsChanged="@OnZoneContentCompareDefaultsChanged" />
+                    <MapBordersRoadsPanel Settings="Settings" OnChanged="OnChanged" />
+                    <PerTierOverridesPanel Settings="Settings" OnChanged="OnChanged" />
                     break;
             }
         </section>
@@ -232,6 +227,22 @@
     private ExperimentalFlags ExperimentalFlags { get; set; } = new();
     private bool ExperimentalEnabled => ExperimentalFlags.AnyEnabled;
 
+    /// <summary>
+    /// Master Experimental toggle: flips every per-feature flag on or off in
+    /// lockstep. The per-feature flags are still persisted (so old settings
+    /// files round-trip), but the UI no longer exposes them individually —
+    /// users get all-or-nothing.
+    /// </summary>
+    private void OnExperimentalMasterToggled(ChangeEventArgs e)
+    {
+        bool enabled = (bool)e.Value!;
+        foreach (var feature in OldenEra.Generator.Services.ExperimentalFeatures.All)
+            ExperimentalFlags.Set(feature.Key, enabled);
+        if (!enabled && ActiveSection == Section.Experimental)
+            ActiveSection = Section.Map;
+        OnChanged();
+    }
+
     private OldenEra.Generator.Models.Unfrozen.RmgTemplate? GeneratedTemplate;
     private byte[]? PreviewPng;
 
@@ -309,16 +320,6 @@
 
     private static string FormatVersion(Version v)
         => v.Build > 0 ? $"v{v.Major}.{v.Minor}.{v.Build}" : $"v{v.Major}.{v.Minor}";
-
-    private void OnExperimentalFlagsChanged()
-    {
-        // T-302 — when the user toggled the last per-feature flag off and was
-        // sitting on the Experimental section, bounce back to Map so the
-        // section nav doesn't appear empty. Settings stay in memory either way.
-        if (!ExperimentalEnabled && ActiveSection == Section.Experimental)
-            ActiveSection = Section.Map;
-        OnChanged();
-    }
 
     private void OnExperimentalToggled(bool value)
     {

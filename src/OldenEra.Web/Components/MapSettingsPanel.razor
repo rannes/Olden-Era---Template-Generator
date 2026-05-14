@@ -22,16 +22,31 @@
 
     <div class="oe-stacked">
         <label class="oe-label" for="mapsize">Map Size</label>
-        <div class="oe-field @MapSizeClass">
-            <select id="mapsize" @bind="MapSize" @bind:after="NotifyChanged"
-                    aria-invalid="@(HasBlocker(ValidationFieldKeys.MapSize) ? "true" : "false")"
-                    aria-describedby="@(HasIssue(ValidationFieldKeys.MapSize) ? "mapsize-msg" : null)">
-                @foreach (int size in AvailableMapSizes)
-                {
-                    <option value="@size">@FormatMapSize(size)</option>
-                }
-            </select>
+        <div class="oe-mapsize-row">
+            <div class="oe-field @MapSizeClass">
+                <select id="mapsize" @bind="MapSize" @bind:after="NotifyChanged"
+                        aria-invalid="@(HasBlocker(ValidationFieldKeys.MapSize) ? "true" : "false")"
+                        aria-describedby="@(HasIssue(ValidationFieldKeys.MapSize) ? "mapsize-msg" : null)">
+                    @foreach (int size in AvailableMapSizes)
+                    {
+                        <option value="@size">@FormatMapSize(size)</option>
+                    }
+                </select>
+            </div>
+            <label class="oe-check inline">
+                <input type="checkbox" checked="@ExperimentalMapSizes"
+                       @onchange="OnExperimentalCheckboxChanged" />
+                <span>Experimental large sizes</span>
+                <ExperimentalBadge />
+            </label>
         </div>
+        @if (ExperimentalMapSizes)
+        {
+            <div class="oe-hint">
+                Adds 256x256 through 512x512. Official templates top out at 240x240,
+                so larger maps may fail, freeze, or behave unpredictably in game.
+            </div>
+        }
         <InlineFieldError Result="Validation"
                           FieldKey="@ValidationFieldKeys.MapSize"
                           MessageElementId="mapsize-msg" />
@@ -60,20 +75,6 @@
             differently.
         </div>
     </div>
-
-    <label class="oe-check">
-        <input type="checkbox" checked="@ExperimentalMapSizes"
-               @onchange="OnExperimentalCheckboxChanged" />
-        <span>Experimental large map sizes</span>
-        <ExperimentalBadge />
-    </label>
-    @if (ExperimentalMapSizes)
-    {
-        <div class="oe-hint">
-            Adds 256x256 through 512x512. Official templates top out at 240x240,
-            so larger maps may fail, freeze, or behave unpredictably in game.
-        </div>
-    }
 
     <div class="oe-field @PlayersClass">
         <SliderRow Label="Players"

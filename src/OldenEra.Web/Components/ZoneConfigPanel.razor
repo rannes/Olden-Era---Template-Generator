@@ -88,6 +88,12 @@
                @onchange="@(e => { Settings.SpawnRemoteFootholds = (bool)e.Value!; NotifyChanged(); })" />
         <span>Spawn remote footholds</span>
     </label>
+    <div class="oe-hint" style="margin-left:1.5rem;">
+        Places extra Remote Foothold structures on the map. Footholds let players
+        garrison troops and artifacts and serve as teleport destinations for the
+        <em>Remote Foothold</em> spell, so spawning more increases mobility and
+        forward-staging options across the map.
+    </div>
 
     <label class="oe-check">
         <input type="checkbox" checked="@Settings.RandomPortals"
