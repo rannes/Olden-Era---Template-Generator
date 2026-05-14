@@ -82,19 +82,26 @@
                     <MapSettingsPanel Settings="Settings"
                                       ExperimentalMapSizes="ExperimentalMapSizes"
                                       ExperimentalMapSizesChanged="OnExperimentalToggled"
-                                      OnChanged="OnChanged" />
+                                      OnChanged="OnChanged"
+                                      Validation="Validation"
+                                      OnFixTemplateName="FixSetTemplateName" />
                     break;
                 case Section.Heroes:
-                    <HeroSettingsPanel Settings="Settings" OnChanged="OnChanged" />
+                    <HeroSettingsPanel Settings="Settings" OnChanged="OnChanged"
+                                       Validation="Validation" />
                     break;
                 case Section.Topology:
-                    <TopologyPicker Settings="Settings" OnChanged="OnChanged" />
+                    <TopologyPicker Settings="Settings" OnChanged="OnChanged"
+                                    Validation="Validation"
+                                    OnFixSwitchToHub="FixSwitchToHubTopology" />
                     break;
                 case Section.Zones:
                     <ZoneConfigPanel Settings="Settings"
                                      AdvancedMode="AdvancedMode"
                                      AdvancedModeChanged="OnAdvancedModeChanged"
-                                     OnChanged="OnChanged" />
+                                     OnChanged="OnChanged"
+                                     Validation="Validation"
+                                     OnFixAddNeutralZone="FixAddNeutralZone" />
                     <AdvancedPanel Settings="Settings"
                                    AdvancedMode="AdvancedMode"
                                    OnChanged="OnChanged" />
@@ -211,6 +218,8 @@
 
     private string ValidationMessage = "";
     private bool IsValid = true;
+    /// <summary>Latest validation result. Panels read this to render inline anchors. T-303.</summary>
+    private SettingsValidator.Result? Validation;
 
     private string VersionLabel = "v1.0";
     private Version? CurrentVersion;
@@ -382,6 +391,7 @@
     {
         Settings.ZoneCfg.Advanced.Enabled = AdvancedMode;
         var result = SettingsValidator.Validate(Settings);
+        Validation = result;
         if (!result.IsValid)
         {
             IsValid = false;
@@ -390,6 +400,28 @@
         }
         IsValid = true;
         ValidationMessage = result.Warnings.Count > 0 ? string.Join("\n\n", result.Warnings) : "";
+    }
+
+    // -- Mechanical fixes (T-303) -----------------------------------------
+    // Each fix mutates Settings and re-runs the same validate+persist path
+    // OnChanged uses, so the inline anchor disappears the moment it's resolved.
+
+    private void FixAddNeutralZone()
+    {
+        ValidationFixes.AddNeutralZone(Settings);
+        OnChanged();
+    }
+
+    private void FixSwitchToHubTopology()
+    {
+        ValidationFixes.SwitchToHubTopology(Settings);
+        OnChanged();
+    }
+
+    private void FixSetTemplateName()
+    {
+        ValidationFixes.SetDefaultTemplateName(Settings);
+        OnChanged();
     }
 
     // -- Generate flow -----------------------------------------------------

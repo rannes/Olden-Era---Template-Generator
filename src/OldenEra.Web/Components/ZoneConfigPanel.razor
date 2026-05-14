@@ -7,20 +7,33 @@
     </div>
     <div class="oe-hint">All percentages compare to the generator's baseline (100%). Lower = sparser/weaker, higher = denser/stronger.</div>
 
-    <SliderRow Label="Additional Neutral Zones" WideLabel="true"
-               Min="0" Max="30" Step="1"
-               Disabled="@AdvancedMode"
-               Value="Settings.ZoneCfg.NeutralZoneCount"
-               ValueChanged="@(v => { Settings.ZoneCfg.NeutralZoneCount = (int)v; NotifyChanged(); })" />
+    <div class="oe-field @FieldClass(ValidationFieldKeys.NeutralZoneCount) @FieldClass(ValidationFieldKeys.ZonesTotal)">
+        <SliderRow Label="Additional Neutral Zones" WideLabel="true"
+                   Min="0" Max="30" Step="1"
+                   Disabled="@AdvancedMode"
+                   Value="Settings.ZoneCfg.NeutralZoneCount"
+                   ValueChanged="@(v => { Settings.ZoneCfg.NeutralZoneCount = (int)v; NotifyChanged(); })" />
+    </div>
+    <InlineFieldError Result="Validation"
+                      FieldKey="@ValidationFieldKeys.NeutralZoneCount"
+                      MessageElementId="neutralcount-msg"
+                      FixLabel="@(HasBlocker(ValidationFieldKeys.NeutralZoneCount) ? "Add a neutral zone" : null)"
+                      OnFix="OnFixAddNeutralZone" />
+    <InlineFieldError Result="Validation"
+                      FieldKey="@ValidationFieldKeys.ZonesTotal" />
     @if (AdvancedMode)
     {
         <div class="oe-row-hint">Set per-tier counts below.</div>
     }
 
-    <SliderRow Label="Castles / Player Zone" WideLabel="true"
-               Min="1" Max="4" Step="1"
-               Value="Settings.ZoneCfg.PlayerZoneCastles"
-               ValueChanged="@(v => { Settings.ZoneCfg.PlayerZoneCastles = (int)v; NotifyChanged(); })" />
+    <div class="oe-field @FieldClass(ValidationFieldKeys.PlayerZoneCastles)">
+        <SliderRow Label="Castles / Player Zone" WideLabel="true"
+                   Min="1" Max="4" Step="1"
+                   Value="Settings.ZoneCfg.PlayerZoneCastles"
+                   ValueChanged="@(v => { Settings.ZoneCfg.PlayerZoneCastles = (int)v; NotifyChanged(); })" />
+    </div>
+    <InlineFieldError Result="Validation"
+                      FieldKey="@ValidationFieldKeys.PlayerZoneCastles" />
 
     <SliderRow Label="Castles / Neutral Zone" WideLabel="true"
                Min="0" Max="4" Step="1"
@@ -112,6 +125,15 @@
     [Parameter] public bool AdvancedMode { get; set; }
     [Parameter] public EventCallback<bool> AdvancedModeChanged { get; set; }
     [Parameter] public EventCallback OnChanged { get; set; }
+    /// <summary>Latest validation result. Drives inline error/warning anchors. T-303.</summary>
+    [Parameter] public SettingsValidator.Result? Validation { get; set; }
+    /// <summary>Mechanical fix: bumps neutral count by one. T-303.</summary>
+    [Parameter] public EventCallback OnFixAddNeutralZone { get; set; }
 
     private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    private bool HasBlocker(string key) => Validation?.HasBlockerOn(key) ?? false;
+    private bool HasWarning(string key) => Validation?.HasWarningOn(key) ?? false;
+    private string FieldClass(string key) =>
+        HasBlocker(key) ? "has-error" : HasWarning(key) ? "has-warning" : "";
 }

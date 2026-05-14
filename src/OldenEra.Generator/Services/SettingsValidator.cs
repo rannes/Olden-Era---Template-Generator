@@ -8,62 +8,104 @@ namespace OldenEra.Generator.Services
     /// </summary>
     /// <remarks>
     /// Mirrors the rules in MainWindow.Validate(). Blockers prevent generation;
-    /// warnings advise the user but do not block.
+    /// warnings advise the user but do not block. Each issue carries a
+    /// <see cref="ValidationIssue.FieldKey"/> so UIs can highlight the offending
+    /// control and (where relevant) wire a one-click fix.
     /// </remarks>
     public static class SettingsValidator
     {
         public const int DefaultMaxZones = 32;
 
-        public sealed record Result(IReadOnlyList<string> Blockers, IReadOnlyList<string> Warnings)
+        public enum Severity { Blocker, Warning }
+
+        /// <summary>
+        /// A single validation finding. <see cref="FieldKey"/> is one of the
+        /// stable identifiers in <see cref="ValidationFieldKeys"/>; it is the
+        /// contract between the validator and any UI that wants to highlight a
+        /// control or attach a fix action.
+        /// </summary>
+        public sealed record ValidationIssue(string FieldKey, Severity Severity, string Message);
+
+        /// <summary>
+        /// <see cref="Blockers"/> and <see cref="Warnings"/> remain
+        /// flat string lists for back-compat with existing callers that just
+        /// want to render messages. <see cref="Issues"/> carries the same
+        /// information plus a field-binding key for inline highlighting.
+        /// </summary>
+        public sealed record Result(
+            IReadOnlyList<string> Blockers,
+            IReadOnlyList<string> Warnings,
+            IReadOnlyList<ValidationIssue> Issues)
         {
+            public Result(IReadOnlyList<string> blockers, IReadOnlyList<string> warnings)
+                : this(blockers, warnings, Array.Empty<ValidationIssue>()) { }
+
             public bool IsValid => Blockers.Count == 0;
+
+            /// <summary>Returns issues bound to the given field key (any severity).</summary>
+            public IEnumerable<ValidationIssue> ForField(string fieldKey) =>
+                Issues.Where(i => string.Equals(i.FieldKey, fieldKey, StringComparison.Ordinal));
+
+            /// <summary>True if any blocker is bound to <paramref name="fieldKey"/>.</summary>
+            public bool HasBlockerOn(string fieldKey) =>
+                Issues.Any(i => i.Severity == Severity.Blocker && string.Equals(i.FieldKey, fieldKey, StringComparison.Ordinal));
+
+            /// <summary>True if any warning is bound to <paramref name="fieldKey"/>.</summary>
+            public bool HasWarningOn(string fieldKey) =>
+                Issues.Any(i => i.Severity == Severity.Warning && string.Equals(i.FieldKey, fieldKey, StringComparison.Ordinal));
         }
 
         public static Result Validate(GeneratorSettings settings, int? maxZonesOverride = null)
         {
             ArgumentNullException.ThrowIfNull(settings);
-            var blockers = new List<string>();
-            var warnings = new List<string>();
+            var issues = new List<ValidationIssue>();
 
             int players = settings.PlayerCount;
             int neutral = TotalNeutralZones(settings);
             int maxZones = maxZonesOverride ?? DefaultMaxZones;
 
+            void Block(string field, string msg) => issues.Add(new ValidationIssue(field, Severity.Blocker, msg));
+            void Warn(string field, string msg) => issues.Add(new ValidationIssue(field, Severity.Warning, msg));
+
             if (settings.HeroSettings.HeroCountMin > settings.HeroSettings.HeroCountMax)
             {
-                blockers.Add("Min Heroes cannot be greater than Max Heroes.");
+                Block(ValidationFieldKeys.HeroMinMax, "Min Heroes cannot be greater than Max Heroes.");
             }
 
             if (players + neutral > maxZones)
             {
-                blockers.Add($"Total zones (players + neutral) cannot exceed {maxZones}.");
+                Block(ValidationFieldKeys.ZonesTotal, $"Total zones (players + neutral) cannot exceed {maxZones}.");
             }
 
             if (string.IsNullOrWhiteSpace(settings.TemplateName))
             {
-                blockers.Add("Template name cannot be empty.");
+                Block(ValidationFieldKeys.TemplateName, "Template name cannot be empty.");
             }
 
             bool cityHoldActive = settings.GameEndConditions.CityHold
                 || settings.GameEndConditions.VictoryCondition == "win_condition_5";
             if (cityHoldActive && settings.Topology != MapTopology.HubAndSpoke && neutral == 0)
             {
-                blockers.Add("City Hold requires at least one neutral zone to place the hold city. Add a neutral zone or switch to the Hub layout.");
+                Block(ValidationFieldKeys.NeutralZoneCount,
+                    "City Hold requires at least one neutral zone to place the hold city. Add a neutral zone or switch to the Hub layout.");
             }
 
             if (settings.NoDirectPlayerConnections && neutral == 0)
             {
-                blockers.Add("\"Connect via neutral zones only\" requires at least one neutral zone. Add a neutral zone or disable this option.");
+                Block(ValidationFieldKeys.NeutralZoneCount,
+                    "\"Connect via neutral zones only\" requires at least one neutral zone. Add a neutral zone or disable this option.");
             }
 
             if (settings.GameEndConditions.VictoryCondition == "win_condition_6" && players != 2)
             {
-                blockers.Add("Tournament mode only supports exactly 2 players.");
+                Block(ValidationFieldKeys.PlayerCount,
+                    "Tournament mode only supports exactly 2 players.");
             }
 
             if (settings.TemplateName.Trim().Equals("Custom Template", StringComparison.OrdinalIgnoreCase))
             {
-                warnings.Add("⚠️ The template is still using the default name \"Custom Template\". Consider renaming it before saving.");
+                Warn(ValidationFieldKeys.TemplateName,
+                    "⚠️ The template is still using the default name \"Custom Template\". Consider renaming it before saving.");
             }
 
             int totalZones = players + neutral;
@@ -71,12 +113,14 @@ namespace OldenEra.Generator.Services
             int mapSize = settings.MapSize;
             if (totalZonesIncludingHub > 0 && (mapSize * mapSize) / totalZonesIncludingHub < 1024)
             {
-                warnings.Add("⚠️ Estimated zone size is too small. The game may freeze when loading the map. Increase the map size or reduce the number of zones.");
+                Warn(ValidationFieldKeys.MapSize,
+                    "⚠️ Estimated zone size is too small. The game may freeze when loading the map. Increase the map size or reduce the number of zones.");
             }
 
             if (mapSize > KnownValues.MaxOfficialMapSize)
             {
-                warnings.Add("Experimental map sizes above 240x240 are not confirmed by official templates; generated maps may fail, freeze, or behave unpredictably in game.");
+                Warn(ValidationFieldKeys.MapSize,
+                    "Experimental map sizes above 240x240 are not confirmed by official templates; generated maps may fail, freeze, or behave unpredictably in game.");
             }
 
             if (totalZones > 10)
@@ -85,7 +129,8 @@ namespace OldenEra.Generator.Services
                 int neutralCastles = settings.ZoneCfg.Advanced.Enabled ? 0 : settings.ZoneCfg.NeutralZoneCastles;
                 if (playerCastles > 1 || neutralCastles > 1)
                 {
-                    warnings.Add("⚠️ Using more than 1 castle per zone with more than 10 total zones may cause the game to freeze when generating the map. Consider reducing the number of castles.");
+                    Warn(ValidationFieldKeys.PlayerZoneCastles,
+                        "⚠️ Using more than 1 castle per zone with more than 10 total zones may cause the game to freeze when generating the map. Consider reducing the number of castles.");
                 }
             }
 
@@ -93,12 +138,14 @@ namespace OldenEra.Generator.Services
                 && settings.MinNeutralZonesBetweenPlayers > 0
                 && !TemplateGenerator.CanHonorNeutralSeparation(settings, neutral))
             {
-                warnings.Add("Minimum neutral separation cannot be guaranteed with the current layout, neutral zone total, or portal setting; generation will ignore that option.");
+                Warn(ValidationFieldKeys.MinNeutralSeparation,
+                    "Minimum neutral separation cannot be guaranteed with the current layout, neutral zone total, or portal setting; generation will ignore that option.");
             }
 
             if (settings.Topology == MapTopology.Balanced && totalZones >= 24)
             {
-                warnings.Add("Balanced layout may produce unexpected results with more than 24 total zones.");
+                Warn(ValidationFieldKeys.Topology,
+                    "Balanced layout may produce unexpected results with more than 24 total zones.");
             }
 
             // Hero ban / fixed-hero validation.
@@ -113,7 +160,8 @@ namespace OldenEra.Generator.Services
                     if (heroes.Count == 0) continue;
                     if (heroes.All(h => bansSet.Contains(h.Id)))
                     {
-                        warnings.Add($"⚠️ Every hero of faction \"{faction.Name}\" is banned. The game may fail to assign a starting hero to that faction.");
+                        Warn(ValidationFieldKeys.HeroBans,
+                            $"⚠️ Every hero of faction \"{faction.Name}\" is banned. The game may fail to assign a starting hero to that faction.");
                     }
                 }
 
@@ -127,12 +175,15 @@ namespace OldenEra.Generator.Services
                         var factionName = catalog.Factions
                             .FirstOrDefault(f => string.Equals(f.Id, kv.Key, StringComparison.OrdinalIgnoreCase))
                             ?.Name ?? kv.Key;
-                        blockers.Add($"Pinned starting hero \"{fixedId}\" for faction \"{factionName}\" is also in the hero ban list. Remove it from one of the two.");
+                        Block(ValidationFieldKeys.HeroFixedStarting,
+                            $"Pinned starting hero \"{fixedId}\" for faction \"{factionName}\" is also in the hero ban list. Remove it from one of the two.");
                     }
                 }
             }
 
-            return new Result(blockers, warnings);
+            var blockers = issues.Where(i => i.Severity == Severity.Blocker).Select(i => i.Message).ToList();
+            var warnings = issues.Where(i => i.Severity == Severity.Warning).Select(i => i.Message).ToList();
+            return new Result(blockers, warnings, issues);
         }
 
         public static int TotalNeutralZones(GeneratorSettings settings)
@@ -144,6 +195,68 @@ namespace OldenEra.Generator.Services
             return a.NeutralLowNoCastleCount + a.NeutralLowCastleCount
                  + a.NeutralMediumNoCastleCount + a.NeutralMediumCastleCount
                  + a.NeutralHighNoCastleCount + a.NeutralHighCastleCount;
+        }
+    }
+
+    /// <summary>
+    /// Stable string identifiers for fields the validator can flag. UI hosts map
+    /// these to a control (CSS id, WPF x:Name, etc.) so messages can render
+    /// inline on the offending input. Add a new constant here when adding a new
+    /// validation rule that should anchor on a specific control.
+    /// </summary>
+    public static class ValidationFieldKeys
+    {
+        public const string TemplateName = "template.name";
+        public const string MapSize = "map.size";
+        public const string PlayerCount = "map.players";
+        public const string Topology = "topology";
+
+        public const string NeutralZoneCount = "zones.neutral.count";
+        public const string ZonesTotal = "zones.total";
+        public const string PlayerZoneCastles = "zones.player.castles";
+        public const string MinNeutralSeparation = "zones.minSeparation";
+
+        public const string HeroMinMax = "hero.minMax";
+        public const string HeroBans = "hero.bans";
+        public const string HeroFixedStarting = "hero.fixedStarting";
+    }
+
+    /// <summary>
+    /// Mechanical fixes the UI can offer for specific blockers. Keep this set
+    /// small: only add entries where the remediation is single-click obvious
+    /// and unambiguous. Each fix mutates settings in place; the host is
+    /// responsible for re-validating and re-rendering afterwards.
+    /// </summary>
+    public static class ValidationFixes
+    {
+        /// <summary>Increment the neutral zone count by one (simple-mode bucket).</summary>
+        public static void AddNeutralZone(GeneratorSettings settings)
+        {
+            ArgumentNullException.ThrowIfNull(settings);
+            if (settings.ZoneCfg.Advanced.Enabled)
+            {
+                // In advanced mode the simple count is unused. Bump the medium-no-castle
+                // tier as the most neutral default — users can re-balance after.
+                settings.ZoneCfg.Advanced.NeutralMediumNoCastleCount += 1;
+            }
+            else
+            {
+                settings.ZoneCfg.NeutralZoneCount += 1;
+            }
+        }
+
+        /// <summary>Switch the topology to Hub-and-Spoke (resolves "City Hold needs neutrals").</summary>
+        public static void SwitchToHubTopology(GeneratorSettings settings)
+        {
+            ArgumentNullException.ThrowIfNull(settings);
+            settings.Topology = MapTopology.HubAndSpoke;
+        }
+
+        /// <summary>Set the template name to a non-empty placeholder so the blocker clears.</summary>
+        public static void SetDefaultTemplateName(GeneratorSettings settings)
+        {
+            ArgumentNullException.ThrowIfNull(settings);
+            settings.TemplateName = "Custom Template";
         }
     }
 }

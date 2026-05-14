@@ -438,6 +438,7 @@ namespace OldenEra.TemplateEditor
             var settings = BuildSettings();
             int maxZones = _advancedZoneSettings ? AdvancedModeMaxZones : SimpleModeMaxZones;
             var result = SettingsValidator.Validate(settings, maxZones);
+            UpdateFixButtons(result);
 
             if (!result.IsValid)
             {
@@ -449,6 +450,61 @@ namespace OldenEra.TemplateEditor
             SetValidationText(string.Join("\n\n", result.Warnings));
             BtnPreview.IsEnabled = true;
             return true;
+        }
+
+        /// <summary>
+        /// Toggles per-blocker fix-action buttons under the validation message
+        /// (T-303). Only blockers whose remediation is single-click obvious are
+        /// shown; ambiguous cases stay hidden so users use the regular controls.
+        /// </summary>
+        private void UpdateFixButtons(SettingsValidator.Result result)
+        {
+            // Show "Add a neutral zone" for any blocker anchored on neutral count
+            // (City-Hold-needs-neutral or No-direct-player-connections-needs-neutral).
+            bool fixAddNeutral = result.HasBlockerOn(ValidationFieldKeys.NeutralZoneCount);
+            // The City-Hold message lists Hub as an alternative remediation — show it too.
+            bool fixSwitchHub = result.Issues.Any(i =>
+                i.Severity == SettingsValidator.Severity.Blocker
+                && i.FieldKey == ValidationFieldKeys.NeutralZoneCount
+                && i.Message.Contains("City Hold"));
+            bool fixTplName = result.HasBlockerOn(ValidationFieldKeys.TemplateName);
+
+            BtnFixAddNeutralZone.Visibility = fixAddNeutral ? Visibility.Visible : Visibility.Collapsed;
+            BtnFixSwitchToHub.Visibility    = fixSwitchHub  ? Visibility.Visible : Visibility.Collapsed;
+            BtnFixTemplateName.Visibility   = fixTplName    ? Visibility.Visible : Visibility.Collapsed;
+            PnlValidationFixes.Visibility = (fixAddNeutral || fixSwitchHub || fixTplName)
+                ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void BtnFixAddNeutralZone_Click(object sender, RoutedEventArgs e)
+        {
+            // Mirror the validator's view: in advanced mode bump the medium tier;
+            // otherwise bump the simple-mode neutral count slider.
+            if (_advancedZoneSettings)
+            {
+                PnlZones.SldNeutralMediumNoCastle.Value =
+                    Math.Min(PnlZones.SldNeutralMediumNoCastle.Maximum,
+                             PnlZones.SldNeutralMediumNoCastle.Value + 1);
+            }
+            else
+            {
+                PnlZones.SldNeutral.Value = Math.Min(PnlZones.SldNeutral.Maximum, PnlZones.SldNeutral.Value + 1);
+            }
+            MarkDirty();
+            Validate();
+        }
+
+        private void BtnFixSwitchToHub_Click(object sender, RoutedEventArgs e)
+        {
+            int idx = Array.FindIndex(TopologyOptions, t => t.Topology == MapTopology.HubAndSpoke);
+            if (idx >= 0) PnlTopology.CmbTopology.SelectedIndex = idx;
+            // CmbTopology_SelectionChanged already calls MarkDirty()+Validate().
+        }
+
+        private void BtnFixTemplateName_Click(object sender, RoutedEventArgs e)
+        {
+            PnlMap.TxtTemplateName.Text = "Custom Template";
+            // TextChanged handler already calls MarkDirtyNameOnly()+Validate().
         }
 
         private int SelectedMapSize() =>
