@@ -102,6 +102,37 @@
         }
         <button type="button" class="oe-btn ghost" @onclick="AddLimit">+ Add count limit</button>
     </div>
+
+    <div class="oe-stacked">
+        <label class="oe-label">Value overrides (guard strength per SID)</label>
+        <div class="oe-hint">
+            Override the per-stack guard value for a specific object SID. Variant
+            <code>-1</code> = any variant. Empty list emits nothing.
+        </div>
+        @foreach (var (vo, idx) in Settings.Content.ValueOverrides.Select((v, i) => (v, i)))
+        {
+            <div class="oe-row" style="grid-template-columns: 1fr 70px 100px 32px;">
+                <select value="@vo.Sid" @onchange="@(e => OnVoSidChanged(idx, e))">
+                    <option value="">Pick object…</option>
+                    @foreach (var sid in KnownValues.ObjectSids)
+                    {
+                        <option value="@sid">@sid</option>
+                    }
+                </select>
+                <input type="number" min="-1" step="1"
+                       title="Variant (-1 = any)"
+                       value="@vo.Variant"
+                       @onchange="@(e => OnVoVariantChanged(idx, e))" />
+                <input type="number" min="0" step="100"
+                       title="Guard value"
+                       value="@vo.GuardValue"
+                       @onchange="@(e => OnVoGuardChanged(idx, e))" />
+                <button type="button" class="oe-link-btn"
+                        @onclick="@(() => RemoveValueOverride(idx))" aria-label="Remove">✕</button>
+            </div>
+        }
+        <button type="button" class="oe-btn ghost" @onclick="AddValueOverride">+ Add value override</button>
+    </div>
 </ExperimentalCard>
 
 <ExperimentalCard Key="zone-content" Title="Zone content">
@@ -147,6 +178,45 @@
         if (int.TryParse(e.Value?.ToString(), out int v))
         {
             Settings.Content.ContentCountLimits[idx].MaxPerPlayer = Math.Max(0, v);
+            await NotifyChanged();
+        }
+    }
+
+    private async Task AddValueOverride()
+    {
+        // Default to variant=-1 (any) and guardValue=0 (which is treated as "unset"
+        // and skipped on emit until the user types a real number).
+        Settings.Content.ValueOverrides.Add(new ValueOverrideSetting { Sid = "", Variant = -1, GuardValue = 0 });
+        await NotifyChanged();
+    }
+
+    private async Task RemoveValueOverride(int idx)
+    {
+        if (idx >= 0 && idx < Settings.Content.ValueOverrides.Count)
+            Settings.Content.ValueOverrides.RemoveAt(idx);
+        await NotifyChanged();
+    }
+
+    private async Task OnVoSidChanged(int idx, ChangeEventArgs e)
+    {
+        Settings.Content.ValueOverrides[idx].Sid = e.Value?.ToString() ?? "";
+        await NotifyChanged();
+    }
+
+    private async Task OnVoVariantChanged(int idx, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int v))
+        {
+            Settings.Content.ValueOverrides[idx].Variant = v;
+            await NotifyChanged();
+        }
+    }
+
+    private async Task OnVoGuardChanged(int idx, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int v))
+        {
+            Settings.Content.ValueOverrides[idx].GuardValue = Math.Max(0, v);
             await NotifyChanged();
         }
     }

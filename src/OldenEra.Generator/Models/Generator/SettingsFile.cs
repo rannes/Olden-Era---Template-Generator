@@ -9,6 +9,14 @@ namespace OldenEra.Generator.Models
         [JsonPropertyName("maxPerPlayer")] public int MaxPerPlayer { get; set; } = 1;
     }
 
+    /// <summary>Persisted shape for one <see cref="ValueOverrideSetting"/> row. T-003.</summary>
+    public sealed class ValueOverrideFile
+    {
+        [JsonPropertyName("sid")] public string Sid { get; set; } = "";
+        [JsonPropertyName("variant")] public int Variant { get; set; } = -1;
+        [JsonPropertyName("guardValue")] public int GuardValue { get; set; } = 0;
+    }
+
     public sealed class TierOverrideFile
     {
         [JsonPropertyName("obstaclesFill")] public double ObstaclesFill { get; set; } = 0.0;
@@ -107,6 +115,7 @@ namespace OldenEra.Generator.Models
 
         [JsonPropertyName("globalBans")]            public List<string> GlobalBans                = new();
         [JsonPropertyName("contentCountLimits")]    public List<ContentLimitFile> ContentCountLimits = new();
+        [JsonPropertyName("valueOverrides")]        public List<ValueOverrideFile> ValueOverrides { get; set; } = new();
 
         [JsonPropertyName("bonusResources")]        public Dictionary<string,int> BonusResources = new();
         [JsonPropertyName("bonusHeroAttack")]       public int BonusHeroAttack       { get; set; } = 0;

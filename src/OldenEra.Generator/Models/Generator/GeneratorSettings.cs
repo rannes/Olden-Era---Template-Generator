@@ -152,12 +152,33 @@ namespace OldenEra.Generator.Models
         public int MaxPerPlayer { get; set; } = 1;
     }
 
+    /// <summary>
+    /// One row of <c>RmgTemplate.valueOverrides</c>. Mirrors the schema seen in
+    /// shipped templates (e.g. Anarchy.rmg.json):
+    /// <c>{ "sid": "...", "variant": -1, "guardValue": 6000 }</c>.
+    /// <c>Variant</c> defaults to -1 ("any variant"); <c>GuardValue</c> is the
+    /// only currently meaningful override and must be > 0 to be emitted.
+    /// </summary>
+    public class ValueOverrideSetting
+    {
+        public string Sid { get; set; } = "";
+        /// <summary>-1 = any variant. Other non-negative ints pin a specific variant index.</summary>
+        public int Variant { get; set; } = -1;
+        /// <summary>0 = unset (row is skipped on emit). Otherwise the per-stack guard value.</summary>
+        public int GuardValue { get; set; } = 0;
+    }
+
     public class ContentControlSettings
     {
         /// <summary>SIDs the engine should ban globally.</summary>
         public List<string> GlobalBans { get; set; } = new();
         /// <summary>Extra count caps appended to the generator's defaults.</summary>
         public List<ContentLimit> ContentCountLimits { get; set; } = new();
+        /// <summary>
+        /// Per-SID guard-value overrides emitted as <c>valueOverrides</c> on the
+        /// template. Empty list → field omitted. T-003.
+        /// </summary>
+        public List<ValueOverrideSetting> ValueOverrides { get; set; } = new();
     }
 
     public class StartingBonusSettings
