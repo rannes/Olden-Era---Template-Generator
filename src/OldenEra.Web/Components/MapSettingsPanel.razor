@@ -7,6 +7,7 @@
         <label class="oe-label" for="tplname">Template Name</label>
         <div class="oe-field @TplNameClass">
             <input id="tplname" type="text"
+                   @ref="_tplNameInput"
                    value="@Settings.TemplateName"
                    aria-invalid="@(HasBlocker(ValidationFieldKeys.TemplateName) ? "true" : "false")"
                    aria-describedby="@(HasIssue(ValidationFieldKeys.TemplateName) ? "tplname-msg" : null)"
@@ -16,7 +17,7 @@
                           FieldKey="@ValidationFieldKeys.TemplateName"
                           MessageElementId="tplname-msg"
                           FixLabel="@(HasBlocker(ValidationFieldKeys.TemplateName) ? "Use \"Custom Template\"" : null)"
-                          OnFix="OnFixTemplateName" />
+                          OnFix="HandleFixTemplateName" />
     </div>
 
     <div class="oe-stacked">
@@ -147,4 +148,24 @@
     }
 
     private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    // T-303 follow-up: after a one-click fix, move focus back to the now-fixed
+    // control so screen-reader users aren't dropped on <body>.
+    private ElementReference _tplNameInput;
+    private bool _focusTplNameNextRender;
+
+    private async Task HandleFixTemplateName()
+    {
+        await OnFixTemplateName.InvokeAsync();
+        _focusTplNameNextRender = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusTplNameNextRender)
+        {
+            _focusTplNameNextRender = false;
+            try { await _tplNameInput.FocusAsync(); } catch { /* element may have been removed */ }
+        }
+    }
 }

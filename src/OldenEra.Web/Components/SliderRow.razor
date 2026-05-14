@@ -4,6 +4,7 @@
 <div class="oe-row @(WideLabel ? "wide-label" : null) @(Disabled ? "disabled" : null)">
     <label class="oe-label">@Label</label>
     <input type="range"
+           @ref="_input"
            min="@Min.ToString(CultureInfo.InvariantCulture)"
            max="@Max.ToString(CultureInfo.InvariantCulture)"
            step="@Step.ToString(CultureInfo.InvariantCulture)"
@@ -41,6 +42,11 @@
             return Value.ToString("F2", CultureInfo.InvariantCulture) + Suffix;
         }
     }
+
+    private ElementReference _input;
+
+    /// <summary>Move keyboard focus to the underlying range input. T-303 follow-up.</summary>
+    public ValueTask FocusAsync() => _input.FocusAsync();
 
     private async Task OnInput(ChangeEventArgs e)
     {

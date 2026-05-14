@@ -22,9 +22,12 @@ namespace OldenEra.Generator.Services
         /// A single validation finding. <see cref="FieldKey"/> is one of the
         /// stable identifiers in <see cref="ValidationFieldKeys"/>; it is the
         /// contract between the validator and any UI that wants to highlight a
-        /// control or attach a fix action.
+        /// control or attach a fix action. <see cref="Code"/> is an optional,
+        /// stable discriminator (see <see cref="ValidationIssueCodes"/>) for
+        /// rules that share a <see cref="FieldKey"/> but require different UI
+        /// affordances — UIs must not match on <see cref="Message"/> substrings.
         /// </summary>
-        public sealed record ValidationIssue(string FieldKey, Severity Severity, string Message);
+        public sealed record ValidationIssue(string FieldKey, Severity Severity, string Message, string? Code = null);
 
         /// <summary>
         /// <see cref="Blockers"/> and <see cref="Warnings"/> remain
@@ -64,8 +67,8 @@ namespace OldenEra.Generator.Services
             int neutral = TotalNeutralZones(settings);
             int maxZones = maxZonesOverride ?? DefaultMaxZones;
 
-            void Block(string field, string msg) => issues.Add(new ValidationIssue(field, Severity.Blocker, msg));
-            void Warn(string field, string msg) => issues.Add(new ValidationIssue(field, Severity.Warning, msg));
+            void Block(string field, string msg, string? code = null) => issues.Add(new ValidationIssue(field, Severity.Blocker, msg, code));
+            void Warn(string field, string msg, string? code = null) => issues.Add(new ValidationIssue(field, Severity.Warning, msg, code));
 
             if (settings.HeroSettings.HeroCountMin > settings.HeroSettings.HeroCountMax)
             {
@@ -87,7 +90,8 @@ namespace OldenEra.Generator.Services
             if (cityHoldActive && settings.Topology != MapTopology.HubAndSpoke && neutral == 0)
             {
                 Block(ValidationFieldKeys.NeutralZoneCount,
-                    "City Hold requires at least one neutral zone to place the hold city. Add a neutral zone or switch to the Hub layout.");
+                    "City Hold requires at least one neutral zone to place the hold city. Add a neutral zone or switch to the Hub layout.",
+                    ValidationIssueCodes.NeutralZoneCountForCityHold);
             }
 
             if (settings.NoDirectPlayerConnections && neutral == 0)
@@ -219,6 +223,19 @@ namespace OldenEra.Generator.Services
         public const string HeroMinMax = "hero.minMax";
         public const string HeroBans = "hero.bans";
         public const string HeroFixedStarting = "hero.fixedStarting";
+    }
+
+    /// <summary>
+    /// Stable discriminator codes for rules that share a <see cref="ValidationFieldKeys"/>
+    /// but need different UI affordances (e.g., the City-Hold variant of the
+    /// neutral-zone-count blocker also offers "switch to Hub layout"). Add a
+    /// new code only when a UI needs to distinguish two rules anchored on the
+    /// same field — do not blanket-add codes for every rule.
+    /// </summary>
+    public static class ValidationIssueCodes
+    {
+        /// <summary>City-Hold variant of the neutral-zone-count blocker.</summary>
+        public const string NeutralZoneCountForCityHold = "neutral.count.cityHold";
     }
 
     /// <summary>

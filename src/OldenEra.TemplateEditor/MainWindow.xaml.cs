@@ -329,32 +329,14 @@ namespace OldenEra.TemplateEditor
             PnlExperimental.Visibility = tag == "Experimental"  ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private void ChkExperimentalEnabled_Changed(object sender, RoutedEventArgs e)
-        {
-            if (LstNavExperimental is null) return;
-            bool on = ChkExperimentalEnabled.IsChecked == true;
-            LstNavExperimental.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
-            // If the user just turned it off while sitting on the Experimental
-            // tab, bounce them back to Map.
-            if (!on && LstNav.SelectedItem is ListBoxItem item && (item.Tag as string) == "Experimental")
-                LstNav.SelectedIndex = 0;
-        }
-
         /// <summary>
         /// T-302 — fired when any per-feature experimental checkbox toggles.
-        /// Recomputes the legacy master flag (= any per-feature on) and
-        /// reapplies the corresponding expander visibility on
-        /// <see cref="PnlExperimental"/>.
+        /// Reapplies the corresponding expander visibility on
+        /// <see cref="PnlExperimental"/> and updates the nav visibility.
         /// </summary>
         private void ExpFeatureFlag_Changed(object sender, RoutedEventArgs e)
         {
-            if (ChkExperimentalEnabled is null || ChkExpFeatureGameMode is null) return;
-            bool any = (ChkExpFeatureGameMode.IsChecked == true)
-                || (ChkExpFeatureStartingBonuses.IsChecked == true)
-                || (ChkExpFeatureZoneContent.IsChecked == true)
-                || (ChkExpFeatureBordersRoads.IsChecked == true)
-                || (ChkExpFeaturePerTierOverrides.IsChecked == true);
-            ChkExperimentalEnabled.IsChecked = any;
+            if (ChkExpFeatureGameMode is null) return;
             UpdateExperimentalFeatureVisibility();
         }
 
@@ -405,6 +387,18 @@ namespace OldenEra.TemplateEditor
             {
                 TxtExpFeatureCount.Text = count.ToString();
                 ExpFeatureCountBadge.Visibility = count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            // Drive the experimental-nav item directly from "any per-feature on"
+            // (no hidden checkbox indirection). If the user just turned every
+            // feature off while sitting on the Experimental tab, bounce them
+            // back to Map.
+            if (LstNavExperimental is not null)
+            {
+                bool any = count > 0;
+                LstNavExperimental.Visibility = any ? Visibility.Visible : Visibility.Collapsed;
+                if (!any && LstNav?.SelectedItem is ListBoxItem item && (item.Tag as string) == "Experimental")
+                    LstNav.SelectedIndex = 0;
             }
         }
 
@@ -534,7 +528,7 @@ namespace OldenEra.TemplateEditor
             bool fixSwitchHub = result.Issues.Any(i =>
                 i.Severity == SettingsValidator.Severity.Blocker
                 && i.FieldKey == ValidationFieldKeys.NeutralZoneCount
-                && i.Message.Contains("City Hold"));
+                && i.Code == ValidationIssueCodes.NeutralZoneCountForCityHold);
             bool fixTplName = result.HasBlockerOn(ValidationFieldKeys.TemplateName);
 
             BtnFixAddNeutralZone.Visibility = fixAddNeutral ? Visibility.Visible : Visibility.Collapsed;
@@ -1252,8 +1246,8 @@ namespace OldenEra.TemplateEditor
             ChkExpFeatureZoneContent.IsChecked      = zoneContent;
             ChkExpFeatureBordersRoads.IsChecked     = bordersRoads;
             ChkExpFeaturePerTierOverrides.IsChecked = perTierOverrides;
-            ChkExperimentalEnabled.IsChecked        = gameMode || startingBonuses || zoneContent || bordersRoads || perTierOverrides;
-            LstNavExperimental.Visibility = (ChkExperimentalEnabled.IsChecked == true) ? Visibility.Visible : Visibility.Collapsed;
+            // Nav visibility is now driven from UpdateExperimentalFeatureVisibility,
+            // which reads the per-feature checkboxes directly.
             UpdateExperimentalFeatureVisibility();
             PnlExperimental.ChkSingleHero.IsChecked = s.GameMode == "SingleHero";
             PnlExperimental.ChkHeroHireBan.IsChecked = s.HeroHireBan;

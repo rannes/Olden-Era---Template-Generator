@@ -121,27 +121,35 @@ public class PerFeatureExperimentalFlagsTests
         Assert.True(restored.PerTierOverrides);
     }
 
-    [Fact]
-    public void PerFeatureFlags_RoundTripThroughShareCodec()
+    [Theory]
+    [InlineData(ExperimentalFeatures.GameMode)]
+    [InlineData(ExperimentalFeatures.StartingBonuses)]
+    [InlineData(ExperimentalFeatures.ZoneContent)]
+    [InlineData(ExperimentalFeatures.BordersRoads)]
+    [InlineData(ExperimentalFeatures.PerTierOverrides)]
+    public void PerFeatureFlag_RoundTripsThroughShareCodec(string key)
     {
         // SettingsShareCodec.CopyNonDefault relies on every persisted field
-        // being a value type / string. Plain bools satisfy that, so per-feature
-        // flags must survive an encode/decode cycle.
-        var file = new SettingsFile
-        {
-            ExpFeatureGameMode = true,
-            ExpFeatureBordersRoads = true,
-            ExperimentalEnabled = true,
-        };
+        // being a value type / string. Plain bools satisfy that, so every
+        // per-feature flag must survive an encode/decode cycle — not just
+        // the two we happened to pick when this test was first written.
+        var flags = new ExperimentalFlags();
+        flags.Set(key, true);
+        var file = SettingsMapper.ToFile(new GeneratorSettings(),
+            advancedMode: false, experimentalMapSizes: false, experimental: flags);
+
         string encoded = SettingsShareCodec.Encode(file);
         var decoded = SettingsShareCodec.TryDecode(encoded, out var status);
         Assert.Equal(SettingsShareCodec.DecodeStatus.Ok, status);
         Assert.NotNull(decoded);
-        Assert.True(decoded!.ExpFeatureGameMode);
-        Assert.True(decoded.ExpFeatureBordersRoads);
-        Assert.False(decoded.ExpFeatureStartingBonuses);
-        Assert.False(decoded.ExpFeatureZoneContent);
-        Assert.False(decoded.ExpFeaturePerTierOverrides);
+
+        var (_, _, _, restored) = SettingsMapper.FromFile(decoded!);
+        Assert.True(restored.Get(key));
+        foreach (var feature in ExperimentalFeatures.All)
+        {
+            if (feature.Key == key) continue;
+            Assert.False(restored.Get(feature.Key));
+        }
     }
 
     [Fact]
