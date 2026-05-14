@@ -103,6 +103,13 @@ namespace OldenEra.Generator.Models
         [JsonPropertyName("waterWidth")]           public int     WaterWidth           { get; set; } = 4;
         [JsonPropertyName("roadType")]             public string  RoadType             { get; set; } = "";
 
+        // Per-zone overrides (T-005). null / "" = generator default; emit nothing.
+        // Round-trips through SettingsShareCodec because all fields are scalar / nullable / string.
+        [JsonPropertyName("zoneDiplomacyModifier")]   public double? ZoneDiplomacyModifier   { get; set; }
+        [JsonPropertyName("zoneCrossroadsPosition")]  public int?    ZoneCrossroadsPosition  { get; set; }
+        [JsonPropertyName("zoneContentBiomeType")]    public string  ZoneContentBiomeType    { get; set; } = "";
+        [JsonPropertyName("zoneContentBiomeArg")]     public string  ZoneContentBiomeArg     { get; set; } = "";
+
         [JsonPropertyName("buildingPresetPlayer")]  public string BuildingPresetPlayer      { get; set; } = "";
         [JsonPropertyName("buildingPresetNeutral")] public string BuildingPresetNeutral     { get; set; } = "";
 

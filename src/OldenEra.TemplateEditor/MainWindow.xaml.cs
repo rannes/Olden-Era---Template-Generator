@@ -826,6 +826,10 @@ namespace OldenEra.TemplateEditor
             WaterBorderEnabled   = PnlExperimental.ChkWaterBorderEnabled.IsChecked == true,
             WaterWidth           = (int)PnlExperimental.SldWaterWidth.Value,
             RoadType             = PnlExperimental.CmbRoadType.SelectedIndex <= 0 ? "" : (PnlExperimental.CmbRoadType.SelectedItem as string) ?? "",
+            ZoneDiplomacyModifier  = ParseNullableDouble(PnlExperimental.TxtZoneDiplomacy.Text),
+            ZoneCrossroadsPosition = TagAsNullableInt(PnlExperimental.CmbZoneCrossroads.SelectedItem),
+            ZoneContentBiomeType   = TagAsString(PnlExperimental.CmbZoneContentBiome.SelectedItem),
+            ZoneContentBiomeArg    = PnlExperimental.TxtZoneContentBiomeArg.Text?.Trim() ?? "",
             BuildingPresetPlayer = PresetFromCombo(PnlExperimental.CmbPlayerPreset),
             BuildingPresetNeutral = PresetFromCombo(PnlExperimental.CmbNeutralPreset),
             ZoneGuardWeeklyIncrement = PnlExperimental.SldZoneGuardWeekly.Value / 100.0,
@@ -1141,7 +1145,46 @@ namespace OldenEra.TemplateEditor
             PnlExperimental.SldMediumTierGuardWeekly.Value = Math.Clamp((s.TierMedium?.GuardWeeklyIncrement ?? 0) * 100.0, 0, 50);
             PnlExperimental.SldHighTierGuardWeekly.Value   = Math.Clamp((s.TierHigh?.GuardWeeklyIncrement   ?? 0) * 100.0, 0, 50);
 
+            // Zone overrides (T-005)
+            PnlExperimental.TxtZoneDiplomacy.Text = s.ZoneDiplomacyModifier?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+            SetTagCombo(PnlExperimental.CmbZoneCrossroads, s.ZoneCrossroadsPosition?.ToString() ?? "");
+            SetTagCombo(PnlExperimental.CmbZoneContentBiome, s.ZoneContentBiomeType ?? "");
+            PnlExperimental.TxtZoneContentBiomeArg.Text = s.ZoneContentBiomeArg ?? "";
+
             ReinitZoneContentPanel(s);
+        }
+
+        private static double? ParseNullableDouble(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return null;
+            return double.TryParse(raw.Trim(),
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out double v) ? v : null;
+        }
+
+        private static int? TagAsNullableInt(object? selectedItem)
+        {
+            string tag = TagAsString(selectedItem);
+            return int.TryParse(tag, out int v) ? v : null;
+        }
+
+        private static string TagAsString(object? selectedItem) =>
+            selectedItem is System.Windows.Controls.ComboBoxItem cbi
+                ? cbi.Tag as string ?? ""
+                : "";
+
+        private static void SetTagCombo(System.Windows.Controls.ComboBox cmb, string tag)
+        {
+            for (int i = 0; i < cmb.Items.Count; i++)
+            {
+                if (cmb.Items[i] is System.Windows.Controls.ComboBoxItem cbi
+                    && (cbi.Tag as string ?? "") == tag)
+                {
+                    cmb.SelectedIndex = i;
+                    return;
+                }
+            }
+            cmb.SelectedIndex = 0;
         }
 
         // The panel VM captures Settings + scope VMs at construction time, so on Open/Reset
@@ -1555,6 +1598,13 @@ namespace OldenEra.TemplateEditor
                 RoadType = PnlExperimental.CmbRoadType.SelectedIndex <= 0
                     ? null
                     : (PnlExperimental.CmbRoadType.SelectedItem as string) is { Length: > 0 } rt ? rt : null
+            },
+            ZoneOverrides = new ZoneOverridesSettings
+            {
+                DiplomacyModifier = ParseNullableDouble(PnlExperimental.TxtZoneDiplomacy.Text),
+                CrossroadsPosition = TagAsNullableInt(PnlExperimental.CmbZoneCrossroads.SelectedItem),
+                ContentBiomeType = TagAsString(PnlExperimental.CmbZoneContentBiome.SelectedItem),
+                ContentBiomeArg = PnlExperimental.TxtZoneContentBiomeArg.Text?.Trim() ?? "",
             },
             BuildingPresets = new BuildingPresetSettings
             {

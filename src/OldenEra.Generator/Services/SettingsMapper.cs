@@ -52,6 +52,13 @@ public static class SettingsMapper
                 WaterWidth = s.WaterWidth,
                 RoadType = string.IsNullOrEmpty(s.RoadType) ? null : s.RoadType
             },
+            ZoneOverrides = new ZoneOverridesSettings
+            {
+                DiplomacyModifier = s.ZoneDiplomacyModifier,
+                CrossroadsPosition = s.ZoneCrossroadsPosition,
+                ContentBiomeType = s.ZoneContentBiomeType ?? "",
+                ContentBiomeArg = s.ZoneContentBiomeArg ?? "",
+            },
             BuildingPresets = new BuildingPresetSettings
             {
                 PlayerZonePreset = s.BuildingPresetPlayer ?? "",
@@ -269,6 +276,10 @@ public static class SettingsMapper
             WaterBorderEnabled   = g.BordersRoads.WaterBorderEnabled,
             WaterWidth           = g.BordersRoads.WaterWidth,
             RoadType             = g.BordersRoads.RoadType ?? "",
+            ZoneDiplomacyModifier  = g.ZoneOverrides.DiplomacyModifier,
+            ZoneCrossroadsPosition = g.ZoneOverrides.CrossroadsPosition,
+            ZoneContentBiomeType   = g.ZoneOverrides.ContentBiomeType ?? "",
+            ZoneContentBiomeArg    = g.ZoneOverrides.ContentBiomeArg ?? "",
             BuildingPresetPlayer = g.BuildingPresets.PlayerZonePreset,
             BuildingPresetNeutral = g.BuildingPresets.NeutralZonePreset,
             ZoneGuardWeeklyIncrement = g.GuardProgression.ZoneGuardWeeklyIncrement,

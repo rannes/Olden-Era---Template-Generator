@@ -275,6 +275,57 @@ namespace OldenEra.Generator.Services
             }
 
             ApplyBordersAndRoads(template, settings.BordersRoads);
+            ApplyZoneOverrides(template, settings.ZoneOverrides);
+        }
+
+        // ── Per-zone schema knobs (T-005) ────────────────────────────────────────
+        // Stamps each non-default ZoneOverrides value onto every zone in every
+        // variant. When every field is null / empty (the default), this is a no-op
+        // and existing snapshots stay byte-identical.
+        //
+        // T-006 will extend this method (and the matching UI panel) with per-zone
+        // content caps, guardCutoffValue, and content-pool overrides.
+        private static void ApplyZoneOverrides(RmgTemplate template, ZoneOverridesSettings o)
+        {
+            if (template.Variants is null) return;
+            bool hasDip = o.DiplomacyModifier.HasValue;
+            bool hasXr = o.CrossroadsPosition.HasValue;
+            bool hasBiome = !string.IsNullOrEmpty(o.ContentBiomeType);
+            if (!hasDip && !hasXr && !hasBiome) return;
+
+            BiomeSelector? biome = hasBiome ? BuildBiomeOverride(o) : null;
+
+            foreach (var variant in template.Variants)
+            {
+                if (variant.Zones is null) continue;
+                foreach (var zone in variant.Zones)
+                {
+                    if (hasDip) zone.DiplomacyModifier = o.DiplomacyModifier;
+                    if (hasXr) zone.CrossroadsPosition = o.CrossroadsPosition;
+                    if (biome is not null)
+                    {
+                        // Clone per zone so downstream mutation doesn't alias.
+                        zone.ContentBiome = new BiomeSelector
+                        {
+                            Type = biome.Type,
+                            Args = biome.Args is null ? null : new List<string>(biome.Args),
+                        };
+                    }
+                }
+            }
+        }
+
+        private static BiomeSelector BuildBiomeOverride(ZoneOverridesSettings o)
+        {
+            // MatchZone takes no args — shipped templates emit "args": [].
+            // MatchMainObject takes a single index arg ("0", "1") — match shipped shape.
+            // FromList takes zero-or-more biome / "differentFrom: …" tokens; we expose a
+            // single-token UI for now (T-006 may grow this to a list editor).
+            string type = o.ContentBiomeType;
+            var args = new List<string>();
+            if (!string.IsNullOrWhiteSpace(o.ContentBiomeArg) && type != "MatchZone")
+                args.Add(o.ContentBiomeArg.Trim());
+            return new BiomeSelector { Type = type, Args = args };
         }
 
         private static void ApplyExperimentalToZone(
