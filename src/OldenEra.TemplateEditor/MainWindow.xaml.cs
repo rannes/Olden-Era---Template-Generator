@@ -1150,8 +1150,13 @@ namespace OldenEra.TemplateEditor
             // Zone overrides (T-005)
             PnlExperimental.TxtZoneDiplomacy.Text = s.ZoneDiplomacyModifier?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
             SetTagCombo(PnlExperimental.CmbZoneCrossroads, s.ZoneCrossroadsPosition?.ToString() ?? "");
-            SetTagCombo(PnlExperimental.CmbZoneContentBiome, s.ZoneContentBiomeType ?? "");
+            // Order matters: SetTagCombo fires SelectionChanged which routes through
+            // UpdateZoneContentBiomeArgState and clears the textbox when the new
+            // type is MatchZone/empty. Setting Text first then the combo lets the
+            // disabled-state clear win, preventing stale text from re-emitting on
+            // save into a field the user can no longer see edit.
             PnlExperimental.TxtZoneContentBiomeArg.Text = s.ZoneContentBiomeArg ?? "";
+            SetTagCombo(PnlExperimental.CmbZoneContentBiome, s.ZoneContentBiomeType ?? "");
 
             ReinitZoneContentPanel(s);
         }
