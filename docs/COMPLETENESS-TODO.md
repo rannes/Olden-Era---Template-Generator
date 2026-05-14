@@ -167,8 +167,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   `UnitBanGrid`) is mechanical to extend.
 
 ### T-103 — More preset archetypes
-- **Status:** open
-- **Owner:** —
+- **Status:** in-progress
+- **Owner:** orchestrator (Phase 2 batch)
 - **Blocked by:** T-101 (depends on broader SID catalog)
 - **Effort:** M
 - **Files:** `src/OldenEra.Generator/Services/PresetCatalog.cs`,
