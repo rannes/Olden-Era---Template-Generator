@@ -228,13 +228,36 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 - **Acceptance:** Preset selection emits the field; default omits it.
 
 ### T-204 — Per-tier-8 neutral creature support in pickers
-- **Status:** in-progress
+- **Status:** done (no-op; verified already covered)
 - **Owner:** orchestrator (Phase 3+4 batch)
 - **Effort:** S
-- **Files:** Zone-content presets, picker UI.
+- **Files:** `tests/OldenEra.Generator.Tests/CommunityCatalogTests.cs`
+  (regression net only).
 - **Scope:** Neutral units reach tier 8 in `units.json` but no preset or
   picker exposes that tier. Add a tier-8 option for guard pools.
+- **Resolution (2026-05-14):** Verified no-op. Both unit-ban pickers —
+  `src/OldenEra.Web/Components/UnitBanGrid.razor` (Blazor) and
+  `src/OldenEra.TemplateEditor/Views/ExperimentalPanel.xaml.cs`
+  `PopulateBanUnitPicker` (WPF) — already group `CommunityCatalog.Units`
+  by `(Faction, Tier)` dynamically. The four tier-8 neutral entries
+  (`avatar`, `avatar_nature`, `avatar_unfrozen`, `lich_dragon`) render as
+  `T8. Avatar` etc. with no hardcoded tier ceiling. The `.rmg.json`
+  contract has no separate "guard pool tier-N" surface that takes unit
+  tiers — `random_hire_*` SIDs and `basic_content_list_..._tier_N`
+  content lists are game-side and stop at tier 7 / tier 3 respectively
+  (no `random_hire_8` exists in `KnownValues.cs` or in any shipped
+  `ExampleTemplates/*.rmg.json`). Inventing a tier-8 hire SID would emit
+  a key the game silently ignores — same anti-pattern that cancelled
+  T-102. Added a regression test
+  (`Units_Tier8_AreNeutralAndReachableViaCatalog`) that pins the
+  catalog-side invariant so a future catalog refresh that drops tier-8
+  entries fails loudly instead of silently regressing the picker.
 - **Acceptance:** A preset using tier-8 neutrals validates and generates.
+  → Acceptance criterion is presentation-only and already satisfied:
+  tier-8 entries appear in both pickers, are bannable through
+  `GlobalBans`, and round-trip through `SettingsFile`. No preset change
+  needed because no template field accepts tier-8 unit SIDs as guard
+  pool members.
 
 ---
 
