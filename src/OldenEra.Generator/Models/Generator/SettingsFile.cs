@@ -109,6 +109,9 @@ namespace OldenEra.Generator.Models
         [JsonPropertyName("zoneCrossroadsPosition")]  public int?    ZoneCrossroadsPosition  { get; set; }
         [JsonPropertyName("zoneContentBiomeType")]    public string  ZoneContentBiomeType    { get; set; } = "";
         [JsonPropertyName("zoneContentBiomeArg")]     public string  ZoneContentBiomeArg     { get; set; } = "";
+        // T-203: metaObjectsBiome selector (mirrors contentBiome shape).
+        [JsonPropertyName("zoneMetaObjectsBiomeType")] public string ZoneMetaObjectsBiomeType { get; set; } = "";
+        [JsonPropertyName("zoneMetaObjectsBiomeArg")]  public string ZoneMetaObjectsBiomeArg  { get; set; } = "";
 
         // Per-zone overrides (T-006). null / "" = generator default; emit nothing.
         // Lists are stored as CSV strings so the share codec's value-equality

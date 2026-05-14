@@ -515,6 +515,134 @@ public class ExperimentalSettingsTests
         Assert.Equal("0", decoded.ZoneContentBiomeArg);
     }
 
+    // ── T-203: metaObjectsBiome selector ─────────────────────────────────
+
+    [Fact]
+    public void ZoneOverrides_MetaObjectsBiome_DefaultLeavesGeneratorOutputAlone()
+    {
+        // Acceptance: with no T-203 override set, generator output is byte-identical
+        // to the same seed without ZoneOverrides — i.e. the field is omitted
+        // (or whatever the builder chose) and not silently stamped.
+        var seed = 12345;
+        var a = TemplateGenerator.Generate(new GeneratorSettings { PlayerCount = 2, Seed = seed });
+        var b = TemplateGenerator.Generate(new GeneratorSettings
+        {
+            PlayerCount = 2,
+            Seed = seed,
+            ZoneOverrides = new ZoneOverridesSettings(), // all defaults
+        });
+        var opts = new System.Text.Json.JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+        };
+        Assert.Equal(
+            System.Text.Json.JsonSerializer.Serialize(a, opts),
+            System.Text.Json.JsonSerializer.Serialize(b, opts));
+    }
+
+    [Fact]
+    public void ZoneOverrides_MetaObjectsBiome_FromList_StampsEveryZone()
+    {
+        var s = new GeneratorSettings
+        {
+            PlayerCount = 2,
+            ZoneCfg = new ZoneConfiguration { NeutralZoneCount = 1, NeutralZoneCastles = 1 },
+            ZoneOverrides = new ZoneOverridesSettings
+            {
+                MetaObjectsBiomeType = "FromList",
+                MetaObjectsBiomeArg = "Snow",
+            },
+        };
+        var template = TemplateGenerator.Generate(s);
+        Assert.All(template.Variants![0].Zones!, z =>
+        {
+            Assert.Equal("FromList", z.MetaObjectsBiome!.Type);
+            Assert.Single(z.MetaObjectsBiome.Args!, "Snow");
+        });
+    }
+
+    [Fact]
+    public void ZoneOverrides_MetaObjectsBiome_MatchZone_OmitsArgs()
+    {
+        var s = new GeneratorSettings
+        {
+            PlayerCount = 2,
+            ZoneOverrides = new ZoneOverridesSettings
+            {
+                MetaObjectsBiomeType = "MatchZone",
+                MetaObjectsBiomeArg = "ignored",
+            },
+        };
+        var template = TemplateGenerator.Generate(s);
+        Assert.All(template.Variants![0].Zones!, z =>
+        {
+            Assert.Equal("MatchZone", z.MetaObjectsBiome!.Type);
+            Assert.Empty(z.MetaObjectsBiome.Args!);
+        });
+    }
+
+    [Fact]
+    public void ZoneOverrides_MetaObjectsBiome_ClonedPerZone_NoAliasing()
+    {
+        var s = new GeneratorSettings
+        {
+            PlayerCount = 2,
+            ZoneOverrides = new ZoneOverridesSettings
+            {
+                MetaObjectsBiomeType = "FromList",
+                MetaObjectsBiomeArg = "Sand",
+            },
+        };
+        var template = TemplateGenerator.Generate(s);
+        var zones = template.Variants![0].Zones!;
+        zones[0].MetaObjectsBiome!.Args!.Add("extra");
+        Assert.DoesNotContain("extra", zones[1].MetaObjectsBiome!.Args!);
+    }
+
+    [Fact]
+    public void SettingsMapper_MetaObjectsBiome_RoundTripsValues()
+    {
+        var original = new GeneratorSettings
+        {
+            ZoneOverrides = new ZoneOverridesSettings
+            {
+                MetaObjectsBiomeType = "FromList",
+                MetaObjectsBiomeArg = "Snow",
+            },
+        };
+        var file = SettingsMapper.ToFile(original, advancedMode: false, experimentalMapSizes: false);
+        var (restored, _, _, _) = SettingsMapper.FromFile(file);
+
+        Assert.Equal("FromList", restored.ZoneOverrides.MetaObjectsBiomeType);
+        Assert.Equal("Snow", restored.ZoneOverrides.MetaObjectsBiomeArg);
+    }
+
+    [Fact]
+    public void SettingsMapper_MetaObjectsBiome_DefaultsRoundTripAsUnset()
+    {
+        var file = SettingsMapper.ToFile(new GeneratorSettings(), advancedMode: false, experimentalMapSizes: false);
+        var (restored, _, _, _) = SettingsMapper.FromFile(file);
+
+        Assert.Equal("", restored.ZoneOverrides.MetaObjectsBiomeType);
+        Assert.Equal("", restored.ZoneOverrides.MetaObjectsBiomeArg);
+    }
+
+    [Fact]
+    public void SettingsShareCodec_MetaObjectsBiome_RoundTripsAcrossEncoded()
+    {
+        var file = new SettingsFile
+        {
+            ZoneMetaObjectsBiomeType = "MatchMainObject",
+            ZoneMetaObjectsBiomeArg = "0",
+        };
+        string encoded = SettingsShareCodec.Encode(file);
+        var decoded = SettingsShareCodec.TryDecode(encoded, out var status);
+        Assert.Equal(SettingsShareCodec.DecodeStatus.Ok, status);
+        Assert.NotNull(decoded);
+        Assert.Equal("MatchMainObject", decoded!.ZoneMetaObjectsBiomeType);
+        Assert.Equal("0", decoded.ZoneMetaObjectsBiomeArg);
+    }
+
     // ── T-006: per-zone caps / cutoff / content pools ──────────────────────
 
     [Fact]

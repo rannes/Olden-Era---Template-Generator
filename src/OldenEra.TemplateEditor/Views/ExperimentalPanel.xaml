@@ -449,20 +449,23 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="6"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="6"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="6"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="6"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="6"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="6"/>
-                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>  <!-- 0  Diplomacy label/box -->
+                                <RowDefinition Height="6"/>     <!-- 1  spacer -->
+                                <RowDefinition Height="Auto"/>  <!-- 2  Crossroads label/combo -->
+                                <RowDefinition Height="6"/>     <!-- 3  spacer -->
+                                <RowDefinition Height="Auto"/>  <!-- 4  Content biome label/combo -->
+                                <RowDefinition Height="Auto"/>  <!-- 5  Content biome arg textbox -->
+                                <RowDefinition Height="6"/>     <!-- 6  spacer -->
+                                <RowDefinition Height="Auto"/>  <!-- 7  Meta-objects biome label/combo (T-203) -->
+                                <RowDefinition Height="Auto"/>  <!-- 8  Meta-objects biome arg textbox (T-203) -->
+                                <RowDefinition Height="6"/>     <!-- 9  spacer -->
+                                <RowDefinition Height="Auto"/>  <!-- 10 Guard cutoff label/box -->
+                                <RowDefinition Height="6"/>     <!-- 11 spacer -->
+                                <RowDefinition Height="Auto"/>  <!-- 12 Guarded pool label/box -->
+                                <RowDefinition Height="6"/>     <!-- 13 spacer -->
+                                <RowDefinition Height="Auto"/>  <!-- 14 Unguarded pool label/box -->
+                                <RowDefinition Height="6"/>     <!-- 15 spacer -->
+                                <RowDefinition Height="Auto"/>  <!-- 16 Content count limits label/box -->
                             </Grid.RowDefinitions>
                             <Label   Grid.Row="0" Grid.Column="0" Content="Diplomacy modifier" Padding="5,2"/>
                             <TextBox Grid.Row="0" Grid.Column="1" x:Name="TxtZoneDiplomacy" ToolTip="Empty = generator default (-0.5). Range -1.0 … 1.0."/>
@@ -484,18 +487,29 @@
                             <TextBox Grid.Row="5" Grid.Column="1" x:Name="TxtZoneContentBiomeArg"
                                      Margin="0,4,0,0"
                                      ToolTip="MatchMainObject: index (0). FromList: biome name (Sand, Deathland, …)."/>
+                            <!-- T-203: metaObjectsBiome selector (mirrors content biome shape). -->
+                            <Label   Grid.Row="7" Grid.Column="0" Content="Meta-objects biome" Padding="5,2"/>
+                            <ComboBox Grid.Row="7" Grid.Column="1" x:Name="CmbZoneMetaObjectsBiome">
+                                <ComboBoxItem Content="Auto (generator default)" Tag=""/>
+                                <ComboBoxItem Content="Match main object" Tag="MatchMainObject"/>
+                                <ComboBoxItem Content="Match zone" Tag="MatchZone"/>
+                                <ComboBoxItem Content="From list" Tag="FromList"/>
+                            </ComboBox>
+                            <TextBox Grid.Row="8" Grid.Column="1" x:Name="TxtZoneMetaObjectsBiomeArg"
+                                     Margin="0,4,0,0"
+                                     ToolTip="MatchMainObject: index (0). FromList: biome name (Sand, Snow, Deathland, …)."/>
                             <!-- T-006: per-zone caps / cutoff / content pools. Empty = no change. -->
-                            <Label   Grid.Row="7" Grid.Column="0" Content="Guard cutoff value" Padding="5,2"/>
-                            <TextBox Grid.Row="7" Grid.Column="1" x:Name="TxtZoneGuardCutoff"
+                            <Label   Grid.Row="10" Grid.Column="0" Content="Guard cutoff value" Padding="5,2"/>
+                            <TextBox Grid.Row="10" Grid.Column="1" x:Name="TxtZoneGuardCutoff"
                                      ToolTip="Empty = generator default (2000). Shipped templates use 2000–2500."/>
-                            <Label   Grid.Row="9" Grid.Column="0" Content="Guarded content pool" Padding="5,2"/>
-                            <TextBox Grid.Row="9" Grid.Column="1" x:Name="TxtZoneGuardedPool"
+                            <Label   Grid.Row="12" Grid.Column="0" Content="Guarded content pool" Padding="5,2"/>
+                            <TextBox Grid.Row="12" Grid.Column="1" x:Name="TxtZoneGuardedPool"
                                      ToolTip="Comma-separated SIDs (e.g. template_pool_arcade_guarded_treasure_zone). Empty = leave generator's tier-derived choice."/>
-                            <Label   Grid.Row="11" Grid.Column="0" Content="Unguarded content pool" Padding="5,2"/>
-                            <TextBox Grid.Row="11" Grid.Column="1" x:Name="TxtZoneUnguardedPool"
+                            <Label   Grid.Row="14" Grid.Column="0" Content="Unguarded content pool" Padding="5,2"/>
+                            <TextBox Grid.Row="14" Grid.Column="1" x:Name="TxtZoneUnguardedPool"
                                      ToolTip="Comma-separated SIDs. Empty = generator default."/>
-                            <Label   Grid.Row="13" Grid.Column="0" Content="Content count limits" Padding="5,2"/>
-                            <TextBox Grid.Row="13" Grid.Column="1" x:Name="TxtZoneContentCountLimits"
+                            <Label   Grid.Row="16" Grid.Column="0" Content="Content count limits" Padding="5,2"/>
+                            <TextBox Grid.Row="16" Grid.Column="1" x:Name="TxtZoneContentCountLimits"
                                      ToolTip="Comma-separated SIDs (e.g. content_limits_spawn). References named limits the generator emits at the template root."/>
                         </Grid>
                     </StackPanel>

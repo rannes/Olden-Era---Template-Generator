@@ -101,6 +101,9 @@ public partial class ExperimentalPanel : UserControl
         // For "" (auto) and "MatchZone" the arg has no schema role — clear + disable it.
         CmbZoneContentBiome.SelectionChanged += (_, _) => UpdateZoneContentBiomeArgState();
         UpdateZoneContentBiomeArgState();
+        // T-203: same arg-relevance rules for metaObjectsBiome.
+        CmbZoneMetaObjectsBiome.SelectionChanged += (_, _) => UpdateZoneMetaObjectsBiomeArgState();
+        UpdateZoneMetaObjectsBiomeArgState();
         SldNeutralGuardValue.ValueChanged   += (_, _) => TxtNeutralGuardValue.Text   = ((int)SldNeutralGuardValue.Value).ToString();
         SldLowTierGuardWeekly.ValueChanged    += (_, _) => TxtLowTierGuardWeekly.Text    = ((int)SldLowTierGuardWeekly.Value).ToString();
         SldMediumTierGuardWeekly.ValueChanged += (_, _) => TxtMediumTierGuardWeekly.Text = ((int)SldMediumTierGuardWeekly.Value).ToString();
@@ -119,6 +122,18 @@ public partial class ExperimentalPanel : UserControl
         bool argRelevant = tag is "MatchMainObject" or "FromList";
         TxtZoneContentBiomeArg.IsEnabled = argRelevant;
         if (!argRelevant) TxtZoneContentBiomeArg.Text = "";
+    }
+
+    /// <summary>
+    /// T-203: mirrors <see cref="UpdateZoneContentBiomeArgState"/> for the
+    /// metaObjectsBiome selector. Same schema shape, same arg-relevance rules.
+    /// </summary>
+    private void UpdateZoneMetaObjectsBiomeArgState()
+    {
+        var tag = (CmbZoneMetaObjectsBiome.SelectedItem as System.Windows.Controls.ComboBoxItem)?.Tag as string ?? "";
+        bool argRelevant = tag is "MatchMainObject" or "FromList";
+        TxtZoneMetaObjectsBiomeArg.IsEnabled = argRelevant;
+        if (!argRelevant) TxtZoneMetaObjectsBiomeArg.Text = "";
     }
 
     /// <summary>
