@@ -83,8 +83,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   appears in fixture output; existing tests still pass.
 
 ### T-003 — RmgTemplate.valueOverrides
-- **Status:** in-progress
-- **Owner:** orchestrator (Phase 1 batch)
+- **Status:** done
+- **Owner:** Rannes (Phase 1 batch)
 - **Effort:** S
 - **Files:** `Models/Generator/`, `TemplateGenerator.cs`, both UI hosts.
 - **Scope:** Add a `List<ValueOverride>` (sid + value or sid + variant + value)

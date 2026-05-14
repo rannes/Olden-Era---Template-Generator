@@ -835,6 +835,7 @@ namespace OldenEra.TemplateEditor
             NeutralCityRemoveGuardIfHasOwner = PnlExperimental.ChkNeutralRemoveGuardIfHasOwner.IsChecked == true,
             GlobalBans = ParseBansCsv(PnlExperimental.TxtGlobalBans.Text),
             ContentCountLimits = ParseLimits(PnlExperimental.TxtCountLimits.Text),
+            ValueOverrides = ParseValueOverrides(PnlExperimental.TxtValueOverrides.Text),
             BonusResources = BuildBonusResourcesDict(),
             BonusHeroAttack     = (int)PnlExperimental.SldBonusAttack.Value,
             BonusHeroDefense    = (int)PnlExperimental.SldBonusDefense.Value,
@@ -880,6 +881,41 @@ namespace OldenEra.TemplateEditor
             }
             return list;
         }
+        // Format: one row per line, "sid=guardValue" or "sid:variant=guardValue".
+        // Variant defaults to -1 ("any variant"), matching the schema seen in
+        // shipped templates (Anarchy.rmg.json). Blank lines / unparseable rows
+        // are silently skipped — same lenient policy as ParseLimits.
+        private static List<ValueOverrideFile> ParseValueOverrides(string raw)
+        {
+            var list = new List<ValueOverrideFile>();
+            foreach (var line in raw.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                int eq = line.IndexOf('=');
+                if (eq <= 0) continue;
+                string lhs = line[..eq].Trim();
+                string rhs = line[(eq + 1)..].Trim();
+                if (!int.TryParse(rhs, out int guardValue) || guardValue <= 0) continue;
+
+                string sid = lhs;
+                int variant = -1;
+                int colon = lhs.IndexOf(':');
+                if (colon > 0)
+                {
+                    sid = lhs[..colon].Trim();
+                    if (!int.TryParse(lhs[(colon + 1)..].Trim(), out variant)) continue;
+                }
+                if (string.IsNullOrWhiteSpace(sid)) continue;
+                list.Add(new ValueOverrideFile { Sid = sid, Variant = variant, GuardValue = guardValue });
+            }
+            return list;
+        }
+
+        private static string FormatValueOverrides(IEnumerable<ValueOverrideFile> rows) =>
+            string.Join("\n", rows.Select(v =>
+                v.Variant == -1
+                    ? $"{v.Sid}={v.GuardValue}"
+                    : $"{v.Sid}:{v.Variant}={v.GuardValue}"));
+
         private Dictionary<string, int> BuildBonusResourcesDict()
         {
             var d = new Dictionary<string, int>();
@@ -990,6 +1026,8 @@ namespace OldenEra.TemplateEditor
             PnlExperimental.TxtCountLimits.Text = string.Join("\n",
                 (s.ContentCountLimits ?? new List<ContentLimitFile>())
                 .Select(l => $"{l.Sid}={l.MaxPerPlayer}"));
+            PnlExperimental.TxtValueOverrides.Text = FormatValueOverrides(
+                s.ValueOverrides ?? new List<ValueOverrideFile>());
             PnlExperimental.SldBonusGold.Value      = ResourceValue(s, "gold");
             PnlExperimental.SldBonusWood.Value      = ResourceValue(s, "wood");
             PnlExperimental.SldBonusOre.Value       = ResourceValue(s, "ore");
@@ -1450,6 +1488,8 @@ namespace OldenEra.TemplateEditor
                 GlobalBans = ParseBansCsv(PnlExperimental.TxtGlobalBans.Text),
                 ContentCountLimits = ParseLimits(PnlExperimental.TxtCountLimits.Text)
                     .ConvertAll(l => new ContentLimit { Sid = l.Sid, MaxPerPlayer = l.MaxPerPlayer }),
+                ValueOverrides = ParseValueOverrides(PnlExperimental.TxtValueOverrides.Text)
+                    .ConvertAll(v => new ValueOverrideSetting { Sid = v.Sid, Variant = v.Variant, GuardValue = v.GuardValue }),
             },
             Bonuses = new StartingBonusSettings
             {

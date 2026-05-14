@@ -74,6 +74,14 @@ public static class SettingsMapper
                 ContentCountLimits = s.ContentCountLimits is null
                     ? new()
                     : s.ContentCountLimits.ConvertAll(l => new ContentLimit { Sid = l.Sid, MaxPerPlayer = l.MaxPerPlayer }),
+                ValueOverrides = s.ValueOverrides is null
+                    ? new()
+                    : s.ValueOverrides.ConvertAll(v => new ValueOverrideSetting
+                    {
+                        Sid = v.Sid ?? "",
+                        Variant = v.Variant,
+                        GuardValue = v.GuardValue,
+                    }),
             },
             Bonuses = new StartingBonusSettings
             {
@@ -259,6 +267,8 @@ public static class SettingsMapper
             GlobalBans = new List<string>(g.Content.GlobalBans),
             ContentCountLimits = g.Content.ContentCountLimits.ConvertAll(
                 l => new ContentLimitFile { Sid = l.Sid, MaxPerPlayer = l.MaxPerPlayer }),
+            ValueOverrides = g.Content.ValueOverrides.ConvertAll(
+                v => new ValueOverrideFile { Sid = v.Sid, Variant = v.Variant, GuardValue = v.GuardValue }),
             BonusResources = new Dictionary<string,int>(g.Bonuses.Resources),
             BonusHeroAttack = g.Bonuses.HeroAttack,
             BonusHeroDefense = g.Bonuses.HeroDefense,

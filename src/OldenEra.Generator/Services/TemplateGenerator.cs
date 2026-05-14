@@ -175,6 +175,31 @@ namespace OldenEra.Generator.Services
                         template.GlobalBans.Magics.Add(sid);
             }
 
+            // Value overrides — emitted as RmgTemplate.valueOverrides. Schema mirrors
+            // shipped templates (Anarchy.rmg.json: { sid, variant, guardValue }).
+            // Empty list → field omitted (null is dropped by WhenWritingNull).
+            // Rows missing a SID, with non-positive guard value, or duplicating an
+            // already-emitted (sid,variant) pair are skipped (last-write-wins on
+            // duplicates would be surprising; we instead keep the first valid row).
+            if (settings.Content.ValueOverrides.Count > 0)
+            {
+                var seen = new HashSet<(string Sid, int Variant)>();
+                foreach (var v in settings.Content.ValueOverrides)
+                {
+                    if (string.IsNullOrWhiteSpace(v.Sid)) continue;
+                    if (v.GuardValue <= 0) continue;
+                    var key = (v.Sid, v.Variant);
+                    if (!seen.Add(key)) continue;
+                    template.ValueOverrides ??= new List<ValueOverride>();
+                    template.ValueOverrides.Add(new ValueOverride
+                    {
+                        Sid = v.Sid,
+                        Variant = v.Variant,
+                        GuardValue = v.GuardValue,
+                    });
+                }
+            }
+
             // Extra content count limits — appended as extra entries.
             if (settings.Content.ContentCountLimits.Count > 0)
             {

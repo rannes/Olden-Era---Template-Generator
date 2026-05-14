@@ -359,6 +359,16 @@
                             (e.g. <TextBlock FontFamily="Consolas">mine_gold=2</TextBlock>).
                         </TextBlock>
                         <TextBox x:Name="TxtCountLimits" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"/>
+                        <TextBlock Style="{StaticResource HintText}" Margin="0,8,0,0">
+                            Value overrides: one entry per line in the form
+                            <TextBlock FontFamily="Consolas">sid=guardValue</TextBlock>
+                            or
+                            <TextBlock FontFamily="Consolas">sid:variant=guardValue</TextBlock>
+                            (variant defaults to -1 = any). Example
+                            <TextBlock FontFamily="Consolas">boreal_call=6000</TextBlock>.
+                            Empty list = no <TextBlock FontFamily="Consolas">valueOverrides</TextBlock> field emitted.
+                        </TextBlock>
+                        <TextBox x:Name="TxtValueOverrides" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"/>
                     </StackPanel>
                 </Expander>
 
