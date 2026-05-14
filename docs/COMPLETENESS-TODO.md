@@ -287,7 +287,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   single-tier override, and tier-vs-global precedence.
 
 ### T-206 — Per-player Starting Bonuses
-- **Status:** in-progress
+- **Status:** done
 - **Owner:** Rannes
 - **Effort:** M
 - **Files:** `src/OldenEra.Generator/Models/Generator/GeneratorSettings.cs`,
