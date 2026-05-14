@@ -141,6 +141,15 @@ public class ZoneContentCloningTests
                 value = new List<string> { "item_" + prop.Name };
                 listProps.Add(prop);
             }
+            else if (t == typeof(List<ZoneContentRule>))
+            {
+                // Covered by CloneItem_DeepClonesRulesList below; here we just
+                // need a non-default value so the equality assertion passes.
+                value = new List<ZoneContentRule>
+                {
+                    new() { Type = "Road", Args = new() { "x" }, TargetMin = 0.1, TargetMax = 0.2, Weight = 1 },
+                };
+            }
             else
             {
                 Assert.Fail(
@@ -157,6 +166,11 @@ public class ZoneContentCloningTests
         foreach (var prop in props)
         {
             if (!prop.CanRead || !prop.CanWrite) continue;
+
+            // List<ZoneContentRule> doesn't implement structural equality; the
+            // dedicated CloneItem_DeepClonesRulesList test covers per-field
+            // copying, so we skip the generic equality check here.
+            if (prop.PropertyType == typeof(List<ZoneContentRule>)) continue;
 
             var originalValue = prop.GetValue(original);
             var cloneValue = prop.GetValue(clone);

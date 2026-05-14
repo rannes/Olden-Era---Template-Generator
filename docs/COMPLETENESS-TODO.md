@@ -208,7 +208,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   field flipping.
 
 ### T-202 — Mandatory content placement rules
-- **Status:** in-progress
+- **Status:** done
 - **Owner:** orchestrator (Phase 3+4 batch)
 - **Effort:** L
 - **Files:** New rules editor in both UI hosts, `MandatoryContent` emission in

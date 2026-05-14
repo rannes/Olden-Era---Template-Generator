@@ -85,6 +85,21 @@ else
                    value="@string.Join(", ", Item.BiomeFilter)"
                    @onchange="OnBiomeFilterChanged" />
         </div>
+
+        @* T-202: explicit ContentItem.rules editor. Single-line CSV form
+           keeps the detail card compact (no nested row-editor inside a
+           row-editor); the convenience flags Near castle / RoadDistance
+           still auto-emit their own rules. Format:
+             Type|args1/args2|min|max|weight; Type|...
+           Example: MainObject|0|0.05|0.25|1; Crossroads||0.10|0.30|1 *@
+        <div class="oe-stacked">
+            <label class="oe-label">Rules</label>
+            <input type="text" disabled="@ReadOnly"
+                   value="@OldenEra.Generator.Services.ZoneContent.ZoneContentRuleCsv.Join(Item.Rules)"
+                   @onchange="OnRulesChanged"
+                   placeholder="MainObject|0|0.05|0.25|1; Crossroads||0.10|0.30|1" />
+            <span class="oe-hint">Format: <code>Type|args1/args2|min|max|weight</code>; semicolon-separate.</span>
+        </div>
     </div>
 }
 
@@ -124,6 +139,13 @@ else
     {
         if (Item is null) return;
         Item.BiomeFilter = SplitCsv(e.Value?.ToString());
+        await NotifyChanged();
+    }
+
+    private async Task OnRulesChanged(ChangeEventArgs e)
+    {
+        if (Item is null) return;
+        Item.Rules = OldenEra.Generator.Services.ZoneContent.ZoneContentRuleCsv.Parse(e.Value?.ToString());
         await NotifyChanged();
     }
 
