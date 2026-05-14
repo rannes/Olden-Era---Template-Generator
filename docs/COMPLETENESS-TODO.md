@@ -132,7 +132,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 ## Phase 2 — Catalog depth
 
 ### T-101 — Expand ZoneContentSidCatalog to broad coverage
-- **Status:** in-progress
+- **Status:** done
 - **Owner:** orchestrator (Phase 2 batch)
 - **Effort:** L
 - **Files:** `src/OldenEra.Generator/Services/ZoneContent/ZoneContentSidCatalog.cs`,

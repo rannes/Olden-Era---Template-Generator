@@ -17,6 +17,17 @@
             </CollectionViewSource.GroupDescriptions>
         </CollectionViewSource>
 
+        <!-- Grouped SID-catalog view powering the per-row Sid ComboBox.
+             Source binds to the panel-VM's SidCatalog (flat list); grouping
+             is materialised here, ordered by ZoneContentSidCatalog.OrderedCategories
+             via CustomSort wired in code-behind (Loaded). -->
+        <CollectionViewSource x:Key="GroupedSidCatalog"
+                              Source="{Binding DataContext.SidCatalog, Source={x:Reference Root}}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="Category"/>
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
+
         <!-- Style.Triggers, when added later, MUST come after all Setters
              (see CLAUDE.md -> feedback_wpf_style_child_order). BAML errors
              only surface in CI on Mac. -->
@@ -82,10 +93,23 @@
                           IsEditable="True"
                           IsTextSearchEnabled="True"
                           Text="{Binding Sid, UpdateSourceTrigger=PropertyChanged}"
-                          ItemsSource="{Binding DataContext.SidCatalog, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          ItemsSource="{Binding Source={StaticResource GroupedSidCatalog}}"
                           DisplayMemberPath="FriendlyName"
                           SelectedValuePath="Sid"
-                          IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"/>
+                          IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}">
+                    <ComboBox.GroupStyle>
+                        <GroupStyle>
+                            <GroupStyle.HeaderTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}"
+                                               FontWeight="Bold"
+                                               Margin="2,4,2,2"
+                                               Opacity="0.75"/>
+                                </DataTemplate>
+                            </GroupStyle.HeaderTemplate>
+                        </GroupStyle>
+                    </ComboBox.GroupStyle>
+                </ComboBox>
 
                 <TextBox Grid.Column="1"
                          Text="{Binding MinCount, UpdateSourceTrigger=PropertyChanged}"
