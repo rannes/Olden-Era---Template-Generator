@@ -1,0 +1,17 @@
+{
+  "templateName": "Economy Engine",
+  "playerCount": 4,
+  "topology": "Balanced",
+  "mapSize": 144,
+  "neutralZoneCount": 4,
+  "playerCastles": 1,
+  "neutralCastles": 1,
+  "resourceDensity": 150,
+  "structureDensity": 110,
+  "neutralStackStrength": 90,
+  "borderGuardStrength": 90,
+  "heroMin": 4,
+  "heroMax": 8,
+  "factionLawsExp": 110,
+  "astrologyExp": 110
+}

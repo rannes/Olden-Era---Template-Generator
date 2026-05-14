@@ -1,0 +1,14 @@
+{
+  "templateName": "Six Kings",
+  "playerCount": 6,
+  "topology": "Balanced",
+  "mapSize": 144,
+  "neutralZoneCount": 4,
+  "playerCastles": 1,
+  "resourceDensity": 110,
+  "structureDensity": 110,
+  "neutralStackStrength": 100,
+  "borderGuardStrength": 100,
+  "heroMin": 4,
+  "heroMax": 8
+}

@@ -1,0 +1,15 @@
+{
+  "templateName": "Dragon Empire",
+  "playerCount": 6,
+  "topology": "Random",
+  "mapSize": 176,
+  "neutralZoneCount": 6,
+  "playerCastles": 1,
+  "neutralCastles": 1,
+  "resourceDensity": 130,
+  "structureDensity": 130,
+  "neutralStackStrength": 130,
+  "borderGuardStrength": 120,
+  "heroMin": 5,
+  "heroMax": 10
+}

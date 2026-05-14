@@ -6,10 +6,52 @@
     "file": "jebus-like.oetgs"
   },
   {
+    "id": "blitz-rush",
+    "name": "Blitz Rush",
+    "description": "2 player small map, dense connections, sparse neutrals — race to first contact.",
+    "file": "blitz-rush.oetgs"
+  },
+  {
+    "id": "tournament-duel",
+    "name": "Tournament Duel",
+    "description": "2 player arena with the tournament victory condition and recurring fights.",
+    "file": "tournament-duel.oetgs"
+  },
+  {
     "id": "arcade-2v2",
     "name": "Arcade 2v2",
     "description": "4 player chain, fast pacing, low neutral count.",
     "file": "arcade-2v2.oetgs"
+  },
+  {
+    "id": "economy-engine",
+    "name": "Economy Engine",
+    "description": "4 player economy-heavy map: slow start, mine-rich neutrals, weaker guards.",
+    "file": "economy-engine.oetgs"
+  },
+  {
+    "id": "arcane-academy",
+    "name": "Arcane Academy",
+    "description": "4 player magic-focused map: dense structures, generous heroes, late-game spell scaling.",
+    "file": "arcane-academy.oetgs"
+  },
+  {
+    "id": "citadel-siege",
+    "name": "Citadel Siege",
+    "description": "4 player defensive map: many neutral castles, lost-start-city pressure, hold to win.",
+    "file": "citadel-siege.oetgs"
+  },
+  {
+    "id": "six-kings",
+    "name": "Six Kings",
+    "description": "6 player balanced ring with moderate neutrals and standard pacing.",
+    "file": "six-kings.oetgs"
+  },
+  {
+    "id": "dragon-empire",
+    "name": "Dragon Empire",
+    "description": "6 player late-game scaling map: huge size, dense neutrals, tougher guards.",
+    "file": "dragon-empire.oetgs"
   },
   {
     "id": "big-map-ffa",

@@ -1,0 +1,17 @@
+{
+  "templateName": "Arcane Academy",
+  "playerCount": 4,
+  "topology": "Default",
+  "mapSize": 128,
+  "neutralZoneCount": 4,
+  "playerCastles": 1,
+  "resourceDensity": 110,
+  "structureDensity": 140,
+  "neutralStackStrength": 100,
+  "borderGuardStrength": 100,
+  "heroMin": 6,
+  "heroMax": 10,
+  "heroIncrement": 1,
+  "astrologyExp": 130,
+  "factionLawsExp": 110
+}
