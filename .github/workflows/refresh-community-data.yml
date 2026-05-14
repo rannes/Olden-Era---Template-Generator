@@ -65,8 +65,11 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          # Stable branch name (no suffix) so consecutive runs update the
+          # existing PR in place rather than opening a fresh one each week.
+          # peter-evans/create-pull-request keeps the same branch and amends
+          # the diff if the head commit changes.
           branch: chore/community-data-refresh
-          branch-suffix: timestamp
           delete-branch: true
           commit-message: |
             chore: refresh community data from alcaras/homm-olden
