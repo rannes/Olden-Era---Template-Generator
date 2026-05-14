@@ -41,6 +41,18 @@
                Value="(int)Math.Round(current.GuardWeeklyIncrement * 100)"
                ValueChanged="@(v => { current.GuardWeeklyIncrement = v / 100.0; NotifyChanged(); })" />
     <div class="oe-hint">Weekly increase in guard strength for this tier. 0% = use the global value above.</div>
+
+    <SliderRow Label="Obstacles" WideLabel="true"
+               Min="0" Max="80" Step="1" Suffix="%"
+               Value="(int)Math.Round(current.ObstaclesFill * 100)"
+               ValueChanged="@(v => { current.ObstaclesFill = v / 100.0; NotifyChanged(); })" />
+    <div class="oe-hint">Obstacle density for this tier's neutral zones. 0% = fall through to the global Terrain value.</div>
+
+    <SliderRow Label="Lakes" WideLabel="true"
+               Min="0" Max="50" Step="1" Suffix="%"
+               Value="(int)Math.Round(current.LakesFill * 100)"
+               ValueChanged="@(v => { current.LakesFill = v / 100.0; NotifyChanged(); })" />
+    <div class="oe-hint">Lake density for this tier's neutral zones. 0% = fall through to the global Terrain value.</div>
 </ExperimentalCard>
 
 @code {

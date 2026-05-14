@@ -260,7 +260,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   pool members.
 
 ### T-205 — Per-tier terrain density
-- **Status:** in-progress
+- **Status:** done
 - **Owner:** Rannes
 - **Effort:** M
 - **Files:** `src/OldenEra.Generator/Services/TemplateGenerator.cs`
@@ -278,12 +278,13 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   `zone_layout_sides_high`) to `template.ZoneLayouts` and rewrite
   `zone.Layout` for that tier's neutral zones. Surface obstacles/lakes
   sliders per tier in both UI hosts.
-- **Acceptance:** Defaults emit byte-identical output. Single-tier override
-  emits exactly one cloned layout and retargets that tier's neutral zones.
-  All-tiers-equal override mutates the base layout in place with zero
-  clones. Tier override beats global Terrain override for that tier;
-  untouched tiers fall through to global. Snapshot + unit tests cover
-  each path.
+- **Acceptance:** Defaults emit byte-identical output. A tier with a
+  density override produces one cloned layout per (base layout, tier)
+  pair actually used by neutral zones, and retargets those zones'
+  `zone.Layout` to the clone. Tiers with no override stay on the base
+  layout (which still carries any global `Terrain` stamp). Tier override
+  beats global `Terrain` for that tier. Unit tests cover defaults,
+  single-tier override, and tier-vs-global precedence.
 
 ---
 

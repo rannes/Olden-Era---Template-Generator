@@ -997,9 +997,9 @@ namespace OldenEra.TemplateEditor
             BonusSpellStartHeroOnly    = PnlExperimental.ChkBonusSpellStartHeroOnly.IsChecked == true,
             BonusUnitMultiplier        = PnlExperimental.SldBonusUnitMultiplier.Value / 100.0,
             BonusUnitMultiplierStartHeroOnly = PnlExperimental.ChkBonusUnitMultiplierStartHeroOnly.IsChecked == true,
-            TierLow    = new TierOverrideFile { BuildingPreset = PresetFromCombo(PnlExperimental.CmbLowTierPreset),    GuardWeeklyIncrement = PnlExperimental.SldLowTierGuardWeekly.Value / 100.0 },
-            TierMedium = new TierOverrideFile { BuildingPreset = PresetFromCombo(PnlExperimental.CmbMediumTierPreset), GuardWeeklyIncrement = PnlExperimental.SldMediumTierGuardWeekly.Value / 100.0 },
-            TierHigh   = new TierOverrideFile { BuildingPreset = PresetFromCombo(PnlExperimental.CmbHighTierPreset),   GuardWeeklyIncrement = PnlExperimental.SldHighTierGuardWeekly.Value / 100.0 },
+            TierLow    = new TierOverrideFile { BuildingPreset = PresetFromCombo(PnlExperimental.CmbLowTierPreset),    GuardWeeklyIncrement = PnlExperimental.SldLowTierGuardWeekly.Value / 100.0,    ObstaclesFill = PnlExperimental.SldLowTierObstacles.Value / 100.0,    LakesFill = PnlExperimental.SldLowTierLakes.Value / 100.0 },
+            TierMedium = new TierOverrideFile { BuildingPreset = PresetFromCombo(PnlExperimental.CmbMediumTierPreset), GuardWeeklyIncrement = PnlExperimental.SldMediumTierGuardWeekly.Value / 100.0, ObstaclesFill = PnlExperimental.SldMediumTierObstacles.Value / 100.0, LakesFill = PnlExperimental.SldMediumTierLakes.Value / 100.0 },
+            TierHigh   = new TierOverrideFile { BuildingPreset = PresetFromCombo(PnlExperimental.CmbHighTierPreset),   GuardWeeklyIncrement = PnlExperimental.SldHighTierGuardWeekly.Value / 100.0,   ObstaclesFill = PnlExperimental.SldHighTierObstacles.Value / 100.0,   LakesFill = PnlExperimental.SldHighTierLakes.Value / 100.0 },
 
             // ── Zone content (owned by ZoneContentPanelViewModel) ────────────
             PlayerZoneContent    = ZoneContentCloning.CloneList(_zoneContentSettings.PlayerZoneContent),
@@ -1305,6 +1305,12 @@ namespace OldenEra.TemplateEditor
             PnlExperimental.SldLowTierGuardWeekly.Value    = Math.Clamp((s.TierLow?.GuardWeeklyIncrement    ?? 0) * 100.0, 0, 50);
             PnlExperimental.SldMediumTierGuardWeekly.Value = Math.Clamp((s.TierMedium?.GuardWeeklyIncrement ?? 0) * 100.0, 0, 50);
             PnlExperimental.SldHighTierGuardWeekly.Value   = Math.Clamp((s.TierHigh?.GuardWeeklyIncrement   ?? 0) * 100.0, 0, 50);
+            PnlExperimental.SldLowTierObstacles.Value      = Math.Clamp((s.TierLow?.ObstaclesFill    ?? 0) * 100.0, 0, 80);
+            PnlExperimental.SldMediumTierObstacles.Value   = Math.Clamp((s.TierMedium?.ObstaclesFill ?? 0) * 100.0, 0, 80);
+            PnlExperimental.SldHighTierObstacles.Value     = Math.Clamp((s.TierHigh?.ObstaclesFill   ?? 0) * 100.0, 0, 80);
+            PnlExperimental.SldLowTierLakes.Value          = Math.Clamp((s.TierLow?.LakesFill    ?? 0) * 100.0, 0, 50);
+            PnlExperimental.SldMediumTierLakes.Value       = Math.Clamp((s.TierMedium?.LakesFill ?? 0) * 100.0, 0, 50);
+            PnlExperimental.SldHighTierLakes.Value         = Math.Clamp((s.TierHigh?.LakesFill   ?? 0) * 100.0, 0, 50);
 
             // Zone overrides (T-005)
             PnlExperimental.TxtZoneDiplomacy.Text = s.ZoneDiplomacyModifier?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
@@ -1876,16 +1882,22 @@ namespace OldenEra.TemplateEditor
             {
                 BuildingPreset = PresetFromCombo(PnlExperimental.CmbLowTierPreset),
                 GuardWeeklyIncrement = PnlExperimental.SldLowTierGuardWeekly.Value / 100.0,
+                ObstaclesFill = PnlExperimental.SldLowTierObstacles.Value / 100.0,
+                LakesFill     = PnlExperimental.SldLowTierLakes.Value / 100.0,
             };
             settings.ZoneCfg.Advanced.MediumTier = new TierOverrides
             {
                 BuildingPreset = PresetFromCombo(PnlExperimental.CmbMediumTierPreset),
                 GuardWeeklyIncrement = PnlExperimental.SldMediumTierGuardWeekly.Value / 100.0,
+                ObstaclesFill = PnlExperimental.SldMediumTierObstacles.Value / 100.0,
+                LakesFill     = PnlExperimental.SldMediumTierLakes.Value / 100.0,
             };
             settings.ZoneCfg.Advanced.HighTier = new TierOverrides
             {
                 BuildingPreset = PresetFromCombo(PnlExperimental.CmbHighTierPreset),
                 GuardWeeklyIncrement = PnlExperimental.SldHighTierGuardWeekly.Value / 100.0,
+                ObstaclesFill = PnlExperimental.SldHighTierObstacles.Value / 100.0,
+                LakesFill     = PnlExperimental.SldHighTierLakes.Value / 100.0,
             };
         }
 

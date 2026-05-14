@@ -274,6 +274,11 @@ namespace OldenEra.Generator.Services
                 }
             }
 
+            // T-205 — per-tier terrain density. Runs after the global Terrain
+            // stamp so cloned layouts inherit the global value as their
+            // baseline when a tier omits one of obstacles/lakes.
+            ApplyPerTierTerrainDensity(template, settings, tierByLetter);
+
             ApplyBordersAndRoads(template, settings.BordersRoads);
             ApplyZoneOverrides(template, settings.ZoneOverrides);
             ApplyEncounterHoles(template, settings.EncounterHoles);
@@ -471,6 +476,92 @@ namespace OldenEra.Generator.Services
             NeutralZoneQuality.High => settings.ZoneCfg.Advanced.HighTier,
             _ => settings.ZoneCfg.Advanced.MediumTier,
         };
+
+        // T-205 — per-tier terrain density.
+        //
+        // The schema models density (obstaclesFill / lakesFill) only on
+        // ZoneLayout, not on Zone, and the four built-in layouts
+        // (Spawn / Sides / TreasureZone / Center) are shared across tiers.
+        // To give different tiers different densities we clone the base
+        // layout per (layout, tier) pair that actually diverges, append the
+        // clones to template.ZoneLayouts, and rewrite zone.Layout for the
+        // affected zones.
+        //
+        // Defaults are no-op: with all TierOverrides values at 0 the loop
+        // sees no diverging tiers and the template is untouched. This pass
+        // runs *after* the global Terrain stamp so a tier-specific clone
+        // inherits the (already global-stamped) base values for whichever
+        // axis the tier didn't override.
+        private static void ApplyPerTierTerrainDensity(
+            RmgTemplate template,
+            GeneratorSettings settings,
+            Dictionary<string, NeutralZoneQuality> tierByLetter)
+        {
+            var advanced = settings.ZoneCfg.Advanced;
+            bool anyTierSet =
+                advanced.LowTier.ObstaclesFill    > 0 || advanced.LowTier.LakesFill    > 0
+             || advanced.MediumTier.ObstaclesFill > 0 || advanced.MediumTier.LakesFill > 0
+             || advanced.HighTier.ObstaclesFill   > 0 || advanced.HighTier.LakesFill   > 0;
+            if (!anyTierSet) return;
+            if (template.ZoneLayouts is null || template.Variants is null) return;
+
+            // Layouts indexed by name for clone insertion + lookup.
+            var layoutsByName = template.ZoneLayouts.ToDictionary(l => l.Name);
+
+            // Cache cloned layouts so a (baseLayout, tier) pair maps to the same
+            // cloned name across all variants. Key: (baseLayoutName, tier).
+            var clones = new Dictionary<(string Base, NeutralZoneQuality Tier), string>();
+
+            string TierSuffix(NeutralZoneQuality q) => q switch
+            {
+                NeutralZoneQuality.Low    => "low",
+                NeutralZoneQuality.High   => "high",
+                _                         => "medium",
+            };
+
+            foreach (var variant in template.Variants)
+            {
+                if (variant.Zones is null) continue;
+                foreach (var zone in variant.Zones)
+                {
+                    string? letter = ExtractZoneLetter(zone.Name);
+                    if (letter is null) continue;
+                    if (!tierByLetter.TryGetValue(letter, out var tier)) continue;
+
+                    var ov = GetTierOverrides(settings, tier);
+                    if (ov.ObstaclesFill <= 0 && ov.LakesFill <= 0) continue;
+
+                    string? baseName = zone.Layout;
+                    if (string.IsNullOrEmpty(baseName)) continue;
+                    if (!layoutsByName.TryGetValue(baseName, out var baseLayout)) continue;
+
+                    var key = (baseName, tier);
+                    if (!clones.TryGetValue(key, out var cloneName))
+                    {
+                        cloneName = $"{baseName}_{TierSuffix(tier)}";
+                        var clone = new ZoneLayout
+                        {
+                            Name = cloneName,
+                            ObstaclesFill = ov.ObstaclesFill > 0 ? ov.ObstaclesFill : baseLayout.ObstaclesFill,
+                            ObstaclesFillVoid = baseLayout.ObstaclesFillVoid,
+                            LakesFill = ov.LakesFill > 0 ? ov.LakesFill : baseLayout.LakesFill,
+                            MinLakeArea = baseLayout.MinLakeArea,
+                            ElevationClusterScale = baseLayout.ElevationClusterScale,
+                            ElevationModes = baseLayout.ElevationModes is null
+                                ? null
+                                : new List<ElevationMode>(baseLayout.ElevationModes),
+                            RoadClusterArea = baseLayout.RoadClusterArea,
+                            GuardedEncounterResourceFractions = baseLayout.GuardedEncounterResourceFractions,
+                            AmbientPickupDistribution = baseLayout.AmbientPickupDistribution,
+                        };
+                        template.ZoneLayouts.Add(clone);
+                        layoutsByName[cloneName] = clone;
+                        clones[key] = cloneName;
+                    }
+                    zone.Layout = cloneName;
+                }
+            }
+        }
 
         private static IEnumerable<Bonus> BuildExperimentalBonuses(StartingBonusSettings b)
         {
