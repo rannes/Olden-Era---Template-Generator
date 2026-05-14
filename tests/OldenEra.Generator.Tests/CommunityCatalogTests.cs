@@ -73,4 +73,27 @@ public class CommunityCatalogTests
     {
         Assert.Same(CommunityCatalog.Default, CommunityCatalog.Default);
     }
+
+    // ── T-204 regression net ────────────────────────────────────────────────
+    // units.json carries tier-8 neutral creatures (avatars + lich_dragon).
+    // Both unit-ban pickers (Web UnitBanGrid, WPF ExperimentalPanel) group
+    // by faction × tier dynamically off CommunityCatalog.Units, so any new
+    // tier introduced upstream surfaces automatically. This test pins that
+    // invariant: if tier-8 neutrals disappear from the catalog (e.g. a
+    // catalog refresh drops them), the pickers regress silently — fail loudly.
+    [Fact]
+    public void Units_Tier8_AreNeutralAndReachableViaCatalog()
+    {
+        var tier8 = Catalog.Units.Where(u => u.Tier == 8).ToList();
+
+        Assert.NotEmpty(tier8);
+        Assert.All(tier8, u =>
+            Assert.Equal("neutral", u.Faction, ignoreCase: true));
+
+        // Same projection the unit-ban grid uses (UnitsByFaction → GroupBy Tier).
+        var neutralTiers = Catalog.UnitsByFaction("neutral")
+            .Select(u => u.Tier)
+            .ToHashSet();
+        Assert.Contains(8, neutralTiers);
+    }
 }
