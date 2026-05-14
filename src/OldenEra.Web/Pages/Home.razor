@@ -127,11 +127,13 @@
         </section>
 
         <aside class="oe-preview-col">
-            <button class="oe-btn primary"
-                    disabled="@(!IsValid || IsGenerating)"
-                    @onclick="OnGenerateClick">
-                Generate Template
-            </button>
+            <div class="oe-action-bar">
+                <button class="oe-btn primary"
+                        disabled="@(!IsValid || IsGenerating)"
+                        @onclick="OnGenerateClick">
+                    Generate Template
+                </button>
+            </div>
             @if (!string.IsNullOrEmpty(ValidationMessage))
             {
                 <div class="oe-error">@ValidationMessage</div>
