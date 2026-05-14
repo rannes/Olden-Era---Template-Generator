@@ -197,9 +197,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 ## Phase 3 — Generation tuning
 
 ### T-201 — Encounter holes (multi-stack battles)
-- **Status:** open
-- **Owner:** —
-- **Blocked by:** T-001..T-006 finished (avoid surface-area churn)
+- **Status:** in-progress
+- **Owner:** orchestrator (Phase 3+4 batch)
 - **Effort:** M
 - **Files:** `TemplateGenerator.cs` (`Zone.encounterHolesSettings`,
   `GameRules`), `GeneratorSettings.cs`, both UI hosts.
@@ -209,9 +208,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   field flipping.
 
 ### T-202 — Mandatory content placement rules
-- **Status:** open
-- **Owner:** —
-- **Blocked by:** T-101 (rules reference SIDs from the broader catalog)
+- **Status:** in-progress
+- **Owner:** orchestrator (Phase 3+4 batch)
 - **Effort:** L
 - **Files:** New rules editor in both UI hosts, `MandatoryContent` emission in
   `TemplateGenerator.cs`.
@@ -221,8 +219,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 - **Acceptance:** Rules round-trip; an example preset uses one to demonstrate.
 
 ### T-203 — MetaObjectsBiome selectors and themed pools
-- **Status:** open
-- **Owner:** —
+- **Status:** in-progress
+- **Owner:** orchestrator (Phase 3+4 batch)
 - **Effort:** S
 - **Files:** Zone builders, settings models, both UI hosts.
 - **Scope:** Expose `metaObjectsBiome` as a preset selector (e.g.,
@@ -230,9 +228,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 - **Acceptance:** Preset selection emits the field; default omits it.
 
 ### T-204 — Per-tier-8 neutral creature support in pickers
-- **Status:** open
-- **Owner:** —
-- **Blocked by:** T-101
+- **Status:** in-progress
+- **Owner:** orchestrator (Phase 3+4 batch)
 - **Effort:** S
 - **Files:** Zone-content presets, picker UI.
 - **Scope:** Neutral units reach tier 8 in `units.json` but no preset or
@@ -244,8 +241,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 ## Phase 4 — UX that supports completeness
 
 ### T-301 — Mobile layout: web preview + Generate reachable below 600 px
-- **Status:** open
-- **Owner:** —
+- **Status:** in-progress
+- **Owner:** orchestrator (Phase 3+4 batch)
 - **Effort:** M
 - **Files:** `src/OldenEra.Web/wwwroot/css/app.css`,
   `src/OldenEra.Web/Pages/Home.razor`, `src/OldenEra.Web/Components/PreviewPanel.razor`.
@@ -280,8 +277,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   five most common blockers.
 
 ### T-304 — Preview: zoom + pan + reseed-in-place
-- **Status:** open
-- **Owner:** —
+- **Status:** in-progress
+- **Owner:** orchestrator (Phase 3+4 batch)
 - **Effort:** M
 - **Files:** `PreviewPanel.razor`, WPF preview adapter,
   `TemplatePreviewRenderer.cs` (only if vector hooks needed).
