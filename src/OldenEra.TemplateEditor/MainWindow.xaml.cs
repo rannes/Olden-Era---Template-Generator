@@ -938,7 +938,9 @@ namespace OldenEra.TemplateEditor
             int idx = Math.Max(0, PnlExperimental.CmbGuardReactionPreset.SelectedIndex);
             if (idx <= 0 || idx >= GuardReactionPresetOrder.Length)
                 return new GuardReactionSettings();
-            var preset = (GuardReactionPreset)idx; // enum order matches XAML order by design.
+            // Single source of truth: GuardReactionPresetOrder. Going through Enum.Parse
+            // keeps this robust against future enum reorders (vs. raw (GuardReactionPreset)idx).
+            var preset = Enum.Parse<GuardReactionPreset>(GuardReactionPresetOrder[idx]);
             var custom = new List<int>();
             if (preset == GuardReactionPreset.Custom)
             {

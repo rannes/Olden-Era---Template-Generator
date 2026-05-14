@@ -226,6 +226,9 @@ public class ExperimentalSettingsTests
             .ToList();
         Assert.NotEmpty(neutralCities);
         Assert.All(neutralCities, m => Assert.Equal(0.3, m.GuardChance));
+        // Defense in depth: setting GuardChance must not implicitly drag
+        // RemoveGuardIfHasOwner along (the two fields are independent).
+        Assert.All(neutralCities, m => Assert.Null(m.RemoveGuardIfHasOwner));
 
         // Spawn (player) cities are unaffected — still fully guarded.
         var spawns = template.Variants![0].Zones!
