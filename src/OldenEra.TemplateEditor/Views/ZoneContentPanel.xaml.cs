@@ -30,6 +30,17 @@ public partial class ZoneContentPanel : UserControl
         {
             view.CustomSort = new PresetOrdinalComparer();
         }
+
+        // Keep SID-catalog groups in ZoneContentSidCatalog.OrderedCategories order
+        // (matches Web datalist iteration). Within a category, preserve seed
+        // order by SID-string ordinal — the seed is hand-authored in source order
+        // already, but ListCollectionView grouping would otherwise alphabetise.
+        if (Resources["GroupedSidCatalog"] is CollectionViewSource sidCvs &&
+            sidCvs.View is ListCollectionView sidView &&
+            sidView.CustomSort is null)
+        {
+            sidView.CustomSort = new SidCatalogOrdinalComparer();
+        }
     }
 
     /// <summary>
@@ -80,6 +91,35 @@ public partial class ZoneContentPanel : UserControl
             if (x is not ZoneContentPreset a || y is not ZoneContentPreset b) return 0;
             var c = StringComparer.Ordinal.Compare(a.Category, b.Category);
             return c != 0 ? c : StringComparer.Ordinal.Compare(a.Name, b.Name);
+        }
+    }
+
+    /// <summary>
+    /// Orders SID-catalog entries first by their category's index in
+    /// <see cref="ZoneContentSidCatalog.OrderedCategories"/> (so picker groups
+    /// appear Mandatory → Mines → ... → Misc rather than alphabetically), then
+    /// by SID ordinal so the dropdown order is stable across cultures.
+    /// </summary>
+    private sealed class SidCatalogOrdinalComparer : IComparer
+    {
+        private static readonly System.Collections.Generic.Dictionary<string, int> CategoryIndex =
+            BuildIndex();
+
+        private static System.Collections.Generic.Dictionary<string, int> BuildIndex()
+        {
+            var dict = new System.Collections.Generic.Dictionary<string, int>(StringComparer.Ordinal);
+            int i = 0;
+            foreach (var c in ZoneContentSidCatalog.OrderedCategories) dict[c] = i++;
+            return dict;
+        }
+
+        public int Compare(object? x, object? y)
+        {
+            if (x is not ZoneContentSidEntry a || y is not ZoneContentSidEntry b) return 0;
+            int ai = CategoryIndex.TryGetValue(a.Category, out var avi) ? avi : int.MaxValue;
+            int bi = CategoryIndex.TryGetValue(b.Category, out var bvi) ? bvi : int.MaxValue;
+            int c = ai.CompareTo(bi);
+            return c != 0 ? c : StringComparer.Ordinal.Compare(a.Sid, b.Sid);
         }
     }
 }

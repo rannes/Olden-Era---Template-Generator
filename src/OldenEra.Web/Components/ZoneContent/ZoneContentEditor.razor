@@ -4,10 +4,19 @@
     @* Single shared <datalist> for Sid autocomplete; referenced by every Sid input
        in this editor via list="zone-content-sids". Hoisted here (vs per-row) so the
        global id stays unique even if the layout ever renders multiple detail panes. *@
+    @* HTML <datalist> ignores <optgroup>, so we surface the category as part of
+       the option label. Browsers display option text content next to the value
+       in the dropdown, giving users a visible grouping cue without losing the
+       free-text autocomplete UX. Iteration order follows
+       ZoneContentSidCatalog.Grouped() (stable category order, source order
+       within a category). *@
     <datalist id="zone-content-sids">
-        @foreach (var entry in ZoneContentSidCatalog.All())
+        @foreach (var group in ZoneContentSidCatalog.Grouped())
         {
-            <option value="@entry.Sid">@entry.FriendlyName</option>
+            @foreach (var entry in group)
+            {
+                <option value="@entry.Sid" label="@($"{entry.FriendlyName} — {group.Key}")">@entry.FriendlyName</option>
+            }
         }
     </datalist>
 
