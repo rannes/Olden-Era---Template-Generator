@@ -1453,6 +1453,8 @@ namespace OldenEra.TemplateEditor
             byte[] previewPng = TemplatePreviewRenderer.RenderPng(_generatedTemplate, _generatedTopology);
             ImgPreview.Source = WpfPreviewAdapter.ToBitmapImage(previewPng);
             LblNoPreview.Content = "?";
+            LblNoPreview.Visibility = Visibility.Collapsed;
+            PnlPreviewToolbar.Visibility = Visibility.Visible;
             BtnSaveGenerated.Visibility = Visibility.Visible;
             PnlMap.TxtSeedUsed.Text = settings.Seed.HasValue
                 ? $"Seed used: {settings.Seed.Value}"
@@ -1806,6 +1808,67 @@ namespace OldenEra.TemplateEditor
                     return templatesDir;
             }
             return null;
+        }
+
+        // -- Preview zoom + reseed --------------------------------------------
+
+        private const double PreviewZoomMin = 0.5;
+        private const double PreviewZoomMax = 3.0;
+        private const double PreviewZoomStep = 0.25;
+
+        private void SldZoom_ValueChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
+        {
+            // Slider works in percent (50–300, snap 25). Mirror to the
+            // ScaleTransform on the Image and to the label.
+            if (ImgPreviewScale is null) return;
+            double scale = e.NewValue / 100.0;
+            ImgPreviewScale.ScaleX = scale;
+            ImgPreviewScale.ScaleY = scale;
+            if (TxtZoomLabel is not null)
+                TxtZoomLabel.Text = $"{(int)System.Math.Round(e.NewValue)}%";
+        }
+
+        private void BtnZoomIn_Click(object sender, RoutedEventArgs e)
+            => SetPreviewZoomPercent(SldZoom.Value + PreviewZoomStep * 100.0);
+
+        private void BtnZoomOut_Click(object sender, RoutedEventArgs e)
+            => SetPreviewZoomPercent(SldZoom.Value - PreviewZoomStep * 100.0);
+
+        private void BtnZoomReset_Click(object sender, RoutedEventArgs e)
+            => SetPreviewZoomPercent(100.0);
+
+        private void SetPreviewZoomPercent(double pct)
+        {
+            double min = PreviewZoomMin * 100.0;
+            double max = PreviewZoomMax * 100.0;
+            if (pct < min) pct = min;
+            if (pct > max) pct = max;
+            SldZoom.Value = pct;
+        }
+
+        private void BtnReseed_Click(object sender, RoutedEventArgs e)
+        {
+            if (BtnPreview.IsEnabled == false) return;
+
+            // Snapshot the user's pan so they keep their view after we swap
+            // in the new PNG.
+            double scrollX = ScrollPreview?.HorizontalOffset ?? 0;
+            double scrollY = ScrollPreview?.VerticalOffset ?? 0;
+
+            // Roll a fresh seed into the seed input, then trigger generate.
+            // We reuse BtnPreview_Click so all the post-generate plumbing
+            // (validation, outdated flag, save button) runs identically.
+            int newSeed = System.Random.Shared.Next(0, int.MaxValue);
+            PnlMap.TxtSeed.Text = newSeed.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            BtnPreview_Click(sender, e);
+
+            // Restore scroll. Defer so the layout pass after the new image
+            // sets the extent correctly before we reposition.
+            Dispatcher.BeginInvoke(new System.Action(() =>
+            {
+                ScrollPreview?.ScrollToHorizontalOffset(scrollX);
+                ScrollPreview?.ScrollToVerticalOffset(scrollY);
+            }), System.Windows.Threading.DispatcherPriority.Background);
         }
 
         private void ChkSavePreviewImage_Click(object sender, RoutedEventArgs e)

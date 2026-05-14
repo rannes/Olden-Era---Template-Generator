@@ -708,6 +708,31 @@ input[type="range"]:focus-visible::-moz-range-thumb {
 }
 
 /* ── Preview pane ───────────────────────────────────────── */
+.oe-preview-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.oe-preview-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+}
+.oe-preview-toolbar input[type=range] {
+    flex: 1 1 80px;
+    min-width: 80px;
+}
+.oe-preview-zoom-label {
+    color: var(--oe-text-dim);
+    font-variant-numeric: tabular-nums;
+    min-width: 3.2em;
+    text-align: right;
+}
+.oe-preview-reseed {
+    margin-left: auto;
+}
 .oe-preview {
     background: var(--oe-surface-1);
     border: 2px solid var(--oe-border);
@@ -715,18 +740,26 @@ input[type="range"]:focus-visible::-moz-range-thumb {
     padding: 0.4rem;
     text-align: center;
     min-height: 280px;
+    /* Pan via native scroll when the zoomed image overflows. */
+    overflow: auto;
+    max-height: 75vh;
     display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.oe-preview img {
-    max-width: 100%;
-    height: auto;
-    image-rendering: -webkit-optimize-contrast;
+    align-items: flex-start;
+    justify-content: flex-start;
 }
 .oe-preview .placeholder {
     color: var(--oe-text-dim);
     font-size: 0.85rem;
+    margin: auto;
+}
+.oe-preview-zoom {
+    /* Sized inline; holds a scaled <img> using transform-origin: top left. */
+    flex: 0 0 auto;
+    image-rendering: -webkit-optimize-contrast;
+}
+.oe-preview-zoom img {
+    display: block;
+    image-rendering: -webkit-optimize-contrast;
 }
 
 .oe-preview-col {

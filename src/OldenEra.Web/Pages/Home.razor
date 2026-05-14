@@ -139,7 +139,9 @@
                 <div class="oe-error">@ValidationMessage</div>
             }
 
-            <PreviewPanel PngBytes="PreviewPng" />
+            <PreviewPanel PngBytes="PreviewPng"
+                          OnReseed="OnReseedClick"
+                          ReseedDisabled="@(!IsValid || IsGenerating)" />
 
             @if (GeneratedTemplate is not null)
             {
@@ -403,6 +405,17 @@
     private async Task OnGenerateClick()
     {
         if (!IsValid || IsGenerating) return;
+        await RunGenerationAsync();
+    }
+
+    private async Task OnReseedClick()
+    {
+        if (!IsValid || IsGenerating) return;
+        // Roll a fresh random seed and regenerate. PreviewPanel captures and
+        // restores the wrapper's scroll offset around this call so the user
+        // doesn't lose their pan/zoom view.
+        Settings.Seed = Random.Shared.Next(0, int.MaxValue);
+        OnChanged();
         await RunGenerationAsync();
     }
 

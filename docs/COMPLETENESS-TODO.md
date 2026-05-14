@@ -300,7 +300,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   five most common blockers.
 
 ### T-304 — Preview: zoom + pan + reseed-in-place
-- **Status:** in-progress
+- **Status:** done
 - **Owner:** orchestrator (Phase 3+4 batch)
 - **Effort:** M
 - **Files:** `PreviewPanel.razor`, WPF preview adapter,

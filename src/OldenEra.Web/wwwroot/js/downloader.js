@@ -25,6 +25,20 @@ window.oeDownloader = {
     }
 };
 
+// Tiny helpers for the preview pane: capture/restore scroll offset across a
+// reseed so the user keeps their current view of a zoomed map.
+window.oePreview = {
+    getScroll: function (el) {
+        if (!el) return [0, 0];
+        return [el.scrollLeft || 0, el.scrollTop || 0];
+    },
+    setScroll: function (el, left, top) {
+        if (!el) return;
+        el.scrollLeft = left;
+        el.scrollTop = top;
+    },
+};
+
 window.oeShare = {
     getHash: function () {
         return (window.location.hash || "").replace(/^#/, "");
