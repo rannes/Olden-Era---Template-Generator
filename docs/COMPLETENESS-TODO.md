@@ -115,7 +115,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 - **Acceptance:** Round-trip through `SettingsFile` and `HostParityTests`.
 
 ### T-006 — Zone.contentCountLimits, guardCutoffValue, content pool assignments
-- **Status:** in-progress
+- **Status:** done
 - **Owner:** orchestrator (Phase 2 batch)
 - **Blocked by:** T-005 (shares the per-zone settings UI surface)
 - **Effort:** M

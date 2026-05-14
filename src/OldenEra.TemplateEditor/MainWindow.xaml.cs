@@ -830,6 +830,10 @@ namespace OldenEra.TemplateEditor
             ZoneCrossroadsPosition = TagAsNullableInt(PnlExperimental.CmbZoneCrossroads.SelectedItem),
             ZoneContentBiomeType   = TagAsString(PnlExperimental.CmbZoneContentBiome.SelectedItem),
             ZoneContentBiomeArg    = PnlExperimental.TxtZoneContentBiomeArg.Text?.Trim() ?? "",
+            ZoneGuardCutoffValue   = ParseNullableInt(PnlExperimental.TxtZoneGuardCutoff.Text),
+            ZoneGuardedContentPool = NormalizeSidCsv(PnlExperimental.TxtZoneGuardedPool.Text),
+            ZoneUnguardedContentPool = NormalizeSidCsv(PnlExperimental.TxtZoneUnguardedPool.Text),
+            ZoneContentCountLimits = NormalizeSidCsv(PnlExperimental.TxtZoneContentCountLimits.Text),
             BuildingPresetPlayer = PresetFromCombo(PnlExperimental.CmbPlayerPreset),
             BuildingPresetNeutral = PresetFromCombo(PnlExperimental.CmbNeutralPreset),
             ZoneGuardWeeklyIncrement = PnlExperimental.SldZoneGuardWeekly.Value / 100.0,
@@ -1158,6 +1162,13 @@ namespace OldenEra.TemplateEditor
             PnlExperimental.TxtZoneContentBiomeArg.Text = s.ZoneContentBiomeArg ?? "";
             SetTagCombo(PnlExperimental.CmbZoneContentBiome, s.ZoneContentBiomeType ?? "");
 
+            // T-006 zone overrides: scalar + three CSV fields.
+            PnlExperimental.TxtZoneGuardCutoff.Text =
+                s.ZoneGuardCutoffValue?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+            PnlExperimental.TxtZoneGuardedPool.Text = s.ZoneGuardedContentPool ?? "";
+            PnlExperimental.TxtZoneUnguardedPool.Text = s.ZoneUnguardedContentPool ?? "";
+            PnlExperimental.TxtZoneContentCountLimits.Text = s.ZoneContentCountLimits ?? "";
+
             ReinitZoneContentPanel(s);
         }
 
@@ -1167,6 +1178,41 @@ namespace OldenEra.TemplateEditor
             return double.TryParse(raw.Trim(),
                 System.Globalization.NumberStyles.Float,
                 System.Globalization.CultureInfo.InvariantCulture, out double v) ? v : null;
+        }
+
+        private static int? ParseNullableInt(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return null;
+            return int.TryParse(raw.Trim(), System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture, out int v) && v >= 0 ? v : null;
+        }
+
+        private static List<string> ParseSidList(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return new();
+            var parts = raw.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            var result = new List<string>(parts.Length);
+            foreach (var p in parts)
+            {
+                string t = p.Trim();
+                if (t.Length > 0) result.Add(t);
+            }
+            return result;
+        }
+
+        // Trims tokens, drops empties, rejoins. Round-trips losslessly through
+        // the share codec because the result is just a string.
+        private static string NormalizeSidCsv(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return "";
+            var parts = raw.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            var kept = new List<string>(parts.Length);
+            foreach (var p in parts)
+            {
+                string t = p.Trim();
+                if (t.Length > 0) kept.Add(t);
+            }
+            return string.Join(",", kept);
         }
 
         private static int? TagAsNullableInt(object? selectedItem)
@@ -1612,6 +1658,10 @@ namespace OldenEra.TemplateEditor
                 CrossroadsPosition = TagAsNullableInt(PnlExperimental.CmbZoneCrossroads.SelectedItem),
                 ContentBiomeType = TagAsString(PnlExperimental.CmbZoneContentBiome.SelectedItem),
                 ContentBiomeArg = PnlExperimental.TxtZoneContentBiomeArg.Text?.Trim() ?? "",
+                GuardCutoffValue = ParseNullableInt(PnlExperimental.TxtZoneGuardCutoff.Text),
+                GuardedContentPool = ParseSidList(PnlExperimental.TxtZoneGuardedPool.Text),
+                UnguardedContentPool = ParseSidList(PnlExperimental.TxtZoneUnguardedPool.Text),
+                ContentCountLimitRefs = ParseSidList(PnlExperimental.TxtZoneContentCountLimits.Text),
             },
             BuildingPresets = new BuildingPresetSettings
             {

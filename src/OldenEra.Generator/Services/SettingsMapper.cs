@@ -58,6 +58,10 @@ public static class SettingsMapper
                 CrossroadsPosition = s.ZoneCrossroadsPosition,
                 ContentBiomeType = s.ZoneContentBiomeType ?? "",
                 ContentBiomeArg = s.ZoneContentBiomeArg ?? "",
+                GuardCutoffValue = s.ZoneGuardCutoffValue,
+                GuardedContentPool = ParseSidCsv(s.ZoneGuardedContentPool),
+                UnguardedContentPool = ParseSidCsv(s.ZoneUnguardedContentPool),
+                ContentCountLimitRefs = ParseSidCsv(s.ZoneContentCountLimits),
             },
             BuildingPresets = new BuildingPresetSettings
             {
@@ -280,6 +284,10 @@ public static class SettingsMapper
             ZoneCrossroadsPosition = g.ZoneOverrides.CrossroadsPosition,
             ZoneContentBiomeType   = g.ZoneOverrides.ContentBiomeType ?? "",
             ZoneContentBiomeArg    = g.ZoneOverrides.ContentBiomeArg ?? "",
+            ZoneGuardCutoffValue   = g.ZoneOverrides.GuardCutoffValue,
+            ZoneGuardedContentPool = JoinSidCsv(g.ZoneOverrides.GuardedContentPool),
+            ZoneUnguardedContentPool = JoinSidCsv(g.ZoneOverrides.UnguardedContentPool),
+            ZoneContentCountLimits = JoinSidCsv(g.ZoneOverrides.ContentCountLimitRefs),
             BuildingPresetPlayer = g.BuildingPresets.PlayerZonePreset,
             BuildingPresetNeutral = g.BuildingPresets.NeutralZonePreset,
             ZoneGuardWeeklyIncrement = g.GuardProgression.ZoneGuardWeeklyIncrement,
@@ -349,6 +357,27 @@ public static class SettingsMapper
         }
         return result;
     }
+
+    /// <summary>
+    /// CSV ↔ List&lt;string&gt; for per-zone catalog SID lists (T-006). The share
+    /// codec only round-trips scalars / strings, so we serialise as CSV. Tokens
+    /// are trimmed; empty / whitespace-only input yields an empty list.
+    /// </summary>
+    private static List<string> ParseSidCsv(string? csv)
+    {
+        if (string.IsNullOrWhiteSpace(csv)) return new();
+        var parts = csv.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var result = new List<string>(parts.Length);
+        foreach (var p in parts)
+        {
+            string trimmed = p.Trim();
+            if (trimmed.Length > 0) result.Add(trimmed);
+        }
+        return result;
+    }
+
+    private static string JoinSidCsv(List<string>? list) =>
+        list is { Count: > 0 } ? string.Join(",", list) : "";
 
     private static TierOverrides TierFromFile(TierOverrideFile? f) =>
         f is null ? new TierOverrides() : new TierOverrides

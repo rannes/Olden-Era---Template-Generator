@@ -207,8 +207,7 @@
     <div class="oe-hint">
         Stamp schema knobs the generator currently bakes to a single value
         across every zone. Empty / "Auto" = no change (existing snapshots
-        stay byte-identical). T-006 will extend this surface with per-zone
-        content caps and pool selection.
+        stay byte-identical).
     </div>
     <div class="oe-stacked">
         <label class="oe-label">Diplomacy modifier</label>
@@ -251,6 +250,56 @@
                    value="@Settings.ZoneOverrides.ContentBiomeArg"
                    @onchange="OnContentBiomeArgChanged" />
         }
+    </div>
+
+    @* T-006: per-zone caps / cutoff / pool refs. Each defaults to empty = no change. *@
+    <div class="oe-stacked">
+        <label class="oe-label">Guard cutoff value</label>
+        <div class="oe-row" style="grid-template-columns: 1fr auto;">
+            <input type="number" step="100" min="0" max="100000"
+                   placeholder="Auto (2000)"
+                   value="@GuardCutoffText"
+                   @onchange="OnGuardCutoffChanged" />
+            <button type="button" class="oe-link-btn"
+                    @onclick="ClearGuardCutoff"
+                    disabled="@(!Settings.ZoneOverrides.GuardCutoffValue.HasValue)">
+                Auto
+            </button>
+        </div>
+        <div class="oe-hint">
+            Empty = generator default (2000). Shipped templates use 2000–2500.
+        </div>
+    </div>
+    <div class="oe-stacked">
+        <label class="oe-label">Guarded content pool (SIDs)</label>
+        <input type="text"
+               placeholder="e.g. template_pool_arcade_guarded_treasure_zone"
+               value="@GuardedPoolCsv"
+               @onchange="OnGuardedPoolChanged" />
+        <div class="oe-hint">
+            Comma-separated SIDs. Empty = leave whatever the zone builder picked.
+        </div>
+    </div>
+    <div class="oe-stacked">
+        <label class="oe-label">Unguarded content pool (SIDs)</label>
+        <input type="text"
+               placeholder="e.g. template_pool_arcade_unguarded_treasure_zone"
+               value="@UnguardedPoolCsv"
+               @onchange="OnUnguardedPoolChanged" />
+        <div class="oe-hint">
+            Comma-separated SIDs. Empty = generator default.
+        </div>
+    </div>
+    <div class="oe-stacked">
+        <label class="oe-label">Content count limits (SIDs)</label>
+        <input type="text"
+               placeholder="e.g. content_limits_spawn, content_limits_side"
+               value="@ContentLimitsCsv"
+               @onchange="OnContentLimitsChanged" />
+        <div class="oe-hint">
+            Per-zone <code>contentCountLimits</code>. References named limits the
+            generator emits at the template root. Empty = leave defaults.
+        </div>
     </div>
 </ExperimentalCard>
 
@@ -431,5 +480,61 @@
     {
         Settings.ZoneOverrides.ContentBiomeArg = e.Value?.ToString()?.Trim() ?? "";
         await NotifyChanged();
+    }
+
+    // ── Per-zone caps / cutoff / pools (T-006) ──────────────────────────────
+
+    private string GuardCutoffText =>
+        Settings.ZoneOverrides.GuardCutoffValue?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+
+    private string GuardedPoolCsv => string.Join(", ", Settings.ZoneOverrides.GuardedContentPool);
+    private string UnguardedPoolCsv => string.Join(", ", Settings.ZoneOverrides.UnguardedContentPool);
+    private string ContentLimitsCsv => string.Join(", ", Settings.ZoneOverrides.ContentCountLimitRefs);
+
+    private async Task OnGuardCutoffChanged(ChangeEventArgs e)
+    {
+        string raw = e.Value?.ToString() ?? "";
+        if (string.IsNullOrWhiteSpace(raw))
+            Settings.ZoneOverrides.GuardCutoffValue = null;
+        else if (int.TryParse(raw, out int v) && v >= 0)
+            Settings.ZoneOverrides.GuardCutoffValue = v;
+        await NotifyChanged();
+    }
+
+    private async Task ClearGuardCutoff()
+    {
+        Settings.ZoneOverrides.GuardCutoffValue = null;
+        await NotifyChanged();
+    }
+
+    private async Task OnGuardedPoolChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.GuardedContentPool = ParseSidList(e.Value?.ToString());
+        await NotifyChanged();
+    }
+
+    private async Task OnUnguardedPoolChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.UnguardedContentPool = ParseSidList(e.Value?.ToString());
+        await NotifyChanged();
+    }
+
+    private async Task OnContentLimitsChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.ContentCountLimitRefs = ParseSidList(e.Value?.ToString());
+        await NotifyChanged();
+    }
+
+    private static List<string> ParseSidList(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return new();
+        var parts = raw.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var result = new List<string>(parts.Length);
+        foreach (var p in parts)
+        {
+            string t = p.Trim();
+            if (t.Length > 0) result.Add(t);
+        }
+        return result;
     }
 }
