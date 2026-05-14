@@ -21,6 +21,11 @@ public class SettingsMapperZoneContentRoundTripTests
             RoadDistance = RoadDistance.Mid,
             FactionAffinity = new() { "haven" },
             BiomeFilter = new() { "grass" },
+            Rules = new()
+            {
+                new ZoneContentRule { Type = "Crossroads", TargetMin = 0.10, TargetMax = 0.30, Weight = 1 },
+                new ZoneContentRule { Type = "MainObject", Args = new() { "0" }, TargetMin = 0.05, TargetMax = 0.25, Weight = 2 },
+            },
         });
         // Use Global.Items for NeutralZoneContent (flat .Items doesn't exist).
         g.NeutralZoneContent.Global.Items.Add(new ZoneContentItem

@@ -47,10 +47,18 @@ namespace OldenEra.Generator.Services.ZoneContent
                 Sid = "name_pandora_box_army", MinCount = 1, MaxCount = 1,
                 Pool = ZoneContentPool.Mandatory, IsGuarded = true, NearCastle = true,
             }),
-            new("Pandora Resources x1", CategoryMandatory, new ZoneContentItem
+            // T-202 demo preset — proves the rules round-trip end-to-end by
+            // pinning a Pandora Resources box near a crossroads (matches the
+            // "MainObject ↔ Crossroads" anchoring pattern shipped templates
+            // use for guarded resource pickups; see Showdown.rmg.json).
+            new("Pandora Resources x1 (near crossroads)", CategoryMandatory, new ZoneContentItem
             {
                 Sid = "name_pandora_box_resources", MinCount = 1, MaxCount = 1,
                 Pool = ZoneContentPool.Mandatory,
+                Rules = new List<ZoneContentRule>
+                {
+                    new() { Type = "Crossroads", TargetMin = 0.15, TargetMax = 0.30, Weight = 1 },
+                },
             }),
             new("Pandora XP x1", CategoryMandatory, new ZoneContentItem
             {

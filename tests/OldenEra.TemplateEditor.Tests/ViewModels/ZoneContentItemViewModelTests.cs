@@ -23,6 +23,10 @@ public class ZoneContentItemViewModelTests
         RoadDistance = RoadDistance.Mid,
         FactionAffinity = new List<string> { "haven", "academy" },
         BiomeFilter = new List<string> { "forest", "snow" },
+        Rules = new List<ZoneContentRule>
+        {
+            new() { Type = "Crossroads", TargetMin = 0.15, TargetMax = 0.30, Weight = 1 },
+        },
     };
 
     [Fact]
@@ -43,6 +47,7 @@ public class ZoneContentItemViewModelTests
         Assert.Equal(RoadDistance.Mid, vm.RoadDistance);
         Assert.Equal("haven, academy", vm.FactionAffinityCsv);
         Assert.Equal("forest, snow", vm.BiomeFilterCsv);
+        Assert.Equal("Crossroads||0.15|0.3|1", vm.RulesCsv);
     }
 
     [Fact]
@@ -83,6 +88,15 @@ public class ZoneContentItemViewModelTests
         Assert.Equal(original.RoadDistance, roundTripped.RoadDistance);
         Assert.Equal(original.FactionAffinity, roundTripped.FactionAffinity);
         Assert.Equal(original.BiomeFilter, roundTripped.BiomeFilter);
+        Assert.Equal(original.Rules.Count, roundTripped.Rules.Count);
+        for (int i = 0; i < original.Rules.Count; i++)
+        {
+            Assert.Equal(original.Rules[i].Type, roundTripped.Rules[i].Type);
+            Assert.Equal(original.Rules[i].Args, roundTripped.Rules[i].Args);
+            Assert.Equal(original.Rules[i].TargetMin, roundTripped.Rules[i].TargetMin);
+            Assert.Equal(original.Rules[i].TargetMax, roundTripped.Rules[i].TargetMax);
+            Assert.Equal(original.Rules[i].Weight, roundTripped.Rules[i].Weight);
+        }
     }
 
     [Fact]

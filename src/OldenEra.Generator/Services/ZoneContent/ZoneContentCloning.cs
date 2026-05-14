@@ -28,6 +28,14 @@ public static class ZoneContentCloning
             RoadDistance = source.RoadDistance,
             FactionAffinity = new List<string>(source.FactionAffinity),
             BiomeFilter = new List<string>(source.BiomeFilter),
+            Rules = source.Rules.Select(r => new ZoneContentRule
+            {
+                Type = r.Type,
+                Args = new List<string>(r.Args),
+                TargetMin = r.TargetMin,
+                TargetMax = r.TargetMax,
+                Weight = r.Weight,
+            }).ToList(),
         };
     }
 

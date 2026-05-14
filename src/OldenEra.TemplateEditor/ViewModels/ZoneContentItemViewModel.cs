@@ -26,6 +26,7 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
     private RoadDistance? _roadDistance;
     private string _factionAffinityCsv = "";
     private string _biomeFilterCsv = "";
+    private string _rulesCsv = "";
     private IReadOnlyList<EmitWarning> _warnings = Array.Empty<EmitWarning>();
     private IReadOnlyList<EmitWarning> _minMaxWarnings = Array.Empty<EmitWarning>();
     private IReadOnlyList<EmitWarning> _poolWarnings = Array.Empty<EmitWarning>();
@@ -96,6 +97,17 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
     {
         get => _biomeFilterCsv;
         set => SetField(ref _biomeFilterCsv, value);
+    }
+
+    /// <summary>
+    /// Rules in single-line CSV form (T-202). Format:
+    /// <c>Type|args1/args2|min|max|weight; Type|...</c>. Empty / whitespace
+    /// = no rules. Round-trips through <see cref="ZoneContentRuleCsv"/>.
+    /// </summary>
+    public string RulesCsv
+    {
+        get => _rulesCsv;
+        set => SetField(ref _rulesCsv, value);
     }
 
     /// <summary>
@@ -186,6 +198,7 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
         _roadDistance = model.RoadDistance,
         _factionAffinityCsv = JoinCsv(model.FactionAffinity),
         _biomeFilterCsv = JoinCsv(model.BiomeFilter),
+        _rulesCsv = ZoneContentRuleCsv.Join(model.Rules),
     };
 
     public ZoneContentItem ToModel() => new()
@@ -201,6 +214,7 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
         RoadDistance = _roadDistance,
         FactionAffinity = SplitCsv(_factionAffinityCsv),
         BiomeFilter = SplitCsv(_biomeFilterCsv),
+        Rules = ZoneContentRuleCsv.Parse(_rulesCsv),
     };
 
     private static List<string> SplitCsv(string? s) =>

@@ -107,6 +107,21 @@ namespace OldenEra.Generator.Services.ZoneContent
                 });
             }
 
+            // T-202: append user-authored explicit rules. Rows with no Type
+            // are dropped so an "empty" row in the UI can't poison the emit.
+            foreach (var user in item.Rules)
+            {
+                if (string.IsNullOrWhiteSpace(user.Type)) continue;
+                rules.Add(new SchemaContentRule
+                {
+                    Type = user.Type,
+                    Args = new List<string>(user.Args),
+                    TargetMin = user.TargetMin,
+                    TargetMax = user.TargetMax,
+                    Weight = user.Weight,
+                });
+            }
+
             return rules;
         }
     }
