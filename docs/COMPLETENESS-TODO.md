@@ -176,7 +176,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   settings. Each preset has a one-sentence description visible in the picker.
 
 ### T-104 — Community-data refresh workflow
-- **Status:** in-progress
+- **Status:** done
 - **Owner:** orchestrator (Phase 2 batch)
 - **Effort:** M
 - **Files:** `src/OldenEra.Generator/CommunityData/scripts/fetch-from-alcaras.py`,
