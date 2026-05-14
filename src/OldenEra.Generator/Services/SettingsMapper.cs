@@ -179,6 +179,27 @@ public static class SettingsMapper
                 SpellStartHeroOnly = s.BonusSpellStartHeroOnly,
                 UnitMultiplier = s.BonusUnitMultiplier,
                 UnitMultiplierStartHeroOnly = s.BonusUnitMultiplierStartHeroOnly,
+                PerPlayerOverrides = s.BonusPerPlayerOverrides is null
+                    ? new()
+                    : s.BonusPerPlayerOverrides.ConvertAll(o => new PerPlayerBonusOverride
+                    {
+                        PlayerSlot = o.PlayerSlot,
+                        Bonuses = new StartingBonusSettings
+                        {
+                            Resources = o.Resources is null ? new() : new Dictionary<string,int>(o.Resources),
+                            HeroAttack = o.HeroAttack,
+                            HeroDefense = o.HeroDefense,
+                            HeroSpellpower = o.HeroSpellpower,
+                            HeroKnowledge = o.HeroKnowledge,
+                            HeroStatStartHeroOnly = o.HeroStatStartHeroOnly,
+                            ItemSid = o.ItemSid ?? "",
+                            ItemStartHeroOnly = o.ItemStartHeroOnly,
+                            SpellSid = o.SpellSid ?? "",
+                            SpellStartHeroOnly = o.SpellStartHeroOnly,
+                            UnitMultiplier = o.UnitMultiplier,
+                            UnitMultiplierStartHeroOnly = o.UnitMultiplierStartHeroOnly,
+                        },
+                    }),
             },
             HeroSettings = new HeroSettings
             {
@@ -417,6 +438,22 @@ public static class SettingsMapper
             BonusSpellStartHeroOnly = g.Bonuses.SpellStartHeroOnly,
             BonusUnitMultiplier = g.Bonuses.UnitMultiplier,
             BonusUnitMultiplierStartHeroOnly = g.Bonuses.UnitMultiplierStartHeroOnly,
+            BonusPerPlayerOverrides = g.Bonuses.PerPlayerOverrides.ConvertAll(o => new PerPlayerBonusFile
+            {
+                PlayerSlot = o.PlayerSlot,
+                Resources = new Dictionary<string,int>(o.Bonuses.Resources),
+                HeroAttack = o.Bonuses.HeroAttack,
+                HeroDefense = o.Bonuses.HeroDefense,
+                HeroSpellpower = o.Bonuses.HeroSpellpower,
+                HeroKnowledge = o.Bonuses.HeroKnowledge,
+                HeroStatStartHeroOnly = o.Bonuses.HeroStatStartHeroOnly,
+                ItemSid = o.Bonuses.ItemSid,
+                ItemStartHeroOnly = o.Bonuses.ItemStartHeroOnly,
+                SpellSid = o.Bonuses.SpellSid,
+                SpellStartHeroOnly = o.Bonuses.SpellStartHeroOnly,
+                UnitMultiplier = o.Bonuses.UnitMultiplier,
+                UnitMultiplierStartHeroOnly = o.Bonuses.UnitMultiplierStartHeroOnly,
+            }),
             TierLow = TierToFile(a.LowTier),
             TierMedium = TierToFile(a.MediumTier),
             TierHigh = TierToFile(a.HighTier),
