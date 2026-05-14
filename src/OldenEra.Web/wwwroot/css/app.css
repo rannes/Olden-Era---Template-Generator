@@ -738,6 +738,19 @@ input[type="range"]:focus-visible::-moz-range-thumb {
     gap: 12px;
 }
 
+/* Action bar wraps the Generate button so we can pin it on narrow viewports
+   (T-301) without restyling the button itself. On desktop it's transparent. */
+.oe-action-bar {
+    display: block;
+}
+
+/* The <details> wrapper around the preview is collapsible on mobile.
+   On desktop the summary is hidden and the element stays `open`, so the
+   preview is always rendered as a plain block. */
+.oe-preview-summary {
+    display: none;
+}
+
 /* ── Blazor error UI ─────────────────────────────────────── */
 .valid.modified:not([type=checkbox]) { outline: 1px solid #6cb867; }
 .invalid { outline: 1px solid var(--oe-error); }
@@ -1077,5 +1090,81 @@ input[type="range"]:focus-visible::-moz-range-thumb {
     .oe-nav-select {
         display: block;
         width: 100%;
+    }
+
+    /* T-301 — narrow viewport (≤600px, e.g. iPhone-SE 375×667).
+       Restack to single column (already done at 900px), make the preview
+       collapsible via the <details>/<summary> wrapper, and pin the Generate
+       action bar to the bottom of the viewport so it's always reachable. */
+
+    .oe-app {
+        /* Reserve room at the bottom so the pinned action bar can never
+           obscure the footer/last control. Matches the action bar height. */
+        padding-bottom: 80px;
+    }
+
+    .oe-header-actions {
+        flex-wrap: wrap;
+    }
+
+    .oe-preview-col {
+        gap: 8px;
+    }
+
+    .oe-preview-summary {
+        display: block;
+        cursor: pointer;
+        user-select: none;
+        padding: 8px 12px;
+        background: var(--oe-surface-2);
+        border: 1px solid var(--oe-border);
+        border-radius: 4px;
+        color: var(--oe-text);
+        font-size: 13px;
+        font-weight: 600;
+        list-style: none;
+    }
+    .oe-preview-summary::-webkit-details-marker { display: none; }
+    .oe-preview-summary::before {
+        content: "▾ ";
+        color: var(--oe-text-dim);
+        font-size: 11px;
+    }
+    .oe-preview-details:not([open]) .oe-preview-summary::before {
+        content: "▸ ";
+    }
+    .oe-preview-details:not([open]) .oe-preview {
+        display: none;
+    }
+    .oe-preview-details[open] .oe-preview-summary {
+        margin-bottom: 4px;
+    }
+    /* On mobile keep the preview at a sensible height so the page itself stays
+       short enough that the Generate button is reachable in a single thumb
+       scroll. */
+    .oe-preview {
+        min-height: 180px;
+    }
+
+    /* Pin Generate to the viewport bottom. `fixed` (not `sticky`) because the
+       action bar's natural position is inside the preview column at the very
+       bottom of the page — sticky would only engage once the user scrolls
+       past the form, defeating the point. The .oe-app bottom padding above
+       reserves matching whitespace so the bar never obscures real content. */
+    .oe-action-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50;
+        background: var(--oe-bg);
+        padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+        border-top: 1px solid var(--oe-border);
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4);
+    }
+    .oe-action-bar .oe-btn {
+        max-width: 720px;
+        margin: 0 auto;
+        display: block;
     }
 }

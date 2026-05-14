@@ -241,7 +241,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 ## Phase 4 — UX that supports completeness
 
 ### T-301 — Mobile layout: web preview + Generate reachable below 600 px
-- **Status:** in-progress
+- **Status:** done
 - **Owner:** orchestrator (Phase 3+4 batch)
 - **Effort:** M
 - **Files:** `src/OldenEra.Web/wwwroot/css/app.css`,
