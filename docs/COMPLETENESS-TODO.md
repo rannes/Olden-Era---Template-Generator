@@ -276,8 +276,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   downloads a template.
 
 ### T-302 — Per-experimental-feature toggles
-- **Status:** open
-- **Owner:** —
+- **Status:** in-progress
+- **Owner:** orchestrator (Phase 3+4 batch 2)
 - **Effort:** M
 - **Files:** Both UI hosts, `GeneratorSettings.cs`, `SettingsFile.cs`.
 - **Scope:** Today `Experimental ⚗` bundles 5+ unrelated features at different
@@ -288,8 +288,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   state round-trips through `.oetgs`.
 
 ### T-303 — Inline validation remediation
-- **Status:** open
-- **Owner:** —
+- **Status:** in-progress
+- **Owner:** orchestrator (Phase 3+4 batch 2)
 - **Effort:** M
 - **Files:** `SettingsValidator.cs`, both UI hosts.
 - **Scope:** Validator already produces actionable messages. Surface them
