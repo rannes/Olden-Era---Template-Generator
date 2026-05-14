@@ -303,6 +303,34 @@
     </div>
 </ExperimentalCard>
 
+<ExperimentalCard Key="encounter-holes" Title="Encounter holes (multi-stack battles)">
+    <div class="oe-hint">
+        Off (default) = single-stack battles, byte-identical to current output.
+        On stamps <code>encounterHoles: true</code> globally and
+        <code>encounterHolesSettings</code> on every zone, enabling multi-stack
+        encounters. Shipped templates use 0.66 / 0.66 (Anarchy, Maze, Massacre).
+        Per-zone overrides ship the same numbers uniformly today; per-zone tuning
+        is deferred (T-201 follow-up).
+    </div>
+    <label class="oe-checkbox">
+        <input type="checkbox"
+               checked="@Settings.EncounterHoles.Enabled"
+               @onchange="@(e => { Settings.EncounterHoles.Enabled = (bool)(e.Value ?? false); NotifyChanged(); })" />
+        Enable encounter holes
+    </label>
+    @if (Settings.EncounterHoles.Enabled)
+    {
+        <SliderRow Label="Affected encounters" WideLabel="true"
+                   Min="0" Max="100" Step="1" Suffix="%"
+                   Value="(int)Math.Round(Settings.EncounterHoles.AffectedEncounters * 100)"
+                   ValueChanged="@(v => { Settings.EncounterHoles.AffectedEncounters = v / 100.0; NotifyChanged(); })" />
+        <SliderRow Label="Two-hole encounters" WideLabel="true"
+                   Min="0" Max="100" Step="1" Suffix="%"
+                   Value="(int)Math.Round(Settings.EncounterHoles.TwoHoleEncounters * 100)"
+                   ValueChanged="@(v => { Settings.EncounterHoles.TwoHoleEncounters = v / 100.0; NotifyChanged(); })" />
+    }
+</ExperimentalCard>
+
 <ExperimentalCard Key="zone-content" Title="Zone content">
     <div class="oe-hint">
         Author the zone-content surface (player zones, neutral tiers,

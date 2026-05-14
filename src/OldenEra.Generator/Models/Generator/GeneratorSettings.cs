@@ -340,6 +340,42 @@ namespace OldenEra.Generator.Models
         public List<string> ContentCountLimitRefs { get; set; } = new();
     }
 
+    /// <summary>
+    /// T-201 — encounter-holes (multi-stack battles). Today the generator hardcodes
+    /// <c>GameRules.encounterHoles = false</c> and never emits per-zone
+    /// <c>encounterHolesSettings</c>. Toggling <see cref="Enabled"/> flips the
+    /// global flag to <c>true</c> and stamps <see cref="AffectedEncounters"/> /
+    /// <see cref="TwoHoleEncounters"/> onto every zone, matching the shape used by
+    /// shipped templates (Anarchy, Maze, Massacre, …): the global bool and the
+    /// per-zone object always travel together. Default disabled = byte-identical
+    /// to current output. The current UI applies the same per-zone numbers
+    /// uniformly; a true per-zone override is deferred (would need a per-zone
+    /// editor surface that does not exist today — see PR notes).
+    /// </summary>
+    public class EncounterHolesOptions
+    {
+        /// <summary>
+        /// Master toggle. When false: emit <c>encounterHoles: false</c> (current
+        /// hardcoded behavior) and no per-zone settings. When true: emit
+        /// <c>encounterHoles: true</c> and a per-zone <c>encounterHolesSettings</c>
+        /// object on every zone.
+        /// </summary>
+        public bool Enabled { get; set; } = false;
+
+        /// <summary>
+        /// Fraction of encounters that get holes. Shipped templates use 0.66.
+        /// Only emitted when <see cref="Enabled"/> is true.
+        /// </summary>
+        public double AffectedEncounters { get; set; } = 0.66;
+
+        /// <summary>
+        /// Fraction of affected encounters that get two holes (vs. one).
+        /// Shipped templates use 0.66.
+        /// Only emitted when <see cref="Enabled"/> is true.
+        /// </summary>
+        public double TwoHoleEncounters { get; set; } = 0.66;
+    }
+
     public class BordersRoadsSettings
     {
         /// <summary>Variant.Border.CornerRadius override. null = generator default (0.0).</summary>
@@ -401,6 +437,7 @@ namespace OldenEra.Generator.Models
         public BordersRoadsSettings BordersRoads { get; set; } = new BordersRoadsSettings();
         public ConnectionDefaultsSettings ConnectionDefaults { get; set; } = new ConnectionDefaultsSettings();
         public ZoneOverridesSettings ZoneOverrides { get; set; } = new ZoneOverridesSettings();
+        public EncounterHolesOptions EncounterHoles { get; set; } = new EncounterHolesOptions();
         public ZoneContentList PlayerZoneContent { get; set; } = new();
         public NeutralZoneContent NeutralZoneContent { get; set; } = new();
         public List<ZoneRoadDecoration> ZoneRoadDecorations { get; set; } = new();

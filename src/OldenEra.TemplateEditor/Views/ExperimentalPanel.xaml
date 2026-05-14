@@ -501,6 +501,36 @@
                     </StackPanel>
                 </Expander>
 
+                <!-- ── Encounter holes (T-201) ─────────────────────────────── -->
+                <Expander Header="Encounter holes (multi-stack battles)" Margin="0,4,0,4">
+                    <StackPanel Margin="8,4,0,8">
+                        <TextBlock Style="{StaticResource HintText}">
+                            Off (default) = single-stack battles, byte-identical to current output.
+                            On stamps encounterHoles: true globally and encounterHolesSettings
+                            on every zone (multi-stack encounters). Shipped templates use 0.66 / 0.66.
+                            Per-zone tuning is deferred — these numbers apply uniformly today.
+                        </TextBlock>
+                        <CheckBox x:Name="ChkEncounterHolesEnabled" Content="Enable encounter holes" Margin="0,0,0,6"/>
+                        <Grid IsEnabled="{Binding IsChecked, ElementName=ChkEncounterHolesEnabled}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="185"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Label   Grid.Row="0" Grid.Column="0" Content="Affected encounters (%)" Padding="5,2"/>
+                            <Slider  Grid.Row="0" Grid.Column="1" x:Name="SldEncounterHolesAffected" Minimum="0" Maximum="100" Value="66" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2" x:Name="TxtEncounterHolesAffected" Text="66" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ValueText}"/>
+                            <Label   Grid.Row="1" Grid.Column="0" Content="Two-hole encounters (%)" Padding="5,2"/>
+                            <Slider  Grid.Row="1" Grid.Column="1" x:Name="SldEncounterHolesTwoHole"  Minimum="0" Maximum="100" Value="66" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                            <TextBlock Grid.Row="1" Grid.Column="2" x:Name="TxtEncounterHolesTwoHole" Text="66" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ValueText}"/>
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
                 <!-- ── Per-tier overrides ─────────────────────────────────── -->
                 <Expander Header="Per-tier overrides" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">

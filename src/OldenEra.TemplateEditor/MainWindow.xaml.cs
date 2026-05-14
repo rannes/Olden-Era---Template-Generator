@@ -834,6 +834,9 @@ namespace OldenEra.TemplateEditor
             ZoneGuardedContentPool = NormalizeSidCsv(PnlExperimental.TxtZoneGuardedPool.Text),
             ZoneUnguardedContentPool = NormalizeSidCsv(PnlExperimental.TxtZoneUnguardedPool.Text),
             ZoneContentCountLimits = NormalizeSidCsv(PnlExperimental.TxtZoneContentCountLimits.Text),
+            EncounterHolesEnabled            = PnlExperimental.ChkEncounterHolesEnabled.IsChecked == true,
+            EncounterHolesAffectedEncounters = PnlExperimental.SldEncounterHolesAffected.Value / 100.0,
+            EncounterHolesTwoHoleEncounters  = PnlExperimental.SldEncounterHolesTwoHole.Value / 100.0,
             BuildingPresetPlayer = PresetFromCombo(PnlExperimental.CmbPlayerPreset),
             BuildingPresetNeutral = PresetFromCombo(PnlExperimental.CmbNeutralPreset),
             ZoneGuardWeeklyIncrement = PnlExperimental.SldZoneGuardWeekly.Value / 100.0,
@@ -1168,6 +1171,11 @@ namespace OldenEra.TemplateEditor
             PnlExperimental.TxtZoneGuardedPool.Text = s.ZoneGuardedContentPool ?? "";
             PnlExperimental.TxtZoneUnguardedPool.Text = s.ZoneUnguardedContentPool ?? "";
             PnlExperimental.TxtZoneContentCountLimits.Text = s.ZoneContentCountLimits ?? "";
+
+            // T-201 encounter holes
+            PnlExperimental.ChkEncounterHolesEnabled.IsChecked = s.EncounterHolesEnabled;
+            PnlExperimental.SldEncounterHolesAffected.Value = Math.Clamp(s.EncounterHolesAffectedEncounters * 100.0, 0, 100);
+            PnlExperimental.SldEncounterHolesTwoHole.Value  = Math.Clamp(s.EncounterHolesTwoHoleEncounters  * 100.0, 0, 100);
 
             ReinitZoneContentPanel(s);
         }
@@ -1640,6 +1648,12 @@ namespace OldenEra.TemplateEditor
                 GuardedContentPool = ParseSidList(PnlExperimental.TxtZoneGuardedPool.Text),
                 UnguardedContentPool = ParseSidList(PnlExperimental.TxtZoneUnguardedPool.Text),
                 ContentCountLimitRefs = ParseSidList(PnlExperimental.TxtZoneContentCountLimits.Text),
+            },
+            EncounterHoles = new EncounterHolesOptions
+            {
+                Enabled = PnlExperimental.ChkEncounterHolesEnabled.IsChecked == true,
+                AffectedEncounters = PnlExperimental.SldEncounterHolesAffected.Value / 100.0,
+                TwoHoleEncounters  = PnlExperimental.SldEncounterHolesTwoHole.Value  / 100.0,
             },
             BuildingPresets = new BuildingPresetSettings
             {

@@ -87,6 +87,8 @@ public partial class ExperimentalPanel : UserControl
         SldZoneGuardWeekly.ValueChanged     += (_, _) => TxtZoneGuardWeekly.Text     = ((int)SldZoneGuardWeekly.Value).ToString();
         SldConnectionGuardWeekly.ValueChanged += (_, _) => TxtConnectionGuardWeekly.Text = ((int)SldConnectionGuardWeekly.Value).ToString();
         SldNeutralGuardChance.ValueChanged  += (_, _) => TxtNeutralGuardChance.Text  = ((int)SldNeutralGuardChance.Value).ToString();
+        SldEncounterHolesAffected.ValueChanged += (_, _) => TxtEncounterHolesAffected.Text = ((int)SldEncounterHolesAffected.Value).ToString();
+        SldEncounterHolesTwoHole.ValueChanged  += (_, _) => TxtEncounterHolesTwoHole.Text  = ((int)SldEncounterHolesTwoHole.Value).ToString();
         SldConnectionLength.ValueChanged    += (_, _) => TxtConnectionLength.Text    = ((int)SldConnectionLength.Value).ToString();
         // Connection-default combos: index 0 = "(unset)" sentinel.
         var gatePlacements = new System.Collections.Generic.List<string> { "(unset)" };
