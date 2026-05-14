@@ -1,22 +1,129 @@
-@* Renders the preview PNG (or a placeholder) and exposes Generate/Download buttons.
-   Wrapped in <details> so narrow viewports can collapse the preview and reach
-   the action bar without scrolling past a tall image. Open by default; the
-   summary is visually hidden on desktop via CSS. *@
+@* Renders the preview PNG (or a placeholder) and exposes zoom + pan + reseed
+   controls. Wrapped in <details> so narrow viewports can collapse the preview
+   and reach the action bar without scrolling past a tall image. Open by
+   default; the summary is visually hidden on desktop via CSS. *@
 
 <details class="oe-preview-details" open>
     <summary class="oe-preview-summary">Preview</summary>
-    <div class="oe-preview">
+    <div class="oe-preview-wrap">
         @if (PngBytes is { Length: > 0 })
         {
-            <img src="@($"data:image/png;base64,{Convert.ToBase64String(PngBytes)}")" alt="Map preview" />
+            <div class="oe-preview-toolbar">
+                <button type="button" class="oe-link-btn" title="Zoom out"
+                        @onclick="ZoomOut" disabled="@(Zoom <= MinZoom)">−</button>
+                <input type="range" min="@(MinZoomPercent)" max="@(MaxZoomPercent)" step="@(StepPercent)"
+                       value="@ZoomPercentValue"
+                       @oninput="OnZoomSlider"
+                       aria-label="Zoom" />
+                <button type="button" class="oe-link-btn" title="Zoom in"
+                        @onclick="ZoomIn" disabled="@(Zoom >= MaxZoom)">+</button>
+                <span class="oe-preview-zoom-label">@ZoomLabel</span>
+                <button type="button" class="oe-link-btn" title="Reset zoom"
+                        @onclick="ResetZoom">Reset</button>
+                @if (OnReseed.HasDelegate)
+                {
+                    <button type="button" class="oe-link-btn oe-preview-reseed"
+                            title="Pick a new random seed and regenerate"
+                            disabled="@ReseedDisabled"
+                            @onclick="HandleReseed">🎲 Reseed</button>
+                }
+            </div>
         }
-        else
-        {
-            <span class="placeholder">Preview will appear after Generate.</span>
-        }
+        <div class="oe-preview" @ref="_scrollEl">
+            @if (PngBytes is { Length: > 0 })
+            {
+                <div class="oe-preview-zoom" style="@ZoomBoxStyle">
+                    <img src="@($"data:image/png;base64,{Convert.ToBase64String(PngBytes)}")"
+                         alt="Map preview"
+                         style="@ImgStyle" />
+                </div>
+            }
+            else
+            {
+                <span class="placeholder">Preview will appear after Generate.</span>
+            }
+        </div>
     </div>
 </details>
 
 @code {
     [Parameter] public byte[]? PngBytes { get; set; }
+    [Parameter] public EventCallback OnReseed { get; set; }
+    [Parameter] public bool ReseedDisabled { get; set; }
+
+    [Inject] private IJSRuntime Js { get; set; } = default!;
+
+    private const double MinZoom = 0.5;
+    private const double MaxZoom = 3.0;
+    private const double Step = 0.25;
+    private const int MinZoomPercent = 50;
+    private const int MaxZoomPercent = 300;
+    private const int StepPercent = 25;
+    // 700 matches TemplatePreviewRenderer's PNG size; CSS keeps this fitting the
+    // column at zoom = 1.0 via max-width on the wrapper.
+    private const int BasePngPx = 700;
+
+    private double Zoom = 1.0;
+    private ElementReference _scrollEl;
+    private int ZoomPercentValue => (int)Math.Round(Zoom * 100);
+    private string ZoomLabel => $"{ZoomPercentValue}%";
+
+    // Inner zoom box uses pixel dimensions so the parent's overflow:auto can
+    // scroll it; CSS transform alone wouldn't grow scroll area.
+    private string ZoomBoxStyle =>
+        FormattableString.Invariant($"width:{BasePngPx * Zoom}px;height:{BasePngPx * Zoom}px;");
+
+    private string ImgStyle =>
+        FormattableString.Invariant(
+            $"width:{BasePngPx}px;height:{BasePngPx}px;transform:scale({Zoom});transform-origin:top left;");
+
+    private void ZoomIn() => SetZoom(Zoom + Step);
+    private void ZoomOut() => SetZoom(Zoom - Step);
+    private void ResetZoom() => SetZoom(1.0);
+
+    private void OnZoomSlider(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var pct))
+            SetZoom(pct / 100.0);
+    }
+
+    private void SetZoom(double z)
+    {
+        if (z < MinZoom) z = MinZoom;
+        if (z > MaxZoom) z = MaxZoom;
+        // Snap to step.
+        z = Math.Round(z / Step) * Step;
+        Zoom = z;
+    }
+
+    private async Task HandleReseed()
+    {
+        if (!OnReseed.HasDelegate || ReseedDisabled) return;
+        // Snapshot scroll position so the user keeps their current view after
+        // the regenerated PNG slots back into the same wrapper.
+        var pos = await TryGetScrollPositionAsync();
+        await OnReseed.InvokeAsync();
+        if (pos is not null)
+            await TrySetScrollPositionAsync(pos.Value.left, pos.Value.top);
+    }
+
+    private async Task<(double left, double top)?> TryGetScrollPositionAsync()
+    {
+        try
+        {
+            var arr = await Js.InvokeAsync<double[]>("oePreview.getScroll", _scrollEl);
+            if (arr is { Length: >= 2 }) return (arr[0], arr[1]);
+        }
+        catch { }
+        return null;
+    }
+
+    private async Task TrySetScrollPositionAsync(double left, double top)
+    {
+        try
+        {
+            await Js.InvokeVoidAsync("oePreview.setScroll", _scrollEl, left, top);
+        }
+        catch { }
+    }
 }

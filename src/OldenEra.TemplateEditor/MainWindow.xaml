@@ -251,17 +251,84 @@
                                 BorderBrush="{StaticResource OeBorderBrush}"
                                 Background="{StaticResource OeSurface1Brush}"
                                 Padding="6">
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <Label x:Name="LblNoPreview"
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="4"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Zoom + reseed toolbar. Hidden until a preview is rendered. -->
+                                <DockPanel Grid.Row="0"
+                                           x:Name="PnlPreviewToolbar"
+                                           LastChildFill="True"
+                                           Visibility="Collapsed">
+                                    <Button x:Name="BtnZoomOut"
+                                            DockPanel.Dock="Left"
+                                            Content="−"
+                                            Width="24" Height="24"
+                                            ToolTip="Zoom out"
+                                            Click="BtnZoomOut_Click"/>
+                                    <Button x:Name="BtnZoomIn"
+                                            DockPanel.Dock="Left"
+                                            Content="+"
+                                            Width="24" Height="24"
+                                            Margin="4,0,0,0"
+                                            ToolTip="Zoom in"
+                                            Click="BtnZoomIn_Click"/>
+                                    <TextBlock x:Name="TxtZoomLabel"
+                                               DockPanel.Dock="Right"
+                                               VerticalAlignment="Center"
+                                               MinWidth="44"
+                                               TextAlignment="Right"
+                                               Foreground="{StaticResource OeTextDimBrush}"
+                                               Text="100%"/>
+                                    <Button x:Name="BtnZoomReset"
+                                            DockPanel.Dock="Right"
+                                            Content="Reset"
+                                            Margin="4,0,4,0"
+                                            ToolTip="Reset zoom to 100%"
+                                            Click="BtnZoomReset_Click"/>
+                                    <Button x:Name="BtnReseed"
+                                            DockPanel.Dock="Right"
+                                            Content="🎲 Reseed"
+                                            Margin="0,0,4,0"
+                                            ToolTip="Pick a new random seed and regenerate"
+                                            Click="BtnReseed_Click"/>
+                                    <Slider x:Name="SldZoom"
+                                            Minimum="50" Maximum="300"
+                                            TickFrequency="25"
+                                            IsSnapToTickEnabled="True"
+                                            Value="100"
+                                            VerticalAlignment="Center"
+                                            Margin="6,0,6,0"
+                                            ValueChanged="SldZoom_ValueChanged"/>
+                                </DockPanel>
+
+                                <Label Grid.Row="2"
+                                       x:Name="LblNoPreview"
                                        Visibility="Collapsed"
                                        FontSize="172"
-                                       Foreground="{StaticResource OeTextDimBrush}"/>
-                                <Image x:Name="ImgPreview"
-                                       Stretch="Uniform"
-                                       RenderOptions.BitmapScalingMode="HighQuality"
+                                       HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
-                                       HorizontalAlignment="Center"/>
-                            </StackPanel>
+                                       Foreground="{StaticResource OeTextDimBrush}"/>
+
+                                <ScrollViewer Grid.Row="2"
+                                              x:Name="ScrollPreview"
+                                              HorizontalScrollBarVisibility="Auto"
+                                              VerticalScrollBarVisibility="Auto"
+                                              Background="Transparent">
+                                    <Image x:Name="ImgPreview"
+                                           Stretch="None"
+                                           RenderOptions.BitmapScalingMode="HighQuality"
+                                           HorizontalAlignment="Left"
+                                           VerticalAlignment="Top">
+                                        <Image.LayoutTransform>
+                                            <ScaleTransform x:Name="ImgPreviewScale" ScaleX="1" ScaleY="1"/>
+                                        </Image.LayoutTransform>
+                                    </Image>
+                                </ScrollViewer>
+                            </Grid>
                         </Border>
 
                         <TextBlock Grid.Row="6"
