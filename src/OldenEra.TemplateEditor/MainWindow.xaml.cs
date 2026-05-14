@@ -832,6 +832,7 @@ namespace OldenEra.TemplateEditor
             ConnectionGuardWeeklyIncrement = PnlExperimental.SldConnectionGuardWeekly.Value / 100.0,
             NeutralCityGuardChance = PnlExperimental.SldNeutralGuardChance.Value / 100.0,
             NeutralCityGuardValuePercent = (int)PnlExperimental.SldNeutralGuardValue.Value,
+            NeutralCityRemoveGuardIfHasOwner = PnlExperimental.ChkNeutralRemoveGuardIfHasOwner.IsChecked == true,
             GlobalBans = ParseBansCsv(PnlExperimental.TxtGlobalBans.Text),
             ContentCountLimits = ParseLimits(PnlExperimental.TxtCountLimits.Text),
             BonusResources = BuildBonusResourcesDict(),
@@ -984,6 +985,7 @@ namespace OldenEra.TemplateEditor
             PnlExperimental.SldConnectionGuardWeekly.Value = Math.Clamp(s.ConnectionGuardWeeklyIncrement * 100.0, 0, 50);
             PnlExperimental.SldNeutralGuardChance.Value = Math.Clamp(s.NeutralCityGuardChance * 100.0, 0, 100);
             PnlExperimental.SldNeutralGuardValue.Value = Math.Clamp(s.NeutralCityGuardValuePercent <= 0 ? 100 : s.NeutralCityGuardValuePercent, 25, 300);
+            PnlExperimental.ChkNeutralRemoveGuardIfHasOwner.IsChecked = s.NeutralCityRemoveGuardIfHasOwner;
             PnlExperimental.TxtGlobalBans.Text = string.Join(", ", s.GlobalBans ?? new List<string>());
             PnlExperimental.TxtCountLimits.Text = string.Join("\n",
                 (s.ContentCountLimits ?? new List<ContentLimitFile>())
@@ -1441,6 +1443,7 @@ namespace OldenEra.TemplateEditor
             {
                 GuardChance = PnlExperimental.SldNeutralGuardChance.Value / 100.0,
                 GuardValuePercent = (int)PnlExperimental.SldNeutralGuardValue.Value,
+                RemoveGuardIfHasOwner = PnlExperimental.ChkNeutralRemoveGuardIfHasOwner.IsChecked == true,
             },
             Content = new ContentControlSettings
             {

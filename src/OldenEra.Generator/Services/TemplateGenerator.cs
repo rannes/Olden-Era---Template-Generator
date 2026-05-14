@@ -255,6 +255,7 @@ namespace OldenEra.Generator.Services
             string tierPreset = tier?.BuildingPreset ?? "";
             double neutralChance = settings.NeutralCities.GuardChance;
             int neutralPct = settings.NeutralCities.GuardValuePercent;
+            bool neutralRemoveGuard = settings.NeutralCities.RemoveGuardIfHasOwner;
 
             foreach (var mo in zone.MainObjects)
             {
@@ -279,6 +280,8 @@ namespace OldenEra.Generator.Services
                         mo.GuardChance = neutralChance;
                     if (neutralPct != 100 && mo.GuardValue is int gv)
                         mo.GuardValue = (int)System.Math.Round(gv * (neutralPct / 100.0));
+                    if (neutralRemoveGuard)
+                        mo.RemoveGuardIfHasOwner = true;
                 }
             }
         }

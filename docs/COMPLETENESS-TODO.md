@@ -70,8 +70,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   - Snapshot test for a chain topology with `length` set.
 
 ### T-002 — MainObject: guardChance, removeGuardIfHasOwner
-- **Status:** in-progress
-- **Owner:** orchestrator (Phase 1 batch)
+- **Status:** done
+- **Owner:** Rannes (Phase 1 batch)
 - **Effort:** S
 - **Files:** `TemplateGenerator.cs` (`BuildNeutralZone` mainObject builder),
   `GeneratorSettings.cs`, both UI hosts.
