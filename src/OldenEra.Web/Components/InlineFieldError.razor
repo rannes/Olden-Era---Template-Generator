@@ -1,0 +1,41 @@
+@* Renders the validator's inline message for a given field key, plus an
+   optional one-click "fix" button. Caller passes the SettingsValidator.Result
+   so this component can decide which severity (and message) to show. T-303. *@
+@using OldenEra.Generator.Services
+
+@if (Issue is not null)
+{
+    <div class="oe-field-msg @(Issue.Severity == SettingsValidator.Severity.Warning ? "warning" : "")"
+         id="@MessageElementId"
+         role="@(Issue.Severity == SettingsValidator.Severity.Blocker ? "alert" : "status")">
+        <span>@Issue.Message</span>
+        @if (FixLabel is not null && OnFix.HasDelegate)
+        {
+            <button type="button" class="oe-field-fix" @onclick="OnFix">@FixLabel</button>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>The validation result. Null = nothing to show.</summary>
+    [Parameter] public SettingsValidator.Result? Result { get; set; }
+
+    /// <summary>The field key to look up in the result.</summary>
+    [Parameter, EditorRequired] public string FieldKey { get; set; } = "";
+
+    /// <summary>
+    /// Shared element id for ARIA: the wrapping control should set
+    /// <c>aria-describedby</c> to this same id when a message is present.
+    /// </summary>
+    [Parameter] public string? MessageElementId { get; set; }
+
+    /// <summary>If non-null, render a button with this label that invokes <see cref="OnFix"/>.</summary>
+    [Parameter] public string? FixLabel { get; set; }
+
+    /// <summary>Mechanical-fix click handler. No-op when null.</summary>
+    [Parameter] public EventCallback OnFix { get; set; }
+
+    // Prefer the highest-severity issue on this field (blockers win over warnings).
+    private SettingsValidator.ValidationIssue? Issue =>
+        Result?.ForField(FieldKey).OrderBy(i => i.Severity).FirstOrDefault();
+}

@@ -292,7 +292,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   state round-trips through `.oetgs`.
 
 ### T-303 — Inline validation remediation
-- **Status:** in-progress
+- **Status:** done
 - **Owner:** orchestrator (Phase 3+4 batch 2)
 - **Effort:** M
 - **Files:** `SettingsValidator.cs`, both UI hosts.

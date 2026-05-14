@@ -5,7 +5,19 @@
     <div class="oe-section-header">Topology</div>
     <p class="oe-hint">How player and neutral zones are arranged on the map.</p>
 
-    <div class="oe-topo-grid" role="radiogroup" aria-label="Topology">
+    <InlineFieldError Result="Validation"
+                      FieldKey="@ValidationFieldKeys.Topology"
+                      MessageElementId="topology-msg" />
+    @if (HasBlockerOnNeutralFromCityHold && OnFixSwitchToHub.HasDelegate)
+    {
+        <div class="oe-field-msg" role="alert">
+            <span>City Hold also works if the layout is Hub &amp; Spoke (the hub doubles as the neutral hold city).</span>
+            <button type="button" class="oe-field-fix" @onclick="OnFixSwitchToHub">Switch to Hub layout</button>
+        </div>
+    }
+
+    <div class="oe-topo-grid @TopoClass" role="radiogroup" aria-label="Topology"
+         aria-describedby="@(HasBlocker(ValidationFieldKeys.Topology) ? "topology-msg" : null)">
         @foreach (var (topo, label, svg) in Tiles)
         {
             var isSelected = Settings.Topology == topo;
@@ -36,6 +48,24 @@
 @code {
     [Parameter, EditorRequired] public GeneratorSettings Settings { get; set; } = default!;
     [Parameter] public EventCallback OnChanged { get; set; }
+    /// <summary>Latest validation result. T-303.</summary>
+    [Parameter] public SettingsValidator.Result? Validation { get; set; }
+    /// <summary>Mechanical fix: switches to Hub-and-Spoke (resolves "City Hold needs neutrals"). T-303.</summary>
+    [Parameter] public EventCallback OnFixSwitchToHub { get; set; }
+
+    private bool HasBlocker(string key) => Validation?.HasBlockerOn(key) ?? false;
+    private bool HasWarning(string key) => Validation?.HasWarningOn(key) ?? false;
+    private string TopoClass =>
+        HasBlocker(ValidationFieldKeys.Topology) ? "has-error" :
+        HasWarning(ValidationFieldKeys.Topology) ? "has-warning" : "";
+    // The "City Hold needs a neutral or Hub" blocker anchors on neutral-count
+    // (so the "Add a neutral zone" fix lives there), but switching to Hub is
+    // the alternative remediation — surface it on the topology picker too.
+    private bool HasBlockerOnNeutralFromCityHold =>
+        Validation?.Issues.Any(i =>
+            i.Severity == SettingsValidator.Severity.Blocker
+            && i.FieldKey == ValidationFieldKeys.NeutralZoneCount
+            && i.Message.Contains("City Hold")) ?? false;
 
     private async Task Select(MapTopology topo)
     {

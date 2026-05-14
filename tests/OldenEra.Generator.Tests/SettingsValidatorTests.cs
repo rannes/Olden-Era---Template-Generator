@@ -179,6 +179,136 @@ public class SettingsValidatorTests
         Assert.Contains(result.Blockers, b => b.Contains(hero.Id) && b.Contains("ban"));
     }
 
+    // -- T-303: every issue must carry a non-empty field key --------------
+
+    [Fact]
+    public void EveryIssue_HasNonEmptyFieldKey()
+    {
+        // Trigger every blocker + warning the validator emits at once.
+        var s = ValidBaseline();
+        s.HeroSettings.HeroCountMin = 9;
+        s.HeroSettings.HeroCountMax = 1;
+        s.PlayerCount = 8;
+        s.ZoneCfg.NeutralZoneCount = 30;
+        s.TemplateName = "   ";
+        s.GameEndConditions.CityHold = true;
+        s.NoDirectPlayerConnections = true;
+        s.MapSize = 320;
+        s.ZoneCfg.PlayerZoneCastles = 3;
+
+        var result = SettingsValidator.Validate(s);
+        Assert.NotEmpty(result.Issues);
+        Assert.All(result.Issues, i => Assert.False(string.IsNullOrWhiteSpace(i.FieldKey)));
+    }
+
+    [Fact]
+    public void Issue_FieldKey_HeroMinMax_AnchorsOnHeroes()
+    {
+        var s = ValidBaseline();
+        s.HeroSettings.HeroCountMin = 9;
+        s.HeroSettings.HeroCountMax = 1;
+        var result = SettingsValidator.Validate(s);
+        Assert.True(result.HasBlockerOn(ValidationFieldKeys.HeroMinMax));
+    }
+
+    [Fact]
+    public void Issue_FieldKey_CityHoldNoNeutrals_AnchorsOnNeutralCount()
+    {
+        var s = ValidBaseline();
+        s.ZoneCfg.NeutralZoneCount = 0;
+        s.GameEndConditions.CityHold = true;
+        var result = SettingsValidator.Validate(s);
+        Assert.True(result.HasBlockerOn(ValidationFieldKeys.NeutralZoneCount));
+    }
+
+    [Fact]
+    public void Issue_FieldKey_TournamentBadPlayerCount_AnchorsOnPlayerCount()
+    {
+        var s = ValidBaseline();
+        s.PlayerCount = 4;
+        s.GameEndConditions.VictoryCondition = "win_condition_6";
+        var result = SettingsValidator.Validate(s);
+        Assert.True(result.HasBlockerOn(ValidationFieldKeys.PlayerCount));
+    }
+
+    [Fact]
+    public void Issue_FieldKey_TemplateNameBlank_AnchorsOnTemplateName()
+    {
+        var s = ValidBaseline();
+        s.TemplateName = "";
+        var result = SettingsValidator.Validate(s);
+        Assert.True(result.HasBlockerOn(ValidationFieldKeys.TemplateName));
+    }
+
+    [Fact]
+    public void Issue_FieldKey_ExperimentalMapSize_AnchorsOnMapSize()
+    {
+        var s = ValidBaseline();
+        s.MapSize = 320;
+        var result = SettingsValidator.Validate(s);
+        Assert.True(result.HasWarningOn(ValidationFieldKeys.MapSize));
+    }
+
+    // -- T-303: mechanical fix actions resolve their target blocker -------
+
+    [Fact]
+    public void Fix_AddNeutralZone_ClearsCityHoldBlocker()
+    {
+        var s = ValidBaseline();
+        s.ZoneCfg.NeutralZoneCount = 0;
+        s.GameEndConditions.CityHold = true;
+        Assert.False(SettingsValidator.Validate(s).IsValid);
+
+        ValidationFixes.AddNeutralZone(s);
+
+        Assert.Equal(1, s.ZoneCfg.NeutralZoneCount);
+        Assert.True(SettingsValidator.Validate(s).IsValid);
+    }
+
+    [Fact]
+    public void Fix_AddNeutralZone_BumpsAdvancedMediumBucket()
+    {
+        var s = ValidBaseline();
+        s.ZoneCfg.NeutralZoneCount = 0;
+        s.ZoneCfg.Advanced.Enabled = true;
+        s.GameEndConditions.CityHold = true;
+
+        ValidationFixes.AddNeutralZone(s);
+
+        Assert.Equal(1, s.ZoneCfg.Advanced.NeutralMediumNoCastleCount);
+        Assert.True(SettingsValidator.Validate(s).IsValid);
+    }
+
+    [Fact]
+    public void Fix_SwitchToHubTopology_ClearsCityHoldBlocker()
+    {
+        var s = ValidBaseline();
+        s.ZoneCfg.NeutralZoneCount = 0;
+        s.GameEndConditions.CityHold = true;
+        Assert.False(SettingsValidator.Validate(s).IsValid);
+
+        ValidationFixes.SwitchToHubTopology(s);
+
+        Assert.Equal(MapTopology.HubAndSpoke, s.Topology);
+        Assert.True(SettingsValidator.Validate(s).IsValid);
+    }
+
+    [Fact]
+    public void Fix_SetDefaultTemplateName_ClearsBlankNameBlocker()
+    {
+        var s = ValidBaseline();
+        s.TemplateName = "   ";
+        Assert.False(SettingsValidator.Validate(s).IsValid);
+
+        ValidationFixes.SetDefaultTemplateName(s);
+
+        Assert.Equal("Custom Template", s.TemplateName);
+        // Name-blocker is gone; warning about default name now appears.
+        var after = SettingsValidator.Validate(s);
+        Assert.True(after.IsValid);
+        Assert.Contains(after.Warnings, w => w.Contains("default name"));
+    }
+
     [Fact]
     public void TotalNeutralZones_AdvancedMode_SumsTierBuckets()
     {

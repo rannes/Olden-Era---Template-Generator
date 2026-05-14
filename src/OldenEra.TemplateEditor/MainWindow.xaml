@@ -340,12 +340,38 @@
                                 HorizontalAlignment="Stretch"
                                 Click="BtnPreview_Click"/>
 
-                        <TextBlock Grid.Row="2"
-                                   x:Name="TxtValidation"
-                                   Foreground="{StaticResource OeErrorBrush}"
-                                   FontSize="12" TextWrapping="Wrap"
-                                   Visibility="Collapsed"
-                                   HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                        <StackPanel Grid.Row="2" x:Name="PnlValidation">
+                            <TextBlock x:Name="TxtValidation"
+                                       Foreground="{StaticResource OeErrorBrush}"
+                                       FontSize="12" TextWrapping="Wrap"
+                                       Visibility="Collapsed"
+                                       HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                            <!-- Inline fix-action buttons (T-303). Visible only when the
+                                 corresponding mechanical fix would resolve the active blocker. -->
+                            <StackPanel x:Name="PnlValidationFixes"
+                                        Orientation="Horizontal"
+                                        HorizontalAlignment="Center"
+                                        Margin="0,4,0,0"
+                                        Visibility="Collapsed">
+                                <Button x:Name="BtnFixAddNeutralZone"
+                                        Content="Add a neutral zone"
+                                        Margin="0,0,6,0"
+                                        Padding="8,2"
+                                        Visibility="Collapsed"
+                                        Click="BtnFixAddNeutralZone_Click"/>
+                                <Button x:Name="BtnFixSwitchToHub"
+                                        Content="Switch to Hub layout"
+                                        Margin="0,0,6,0"
+                                        Padding="8,2"
+                                        Visibility="Collapsed"
+                                        Click="BtnFixSwitchToHub_Click"/>
+                                <Button x:Name="BtnFixTemplateName"
+                                        Content="Use &quot;Custom Template&quot;"
+                                        Padding="8,2"
+                                        Visibility="Collapsed"
+                                        Click="BtnFixTemplateName_Click"/>
+                            </StackPanel>
+                        </StackPanel>
 
                         <Border Grid.Row="4"
                                 BorderThickness="1"

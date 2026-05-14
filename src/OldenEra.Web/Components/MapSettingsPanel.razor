@@ -5,19 +5,35 @@
 
     <div class="oe-stacked">
         <label class="oe-label" for="tplname">Template Name</label>
-        <input id="tplname" type="text"
-               value="@Settings.TemplateName"
-               @oninput="OnTemplateNameInput" />
+        <div class="oe-field @TplNameClass">
+            <input id="tplname" type="text"
+                   value="@Settings.TemplateName"
+                   aria-invalid="@(HasBlocker(ValidationFieldKeys.TemplateName) ? "true" : "false")"
+                   aria-describedby="@(HasIssue(ValidationFieldKeys.TemplateName) ? "tplname-msg" : null)"
+                   @oninput="OnTemplateNameInput" />
+        </div>
+        <InlineFieldError Result="Validation"
+                          FieldKey="@ValidationFieldKeys.TemplateName"
+                          MessageElementId="tplname-msg"
+                          FixLabel="@(HasBlocker(ValidationFieldKeys.TemplateName) ? "Use \"Custom Template\"" : null)"
+                          OnFix="OnFixTemplateName" />
     </div>
 
     <div class="oe-stacked">
         <label class="oe-label" for="mapsize">Map Size</label>
-        <select id="mapsize" @bind="MapSize" @bind:after="NotifyChanged">
-            @foreach (int size in AvailableMapSizes)
-            {
-                <option value="@size">@FormatMapSize(size)</option>
-            }
-        </select>
+        <div class="oe-field @MapSizeClass">
+            <select id="mapsize" @bind="MapSize" @bind:after="NotifyChanged"
+                    aria-invalid="@(HasBlocker(ValidationFieldKeys.MapSize) ? "true" : "false")"
+                    aria-describedby="@(HasIssue(ValidationFieldKeys.MapSize) ? "mapsize-msg" : null)">
+                @foreach (int size in AvailableMapSizes)
+                {
+                    <option value="@size">@FormatMapSize(size)</option>
+                }
+            </select>
+        </div>
+        <InlineFieldError Result="Validation"
+                          FieldKey="@ValidationFieldKeys.MapSize"
+                          MessageElementId="mapsize-msg" />
     </div>
 
     <div class="oe-stacked">
@@ -58,10 +74,15 @@
         </div>
     }
 
-    <SliderRow Label="Players"
-               Min="2" Max="8" Step="1"
-               Value="Settings.PlayerCount"
-               ValueChanged="@(v => { Settings.PlayerCount = (int)v; OnChanged.InvokeAsync(); })" />
+    <div class="oe-field @PlayersClass">
+        <SliderRow Label="Players"
+                   Min="2" Max="8" Step="1"
+                   Value="Settings.PlayerCount"
+                   ValueChanged="@(v => { Settings.PlayerCount = (int)v; OnChanged.InvokeAsync(); })" />
+    </div>
+    <InlineFieldError Result="Validation"
+                      FieldKey="@ValidationFieldKeys.PlayerCount"
+                      MessageElementId="players-msg" />
 </div>
 
 @code {
@@ -69,6 +90,19 @@
     [Parameter] public bool ExperimentalMapSizes { get; set; }
     [Parameter] public EventCallback<bool> ExperimentalMapSizesChanged { get; set; }
     [Parameter] public EventCallback OnChanged { get; set; }
+    /// <summary>Latest validation result. Drives inline error/warning anchors. T-303.</summary>
+    [Parameter] public SettingsValidator.Result? Validation { get; set; }
+    /// <summary>Mechanical fix: blank template name → seed default. T-303.</summary>
+    [Parameter] public EventCallback OnFixTemplateName { get; set; }
+
+    private bool HasBlocker(string key) => Validation?.HasBlockerOn(key) ?? false;
+    private bool HasWarning(string key) => Validation?.HasWarningOn(key) ?? false;
+    private bool HasIssue(string key) => HasBlocker(key) || HasWarning(key);
+    private string FieldClass(string key) =>
+        HasBlocker(key) ? "has-error" : HasWarning(key) ? "has-warning" : "";
+    private string TplNameClass => FieldClass(ValidationFieldKeys.TemplateName);
+    private string MapSizeClass => FieldClass(ValidationFieldKeys.MapSize);
+    private string PlayersClass => FieldClass(ValidationFieldKeys.PlayerCount);
 
     private int MapSize
     {

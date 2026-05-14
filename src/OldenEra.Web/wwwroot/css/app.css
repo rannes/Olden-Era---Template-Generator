@@ -115,6 +115,47 @@ code { color: var(--oe-accent); background: var(--oe-surface-2); padding: 0 4px;
     margin: 8px 0;
 }
 
+/* Inline validation anchors. A wrapping element that hosts a control gets
+   `.oe-field` plus optionally `.has-error` or `.has-warning`. The popover
+   `.oe-field-msg` renders directly below the control. T-303. */
+.oe-field {
+    position: relative;
+    border-radius: 4px;
+}
+.oe-field.has-error {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--oe-error) 70%, transparent);
+    background: color-mix(in srgb, var(--oe-error) 5%, transparent);
+}
+.oe-field.has-warning {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--oe-accent) 60%, transparent);
+}
+.oe-field-msg {
+    margin-top: 4px;
+    padding: 6px 10px;
+    font-size: 12px;
+    line-height: 1.35;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--oe-error) 10%, transparent);
+    color: var(--oe-text);
+    border-left: 3px solid var(--oe-error);
+}
+.oe-field-msg.warning {
+    background: var(--oe-warn-bg);
+    border-left-color: var(--oe-accent);
+}
+.oe-field-fix {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    font-size: 12px;
+    border: 1px solid var(--oe-error);
+    background: transparent;
+    color: var(--oe-text);
+    border-radius: 3px;
+    cursor: pointer;
+}
+.oe-field-fix:hover { background: color-mix(in srgb, var(--oe-error) 20%, transparent); }
+
 .oe-shell {
     display: grid;
     grid-template-columns: 220px 1fr 360px;
