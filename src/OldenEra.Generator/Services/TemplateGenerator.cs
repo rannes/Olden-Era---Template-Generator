@@ -576,31 +576,49 @@ namespace OldenEra.Generator.Services
 
             var list = new List<Bonus>();
 
-            // Resources: a field is keyed by (sid). Compute the effective amount per slot;
-            // if any slot diverges from uniform, emit per-slot rows for that resource sid;
-            // otherwise emit a single ReceiverSide=-1 row.
-            var allResourceSids = new HashSet<string>(b.Resources.Keys);
-            foreach (var ov in overridesBySlot.Values)
-                foreach (var sid in ov.Resources.Keys) allResourceSids.Add(sid);
-            foreach (var sid in allResourceSids)
+            // Resources: when no overrides exist, preserve the original dictionary
+            // iteration order to keep emitted-bonus order byte-identical with the
+            // pre-T-206 emitter. When overrides exist, walk the union of sids; the
+            // uniform sids come first (preserving their original order) and any
+            // override-only sids follow.
+            if (overridesBySlot.Count == 0)
             {
-                if (string.IsNullOrWhiteSpace(sid)) continue;
-                int uniform = b.Resources.TryGetValue(sid, out var u) ? u : 0;
-                bool anyOverride = overridesBySlot.Values.Any(o => o.Resources.ContainsKey(sid));
-                if (!anyOverride)
+                foreach (var (sid, amount) in b.Resources)
                 {
-                    if (uniform == 0) continue;
-                    list.Add(MakeResourceBonus(sid, uniform, receiverSide: -1));
-                    continue;
+                    if (amount == 0 || string.IsNullOrWhiteSpace(sid)) continue;
+                    list.Add(MakeResourceBonus(sid, amount, receiverSide: -1));
                 }
-                for (int slot = 1; slot <= playerCount; slot++)
+            }
+            else
+            {
+                var orderedSids = new List<string>();
+                var seen = new HashSet<string>();
+                foreach (var sid in b.Resources.Keys)
+                    if (seen.Add(sid)) orderedSids.Add(sid);
+                foreach (var ov in overridesBySlot.Values)
+                    foreach (var sid in ov.Resources.Keys)
+                        if (seen.Add(sid)) orderedSids.Add(sid);
+
+                foreach (var sid in orderedSids)
                 {
-                    int amount = uniform;
-                    if (overridesBySlot.TryGetValue(slot, out var ov)
-                        && ov.Resources.TryGetValue(sid, out var v))
-                        amount = v;
-                    if (amount == 0) continue;
-                    list.Add(MakeResourceBonus(sid, amount, receiverSide: slot));
+                    if (string.IsNullOrWhiteSpace(sid)) continue;
+                    int uniform = b.Resources.TryGetValue(sid, out var u) ? u : 0;
+                    bool anyOverride = overridesBySlot.Values.Any(o => o.Resources.ContainsKey(sid));
+                    if (!anyOverride)
+                    {
+                        if (uniform == 0) continue;
+                        list.Add(MakeResourceBonus(sid, uniform, receiverSide: -1));
+                        continue;
+                    }
+                    for (int slot = 1; slot <= playerCount; slot++)
+                    {
+                        int amount = uniform;
+                        if (overridesBySlot.TryGetValue(slot, out var ov)
+                            && ov.Resources.TryGetValue(sid, out var v))
+                            amount = v;
+                        if (amount == 0) continue;
+                        list.Add(MakeResourceBonus(sid, amount, receiverSide: slot));
+                    }
                 }
             }
 

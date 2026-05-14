@@ -163,6 +163,27 @@ public class PerPlayerBonusesTests
     }
 
     [Fact]
+    public void Override_SinglePlayerCount_StillExpands()
+    {
+        // Edge case: with PlayerCount=1, an override on slot 1 must still emit
+        // a slot-1 row (not a uniform ReceiverSide=-1 row) for the touched field.
+        var s = BaseSettings();
+        s.PlayerCount = 1;
+        s.Bonuses.HeroAttack = 2;
+        s.Bonuses.PerPlayerOverrides.Add(new PerPlayerBonusOverride
+        {
+            PlayerSlot = 1,
+            Bonuses = new StartingBonusSettings { HeroAttack = 9 },
+        });
+        var t = TemplateGenerator.Generate(s);
+        var attack = Bonuses(t).Where(b => b.Sid == "add_bonus_hero_stat"
+                                            && b.Parameters?[0] == "attack").ToList();
+        Assert.Single(attack);
+        Assert.Equal(1, attack[0].ReceiverSide);
+        Assert.Equal("9", attack[0].Parameters![1]);
+    }
+
+    [Fact]
     public void Validator_OutOfRangeSlot_Warns()
     {
         var s = BaseSettings();

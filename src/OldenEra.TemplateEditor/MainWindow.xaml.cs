@@ -449,6 +449,10 @@ namespace OldenEra.TemplateEditor
             UpdateValueLabels();
             UpdatePlayerCastleFactionVisibility();
             UpdateAdvancedZoneSettingsVisibility();
+            // T-206: keep per-player bonus row slot pickers in sync with the
+            // player-count slider so the visible slot range matches the model.
+            if (ReferenceEquals(sender, PnlMap.SldPlayers))
+                PnlExperimental.RefreshBonusOverridePlayerCount((int)PnlMap.SldPlayers.Value);
             MarkDirty();
             Validate();
         }
