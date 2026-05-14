@@ -259,6 +259,32 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   needed because no template field accepts tier-8 unit SIDs as guard
   pool members.
 
+### T-205 — Per-tier terrain density
+- **Status:** in-progress
+- **Owner:** Rannes
+- **Effort:** M
+- **Files:** `src/OldenEra.Generator/Services/TemplateGenerator.cs`
+  (`ApplyExperimentalSettings`), `src/OldenEra.Web/Components/PerTierOverridesPanel.razor`,
+  `src/OldenEra.TemplateEditor/Views/ExperimentalPanel.xaml`,
+  `tests/OldenEra.Generator.Tests/`.
+- **Scope:** `TierOverrides.ObstaclesFill` / `LakesFill` already exist on
+  `GeneratorSettings` and round-trip via `SettingsMapper`, but the generator
+  ignores them. Wire them through `ApplyExperimentalSettings` gated on
+  `ExperimentalFlags.PerTierOverrides`. Strategy: clone only diverging
+  layouts. For each base neutral layout (Sides / TreasureZone / Center),
+  resolve effective `(obstacles, lakes)` per tier with precedence
+  tier > global Terrain > baseline; mutate the base layout in place when
+  all using-tiers agree, otherwise add a suffixed clone (e.g.
+  `zone_layout_sides_high`) to `template.ZoneLayouts` and rewrite
+  `zone.Layout` for that tier's neutral zones. Surface obstacles/lakes
+  sliders per tier in both UI hosts.
+- **Acceptance:** Defaults emit byte-identical output. Single-tier override
+  emits exactly one cloned layout and retargets that tier's neutral zones.
+  All-tiers-equal override mutates the base layout in place with zero
+  clones. Tier override beats global Terrain override for that tier;
+  untouched tiers fall through to global. Snapshot + unit tests cover
+  each path.
+
 ---
 
 ## Phase 4 — UX that supports completeness
