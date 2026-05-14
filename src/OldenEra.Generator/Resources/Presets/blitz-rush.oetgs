@@ -1,0 +1,16 @@
+{
+  "templateName": "Blitz Rush",
+  "playerCount": 2,
+  "topology": "Default",
+  "mapSize": 64,
+  "neutralZoneCount": 1,
+  "playerCastles": 1,
+  "resourceDensity": 80,
+  "structureDensity": 70,
+  "neutralStackStrength": 80,
+  "borderGuardStrength": 70,
+  "heroMin": 3,
+  "heroMax": 6,
+  "connectionGuardEscape": true,
+  "connectionSimTurnSquad": true
+}

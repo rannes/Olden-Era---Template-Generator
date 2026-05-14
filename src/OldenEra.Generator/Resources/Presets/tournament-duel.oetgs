@@ -1,0 +1,16 @@
+{
+  "templateName": "Tournament Duel",
+  "playerCount": 2,
+  "topology": "Default",
+  "mapSize": 96,
+  "neutralZoneCount": 2,
+  "playerCastles": 1,
+  "victoryCondition": "win_condition_6",
+  "tournament": true,
+  "tournamentFirstTournamentDay": 14,
+  "tournamentInterval": 7,
+  "tournamentPointsToWin": 2,
+  "tournamentSaveArmy": true,
+  "resourceDensity": 100,
+  "structureDensity": 100
+}

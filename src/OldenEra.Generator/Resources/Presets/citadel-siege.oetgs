@@ -1,0 +1,18 @@
+{
+  "templateName": "Citadel Siege",
+  "playerCount": 4,
+  "topology": "Default",
+  "mapSize": 128,
+  "neutralZoneCount": 3,
+  "playerCastles": 1,
+  "neutralCastles": 1,
+  "victoryCondition": "win_condition_5",
+  "cityHold": true,
+  "cityHoldDays": 7,
+  "lostStartCity": true,
+  "lostStartCityDay": 4,
+  "resourceDensity": 110,
+  "structureDensity": 110,
+  "neutralCityGuardChance": 0.5,
+  "neutralCityRemoveGuardIfHasOwner": true
+}
