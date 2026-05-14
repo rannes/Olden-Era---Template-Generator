@@ -11,5 +11,6 @@
   "neutralStackStrength": 130,
   "borderGuardStrength": 120,
   "heroMin": 5,
-  "heroMax": 10
+  "heroMax": 10,
+  "heroIncrement": 2
 }

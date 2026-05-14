@@ -1,3 +1,4 @@
+using System.Text.Json;
 using OldenEra.Generator.Models;
 using OldenEra.Generator.Models.Unfrozen;
 using OldenEra.Generator.Services;
@@ -521,8 +522,9 @@ public class ExperimentalSettingsTests
     {
         // Acceptance: with no T-006 override set, no zone gains a custom
         // contentCountLimits / pool / cutoff override beyond what the builder
-        // already wrote. We assert structural identity by comparing two
-        // independent generations with the same seed.
+        // already wrote. We assert byte-identity by serialising both templates
+        // with the same options — locks in true equivalence rather than just
+        // a hand-picked field set.
         var seed = 12345;
         var a = TemplateGenerator.Generate(new GeneratorSettings { PlayerCount = 2, Seed = seed });
         var b = TemplateGenerator.Generate(new GeneratorSettings
@@ -532,16 +534,8 @@ public class ExperimentalSettingsTests
             ZoneOverrides = new ZoneOverridesSettings(), // all defaults
         });
 
-        var zonesA = a.Variants![0].Zones!;
-        var zonesB = b.Variants![0].Zones!;
-        Assert.Equal(zonesA.Count, zonesB.Count);
-        for (int i = 0; i < zonesA.Count; i++)
-        {
-            Assert.Equal(zonesA[i].GuardCutoffValue, zonesB[i].GuardCutoffValue);
-            Assert.Equal(zonesA[i].GuardedContentPool, zonesB[i].GuardedContentPool);
-            Assert.Equal(zonesA[i].UnguardedContentPool, zonesB[i].UnguardedContentPool);
-            Assert.Equal(zonesA[i].ContentCountLimits, zonesB[i].ContentCountLimits);
-        }
+        var opts = new JsonSerializerOptions { WriteIndented = false };
+        Assert.Equal(JsonSerializer.Serialize(a, opts), JsonSerializer.Serialize(b, opts));
     }
 
     [Fact]

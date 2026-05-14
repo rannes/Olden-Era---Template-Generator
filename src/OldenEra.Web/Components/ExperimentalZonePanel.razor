@@ -525,16 +525,5 @@
         await NotifyChanged();
     }
 
-    private static List<string> ParseSidList(string? raw)
-    {
-        if (string.IsNullOrWhiteSpace(raw)) return new();
-        var parts = raw.Split(',', StringSplitOptions.RemoveEmptyEntries);
-        var result = new List<string>(parts.Length);
-        foreach (var p in parts)
-        {
-            string t = p.Trim();
-            if (t.Length > 0) result.Add(t);
-        }
-        return result;
-    }
+    private static List<string> ParseSidList(string? raw) => SidCsv.Parse(raw);
 }

@@ -65,7 +65,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: chore/community-data-refresh-${{ github.run_id }}
+          branch: chore/community-data-refresh
           branch-suffix: timestamp
           delete-branch: true
           commit-message: |

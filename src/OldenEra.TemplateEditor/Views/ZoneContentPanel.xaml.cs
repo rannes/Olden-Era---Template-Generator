@@ -98,18 +98,30 @@ public partial class ZoneContentPanel : UserControl
     /// Orders SID-catalog entries first by their category's index in
     /// <see cref="ZoneContentSidCatalog.OrderedCategories"/> (so picker groups
     /// appear Mandatory → Mines → ... → Misc rather than alphabetically), then
-    /// by SID ordinal so the dropdown order is stable across cultures.
+    /// by their position in <see cref="ZoneContentSidCatalog.All"/> so the
+    /// hand-authored seed order is preserved within a category — matching the
+    /// Web side, which iterates <c>Grouped()</c> directly.
     /// </summary>
     private sealed class SidCatalogOrdinalComparer : IComparer
     {
         private static readonly System.Collections.Generic.Dictionary<string, int> CategoryIndex =
-            BuildIndex();
+            BuildCategoryIndex();
+        private static readonly System.Collections.Generic.Dictionary<string, int> SeedIndex =
+            BuildSeedIndex();
 
-        private static System.Collections.Generic.Dictionary<string, int> BuildIndex()
+        private static System.Collections.Generic.Dictionary<string, int> BuildCategoryIndex()
         {
             var dict = new System.Collections.Generic.Dictionary<string, int>(StringComparer.Ordinal);
             int i = 0;
             foreach (var c in ZoneContentSidCatalog.OrderedCategories) dict[c] = i++;
+            return dict;
+        }
+
+        private static System.Collections.Generic.Dictionary<string, int> BuildSeedIndex()
+        {
+            var dict = new System.Collections.Generic.Dictionary<string, int>(StringComparer.Ordinal);
+            int i = 0;
+            foreach (var entry in ZoneContentSidCatalog.All()) dict[entry.Sid] = i++;
             return dict;
         }
 
@@ -119,7 +131,10 @@ public partial class ZoneContentPanel : UserControl
             int ai = CategoryIndex.TryGetValue(a.Category, out var avi) ? avi : int.MaxValue;
             int bi = CategoryIndex.TryGetValue(b.Category, out var bvi) ? bvi : int.MaxValue;
             int c = ai.CompareTo(bi);
-            return c != 0 ? c : StringComparer.Ordinal.Compare(a.Sid, b.Sid);
+            if (c != 0) return c;
+            int asi = SeedIndex.TryGetValue(a.Sid, out var asv) ? asv : int.MaxValue;
+            int bsi = SeedIndex.TryGetValue(b.Sid, out var bsv) ? bsv : int.MaxValue;
+            return asi.CompareTo(bsi);
         }
     }
 }

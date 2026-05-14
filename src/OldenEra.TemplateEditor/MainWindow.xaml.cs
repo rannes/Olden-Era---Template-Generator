@@ -1187,33 +1187,11 @@ namespace OldenEra.TemplateEditor
                 System.Globalization.CultureInfo.InvariantCulture, out int v) && v >= 0 ? v : null;
         }
 
-        private static List<string> ParseSidList(string? raw)
-        {
-            if (string.IsNullOrWhiteSpace(raw)) return new();
-            var parts = raw.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            var result = new List<string>(parts.Length);
-            foreach (var p in parts)
-            {
-                string t = p.Trim();
-                if (t.Length > 0) result.Add(t);
-            }
-            return result;
-        }
+        private static List<string> ParseSidList(string? raw) => SidCsv.Parse(raw);
 
         // Trims tokens, drops empties, rejoins. Round-trips losslessly through
         // the share codec because the result is just a string.
-        private static string NormalizeSidCsv(string? raw)
-        {
-            if (string.IsNullOrWhiteSpace(raw)) return "";
-            var parts = raw.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            var kept = new List<string>(parts.Length);
-            foreach (var p in parts)
-            {
-                string t = p.Trim();
-                if (t.Length > 0) kept.Add(t);
-            }
-            return string.Join(",", kept);
-        }
+        private static string NormalizeSidCsv(string? raw) => SidCsv.Normalize(raw);
 
         private static int? TagAsNullableInt(object? selectedItem)
         {
