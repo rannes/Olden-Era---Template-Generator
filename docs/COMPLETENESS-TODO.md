@@ -149,17 +149,22 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   - Existing presets still validate.
 
 ### T-102 — Skills + subclasses pickers
-- **Status:** in-progress
-- **Owner:** orchestrator (Phase 2 batch)
+- **Status:** cancelled (2026-05-14)
+- **Owner:** —
 - **Effort:** M
-- **Files:** New `SkillsPanel` / `SubclassesPanel` in both hosts,
-  `CommunityCatalog.cs` (already loads the data), `GeneratorSettings.cs`.
-- **Scope:** Spells and heroes have ban/availability UIs; skills (30) and
-  subclasses (24) are loaded but unreachable. Add ban/availability toggles
-  with the same pattern. Tier filter (Basic/Advanced/Expert) for skills.
-- **Acceptance:** Settings persist via `.oetgs`, share-codec, and localStorage.
-  Banned skills/subclasses appear in the emitted template (verify which
-  schema field, likely `GameRules.bannedSkills` or similar).
+- **Cancellation rationale:** Schema verification (full sweep of
+  `src/OldenEra.TemplateEditor/GameData/ExampleTemplates/*.rmg.json` plus the
+  `GlobalBans` model in `Models/Unfrozen/Miscellaneous.cs`) shows the
+  `.rmg.json` contract has **no ban or availability surface for skills or
+  subclasses**. `globalBans` accepts only `items`, `heroes`, `magics`. No
+  example template uses any skill/subclass-shaped key. `CommunityCatalog`
+  loads skills.json / subclasses.json as **descriptive wiki metadata** from
+  the alcaras community datamine — these IDs are not template inputs.
+  Building this UI would either emit invented keys the game silently ignores
+  or persist settings with zero effect on the emitted file. Both violate the
+  completeness mindset. If a future patch exposes such a field, reopen — the
+  hero/spell ban pattern (`SettingsFile.GlobalBans`, `HeroesPanel`,
+  `UnitBanGrid`) is mechanical to extend.
 
 ### T-103 — More preset archetypes
 - **Status:** open
