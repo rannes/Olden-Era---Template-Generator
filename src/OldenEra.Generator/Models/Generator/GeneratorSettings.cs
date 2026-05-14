@@ -239,6 +239,30 @@ namespace OldenEra.Generator.Models
         public bool UnitMultiplierStartHeroOnly { get; set; } = false;
     }
 
+    /// <summary>
+    /// Per-connection defaults applied uniformly to every <see cref="Connection"/>
+    /// after topology builders run. Each field has an "unset" sentinel that maps
+    /// to no emission so default-settings output stays byte-identical to current.
+    /// </summary>
+    /// <remarks>
+    /// T-001 surfaces the four scalar Connection fields the game schema accepts
+    /// (length, gatePlacement, guardEscape, simTurnSquad). The complex
+    /// portalPlacementRulesFrom/To list-of-objects fields stay generator-only:
+    /// their semantics depend on per-connection identity (target zone names,
+    /// crossroads weights) and don't fit a "blanket default" model.
+    /// </remarks>
+    public class ConnectionDefaultsSettings
+    {
+        /// <summary>0 = unset. Non-zero stamps onto every connection's <c>length</c>.</summary>
+        public double Length { get; set; } = 0.0;
+        /// <summary>Empty = unset. Otherwise overlaid onto every connection's <c>gatePlacement</c>. Common value in shipped templates is "Center".</summary>
+        public string GatePlacement { get; set; } = "";
+        /// <summary>null = leave whatever the topology builder chose. Otherwise force this value on every connection.</summary>
+        public bool? GuardEscape { get; set; }
+        /// <summary>null = leave whatever the topology builder chose. Otherwise force this value on every connection.</summary>
+        public bool? SimTurnSquad { get; set; }
+    }
+
     public class BordersRoadsSettings
     {
         /// <summary>Variant.Border.CornerRadius override. null = generator default (0.0).</summary>
@@ -298,6 +322,7 @@ namespace OldenEra.Generator.Models
         public ContentControlSettings Content { get; set; } = new ContentControlSettings();
         public StartingBonusSettings Bonuses { get; set; } = new StartingBonusSettings();
         public BordersRoadsSettings BordersRoads { get; set; } = new BordersRoadsSettings();
+        public ConnectionDefaultsSettings ConnectionDefaults { get; set; } = new ConnectionDefaultsSettings();
         public ZoneContentList PlayerZoneContent { get; set; } = new();
         public NeutralZoneContent NeutralZoneContent { get; set; } = new();
         public List<ZoneRoadDecoration> ZoneRoadDecorations { get; set; } = new();

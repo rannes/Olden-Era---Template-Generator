@@ -53,7 +53,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 ## Phase 1 — Expose schema surface
 
 ### T-001 — Connection: length, gatePlacement, escape hatch
-- **Status:** in-progress
+- **Status:** done
 - **Owner:** orchestrator (Phase 1 batch)
 - **Effort:** S
 - **Files:** `src/OldenEra.Generator/Services/TemplateGenerator.cs`,

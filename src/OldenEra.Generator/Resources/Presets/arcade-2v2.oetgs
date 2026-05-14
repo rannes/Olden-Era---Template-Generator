@@ -6,5 +6,7 @@
   "neutralZoneCount": 2,
   "playerCastles": 1,
   "resourceDensity": 110,
-  "structureDensity": 110
+  "structureDensity": 110,
+  "connectionSimTurnSquad": true,
+  "connectionGuardEscape": false
 }

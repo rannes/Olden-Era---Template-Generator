@@ -83,6 +83,43 @@
     }
 </ExperimentalCard>
 
+<ExperimentalCard Key="connection-defaults" Title="Connection defaults">
+    <div class="oe-hint">
+        Per-connection knobs the schema accepts. Each defaults to "unset" — leave alone
+        and the generator's per-topology choices are preserved. Length is a relative
+        path-distance multiplier (shipped templates use 0.0–5.0).
+    </div>
+    <SliderRow Label="Length" WideLabel="true"
+               Min="0" Max="500" Step="5" Suffix="%"
+               Value="(int)Math.Round(Settings.ConnectionDefaults.Length * 100)"
+               ValueChanged="@(v => { Settings.ConnectionDefaults.Length = v / 100.0; NotifyChanged(); })" />
+    <div class="oe-stacked">
+        <label class="oe-label">Gate placement</label>
+        <select @bind="Settings.ConnectionDefaults.GatePlacement" @bind:after="NotifyChanged">
+            <option value="">Default (unset)</option>
+            <option value="Center">Center</option>
+        </select>
+    </div>
+    <div class="oe-stacked">
+        <label class="oe-label">Guard escape</label>
+        <select value="@TriBool(Settings.ConnectionDefaults.GuardEscape)"
+                @onchange="@(e => { Settings.ConnectionDefaults.GuardEscape = ParseTriBool(e.Value?.ToString()); NotifyChanged(); })">
+            <option value="">Default (unset)</option>
+            <option value="false">false</option>
+            <option value="true">true</option>
+        </select>
+    </div>
+    <div class="oe-stacked">
+        <label class="oe-label">Sim-turn squad</label>
+        <select value="@TriBool(Settings.ConnectionDefaults.SimTurnSquad)"
+                @onchange="@(e => { Settings.ConnectionDefaults.SimTurnSquad = ParseTriBool(e.Value?.ToString()); NotifyChanged(); })">
+            <option value="">Default (unset)</option>
+            <option value="false">false</option>
+            <option value="true">true</option>
+        </select>
+    </div>
+</ExperimentalCard>
+
 <ExperimentalCard Key="neutral-cities" Title="Neutral cities">
     <div class="oe-hint">
         Chance that a neutral city gets a guarding stack, and how strong it is relative to the zone baseline (100%).
@@ -276,6 +313,15 @@
         Settings.GuardReaction.CustomDistribution = ok ? parsed : new List<int>();
         await NotifyChanged();
     }
+
+    private static string TriBool(bool? v) => v switch { true => "true", false => "false", _ => "" };
+
+    private static bool? ParseTriBool(string? s) => s switch
+    {
+        "true" => true,
+        "false" => false,
+        _ => null,
+    };
 
     private static string FriendlyPreset(string sid)
     {

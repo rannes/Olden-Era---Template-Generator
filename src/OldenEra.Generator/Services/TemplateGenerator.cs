@@ -234,6 +234,28 @@ namespace OldenEra.Generator.Services
                         foreach (var c in variant.Connections)
                             c.GuardWeeklyIncrement = settings.GuardProgression.ConnectionGuardWeeklyIncrement;
                     }
+
+                    // T-001 — connection-level scalar overlay. Each branch is gated
+                    // on a non-default value so byte-identical output is preserved
+                    // when the user has not opted in.
+                    if (variant.Connections is not null)
+                    {
+                        var cd = settings.ConnectionDefaults;
+                        bool anySet = cd.Length > 0
+                                      || !string.IsNullOrEmpty(cd.GatePlacement)
+                                      || cd.GuardEscape.HasValue
+                                      || cd.SimTurnSquad.HasValue;
+                        if (anySet)
+                        {
+                            foreach (var c in variant.Connections)
+                            {
+                                if (cd.Length > 0) c.Length = cd.Length;
+                                if (!string.IsNullOrEmpty(cd.GatePlacement)) c.GatePlacement = cd.GatePlacement;
+                                if (cd.GuardEscape.HasValue) c.GuardEscape = cd.GuardEscape;
+                                if (cd.SimTurnSquad.HasValue) c.SimTurnSquad = cd.SimTurnSquad;
+                            }
+                        }
+                    }
                 }
             }
 

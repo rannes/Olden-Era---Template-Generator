@@ -87,6 +87,14 @@ public partial class ExperimentalPanel : UserControl
         SldZoneGuardWeekly.ValueChanged     += (_, _) => TxtZoneGuardWeekly.Text     = ((int)SldZoneGuardWeekly.Value).ToString();
         SldConnectionGuardWeekly.ValueChanged += (_, _) => TxtConnectionGuardWeekly.Text = ((int)SldConnectionGuardWeekly.Value).ToString();
         SldNeutralGuardChance.ValueChanged  += (_, _) => TxtNeutralGuardChance.Text  = ((int)SldNeutralGuardChance.Value).ToString();
+        SldConnectionLength.ValueChanged    += (_, _) => TxtConnectionLength.Text    = ((int)SldConnectionLength.Value).ToString();
+        // Connection-default combos: index 0 = "(unset)" sentinel.
+        CmbConnectionGatePlacement.ItemsSource  = new System.Collections.Generic.List<string> { "(unset)", "Center" };
+        CmbConnectionGatePlacement.SelectedIndex = 0;
+        CmbConnectionGuardEscape.ItemsSource     = new System.Collections.Generic.List<string> { "(unset)", "false", "true" };
+        CmbConnectionGuardEscape.SelectedIndex   = 0;
+        CmbConnectionSimTurnSquad.ItemsSource    = new System.Collections.Generic.List<string> { "(unset)", "false", "true" };
+        CmbConnectionSimTurnSquad.SelectedIndex  = 0;
         SldNeutralGuardValue.ValueChanged   += (_, _) => TxtNeutralGuardValue.Text   = ((int)SldNeutralGuardValue.Value).ToString();
         SldLowTierGuardWeekly.ValueChanged    += (_, _) => TxtLowTierGuardWeekly.Text    = ((int)SldLowTierGuardWeekly.Value).ToString();
         SldMediumTierGuardWeekly.ValueChanged += (_, _) => TxtMediumTierGuardWeekly.Text = ((int)SldMediumTierGuardWeekly.Value).ToString();

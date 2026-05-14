@@ -67,6 +67,13 @@ public static class SettingsMapper
                 Preset = ParseGuardReactionPreset(s.GuardReactionPreset),
                 CustomDistribution = ParseDistributionCsv(s.GuardReactionCustomDistribution),
             },
+            ConnectionDefaults = new ConnectionDefaultsSettings
+            {
+                Length = s.ConnectionLength,
+                GatePlacement = s.ConnectionGatePlacement ?? "",
+                GuardEscape = s.ConnectionGuardEscape,
+                SimTurnSquad = s.ConnectionSimTurnSquad,
+            },
             NeutralCities = new NeutralCitySettings
             {
                 GuardChance = s.NeutralCityGuardChance,
@@ -272,6 +279,10 @@ public static class SettingsMapper
             GuardReactionCustomDistribution = g.GuardReaction.CustomDistribution is { Count: > 0 }
                 ? string.Join(",", g.GuardReaction.CustomDistribution)
                 : "",
+            ConnectionLength = g.ConnectionDefaults.Length,
+            ConnectionGatePlacement = g.ConnectionDefaults.GatePlacement ?? "",
+            ConnectionGuardEscape = g.ConnectionDefaults.GuardEscape,
+            ConnectionSimTurnSquad = g.ConnectionDefaults.SimTurnSquad,
             NeutralCityGuardChance = g.NeutralCities.GuardChance,
             NeutralCityGuardValuePercent = g.NeutralCities.GuardValuePercent,
             NeutralCityRemoveGuardIfHasOwner = g.NeutralCities.RemoveGuardIfHasOwner,
