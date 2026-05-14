@@ -200,6 +200,57 @@
     </div>
 </ExperimentalCard>
 
+<ExperimentalCard Key="zone-overrides" Title="Zone overrides">
+    <div class="oe-hint">
+        Stamp schema knobs the generator currently bakes to a single value
+        across every zone. Empty / "Auto" = no change (existing snapshots
+        stay byte-identical). T-006 will extend this surface with per-zone
+        content caps and pool selection.
+    </div>
+    <div class="oe-stacked">
+        <label class="oe-label">Diplomacy modifier</label>
+        <div class="oe-row" style="grid-template-columns: 1fr auto;">
+            <input type="number" step="0.05" min="-1" max="1"
+                   value="@DiplomacyText"
+                   @onchange="@(e => OnDiplomacyChanged(e))" />
+            <button type="button" class="oe-link-btn"
+                    @onclick="ClearDiplomacy"
+                    disabled="@(!Settings.ZoneOverrides.DiplomacyModifier.HasValue)">
+                Auto
+            </button>
+        </div>
+        <div class="oe-hint">
+            Empty = generator default (-0.5). Range -1.0 (hostile) … +1.0 (friendly).
+        </div>
+    </div>
+    <div class="oe-stacked">
+        <label class="oe-label">Crossroads position</label>
+        <select value="@CrossroadsValue" @onchange="OnCrossroadsChanged">
+            <option value="">Auto (generator default)</option>
+            <option value="0">0 — none</option>
+            <option value="1">1 — corner</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+        </select>
+    </div>
+    <div class="oe-stacked">
+        <label class="oe-label">Content biome</label>
+        <select value="@Settings.ZoneOverrides.ContentBiomeType" @onchange="OnContentBiomeTypeChanged">
+            <option value="">Auto (generator default)</option>
+            <option value="MatchMainObject">Match main object</option>
+            <option value="MatchZone">Match zone</option>
+            <option value="FromList">From list</option>
+        </select>
+        @if (Settings.ZoneOverrides.ContentBiomeType is "MatchMainObject" or "FromList")
+        {
+            <input type="text"
+                   placeholder="@(Settings.ZoneOverrides.ContentBiomeType == "MatchMainObject" ? "Main object index (0)" : "Biome name (e.g. Sand, Deathland)")"
+                   value="@Settings.ZoneOverrides.ContentBiomeArg"
+                   @onchange="OnContentBiomeArgChanged" />
+        }
+    </div>
+</ExperimentalCard>
+
 <ExperimentalCard Key="zone-content" Title="Zone content">
     <div class="oe-hint">
         Author the zone-content surface (player zones, neutral tiers,
@@ -327,5 +378,53 @@
     {
         const string suffix = "_buildings_construction";
         return sid.EndsWith(suffix) ? sid[..^suffix.Length] : sid;
+    }
+
+    // ── Zone overrides (T-005) ────────────────────────────────────────────────
+    private string DiplomacyText => Settings.ZoneOverrides.DiplomacyModifier?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+    private string CrossroadsValue => Settings.ZoneOverrides.CrossroadsPosition?.ToString() ?? "";
+
+    private async Task OnDiplomacyChanged(ChangeEventArgs e)
+    {
+        string raw = e.Value?.ToString() ?? "";
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            Settings.ZoneOverrides.DiplomacyModifier = null;
+        }
+        else if (double.TryParse(raw, System.Globalization.NumberStyles.Float,
+                                  System.Globalization.CultureInfo.InvariantCulture, out double v))
+        {
+            Settings.ZoneOverrides.DiplomacyModifier = Math.Clamp(v, -1.0, 1.0);
+        }
+        await NotifyChanged();
+    }
+
+    private async Task ClearDiplomacy()
+    {
+        Settings.ZoneOverrides.DiplomacyModifier = null;
+        await NotifyChanged();
+    }
+
+    private async Task OnCrossroadsChanged(ChangeEventArgs e)
+    {
+        string raw = e.Value?.ToString() ?? "";
+        Settings.ZoneOverrides.CrossroadsPosition = int.TryParse(raw, out int v) && v is >= 0 and <= 3
+            ? v
+            : null;
+        await NotifyChanged();
+    }
+
+    private async Task OnContentBiomeTypeChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.ContentBiomeType = e.Value?.ToString() ?? "";
+        if (string.IsNullOrEmpty(Settings.ZoneOverrides.ContentBiomeType))
+            Settings.ZoneOverrides.ContentBiomeArg = "";
+        await NotifyChanged();
+    }
+
+    private async Task OnContentBiomeArgChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.ContentBiomeArg = e.Value?.ToString()?.Trim() ?? "";
+        await NotifyChanged();
     }
 }

@@ -435,6 +435,53 @@
                     </StackPanel>
                 </Expander>
 
+                <!-- ── Zone overrides (T-005) ─────────────────────────────── -->
+                <Expander Header="Zone overrides" Margin="0,4,0,4">
+                    <StackPanel Margin="8,4,0,8">
+                        <TextBlock Style="{StaticResource HintText}">
+                            Stamp schema knobs the generator currently bakes to a
+                            single value across every zone. Empty / "Auto" = no
+                            change (existing snapshots stay byte-identical).
+                            T-006 will extend this surface with per-zone content
+                            caps and pool selection.
+                        </TextBlock>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="185"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="6"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="6"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Label   Grid.Row="0" Grid.Column="0" Content="Diplomacy modifier" Padding="5,2"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="TxtZoneDiplomacy" ToolTip="Empty = generator default (-0.5). Range -1.0 … 1.0."/>
+                            <Label   Grid.Row="2" Grid.Column="0" Content="Crossroads position" Padding="5,2"/>
+                            <ComboBox Grid.Row="2" Grid.Column="1" x:Name="CmbZoneCrossroads">
+                                <ComboBoxItem Content="Auto (generator default)" Tag=""/>
+                                <ComboBoxItem Content="0 — none" Tag="0"/>
+                                <ComboBoxItem Content="1 — corner" Tag="1"/>
+                                <ComboBoxItem Content="2" Tag="2"/>
+                                <ComboBoxItem Content="3" Tag="3"/>
+                            </ComboBox>
+                            <Label   Grid.Row="4" Grid.Column="0" Content="Content biome" Padding="5,2"/>
+                            <ComboBox Grid.Row="4" Grid.Column="1" x:Name="CmbZoneContentBiome">
+                                <ComboBoxItem Content="Auto (generator default)" Tag=""/>
+                                <ComboBoxItem Content="Match main object" Tag="MatchMainObject"/>
+                                <ComboBoxItem Content="Match zone" Tag="MatchZone"/>
+                                <ComboBoxItem Content="From list" Tag="FromList"/>
+                            </ComboBox>
+                            <TextBox Grid.Row="5" Grid.Column="1" x:Name="TxtZoneContentBiomeArg"
+                                     Margin="0,4,0,0"
+                                     ToolTip="MatchMainObject: index (0). FromList: biome name (Sand, Deathland, …)."/>
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
                 <!-- ── Per-tier overrides ─────────────────────────────────── -->
                 <Expander Header="Per-tier overrides" Margin="0,4,0,4">
                     <StackPanel Margin="8,4,0,8">

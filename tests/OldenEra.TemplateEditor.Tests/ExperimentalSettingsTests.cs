@@ -348,4 +348,166 @@ public class ExperimentalSettingsTests
         Assert.False(restored.BordersRoads.WaterBorderEnabled);
         Assert.Null(restored.BordersRoads.RoadType);
     }
+
+    // ── T-005: per-zone schema knobs (diplomacyModifier, crossroadsPosition, contentBiome)
+
+    [Fact]
+    public void ZoneOverrides_Default_LeavesGeneratorBakedValues()
+    {
+        // Snapshot current generator output: every zone today emits
+        // diplomacyModifier=-0.5, crossroadsPosition=0, and a generator-chosen
+        // contentBiome. The default GeneratorSettings must not alter that.
+        var defaultTemplate = TemplateGenerator.Generate(new GeneratorSettings
+        {
+            PlayerCount = 2,
+            ZoneCfg = new ZoneConfiguration { NeutralZoneCount = 1, NeutralZoneCastles = 1 }
+        });
+        var zones = defaultTemplate.Variants![0].Zones!;
+        Assert.All(zones, z => Assert.Equal(-0.5, z.DiplomacyModifier));
+        Assert.All(zones, z => Assert.Equal(0, z.CrossroadsPosition));
+        Assert.All(zones, z => Assert.NotNull(z.ContentBiome)); // generator default present
+    }
+
+    [Fact]
+    public void ZoneOverrides_DiplomacyModifier_StampsEveryZone()
+    {
+        var s = new GeneratorSettings
+        {
+            PlayerCount = 2,
+            ZoneCfg = new ZoneConfiguration { NeutralZoneCount = 1, NeutralZoneCastles = 1 },
+            ZoneOverrides = new ZoneOverridesSettings { DiplomacyModifier = 0.25 },
+        };
+        var template = TemplateGenerator.Generate(s);
+        Assert.All(template.Variants![0].Zones!, z => Assert.Equal(0.25, z.DiplomacyModifier));
+        // Other knobs untouched.
+        Assert.All(template.Variants![0].Zones!, z => Assert.Equal(0, z.CrossroadsPosition));
+    }
+
+    [Fact]
+    public void ZoneOverrides_CrossroadsPosition_StampsEveryZone()
+    {
+        var s = new GeneratorSettings
+        {
+            PlayerCount = 2,
+            ZoneCfg = new ZoneConfiguration { NeutralZoneCount = 1, NeutralZoneCastles = 1 },
+            ZoneOverrides = new ZoneOverridesSettings { CrossroadsPosition = 1 },
+        };
+        var template = TemplateGenerator.Generate(s);
+        Assert.All(template.Variants![0].Zones!, z => Assert.Equal(1, z.CrossroadsPosition));
+        Assert.All(template.Variants![0].Zones!, z => Assert.Equal(-0.5, z.DiplomacyModifier));
+    }
+
+    [Fact]
+    public void ZoneOverrides_ContentBiome_FromList_ReplacesPerZoneSelector()
+    {
+        var s = new GeneratorSettings
+        {
+            PlayerCount = 2,
+            ZoneCfg = new ZoneConfiguration { NeutralZoneCount = 1, NeutralZoneCastles = 1 },
+            ZoneOverrides = new ZoneOverridesSettings
+            {
+                ContentBiomeType = "FromList",
+                ContentBiomeArg = "Sand"
+            },
+        };
+        var template = TemplateGenerator.Generate(s);
+        Assert.All(template.Variants![0].Zones!, z =>
+        {
+            Assert.Equal("FromList", z.ContentBiome!.Type);
+            Assert.Single(z.ContentBiome.Args!, "Sand");
+        });
+    }
+
+    [Fact]
+    public void ZoneOverrides_ContentBiome_MatchZone_OmitsArgs()
+    {
+        var s = new GeneratorSettings
+        {
+            PlayerCount = 2,
+            ZoneOverrides = new ZoneOverridesSettings
+            {
+                ContentBiomeType = "MatchZone",
+                ContentBiomeArg = "ignored"
+            },
+        };
+        var template = TemplateGenerator.Generate(s);
+        Assert.All(template.Variants![0].Zones!, z =>
+        {
+            Assert.Equal("MatchZone", z.ContentBiome!.Type);
+            Assert.Empty(z.ContentBiome.Args!);
+        });
+    }
+
+    [Fact]
+    public void ZoneOverrides_ContentBiome_ClonedPerZone_NoAliasing()
+    {
+        var s = new GeneratorSettings
+        {
+            PlayerCount = 2,
+            ZoneOverrides = new ZoneOverridesSettings
+            {
+                ContentBiomeType = "FromList",
+                ContentBiomeArg = "Deathland"
+            },
+        };
+        var template = TemplateGenerator.Generate(s);
+        var zones = template.Variants![0].Zones!;
+        // Mutating one zone must not affect siblings.
+        zones[0].ContentBiome!.Args!.Add("extra");
+        Assert.DoesNotContain("extra", zones[1].ContentBiome!.Args!);
+    }
+
+    [Fact]
+    public void SettingsMapper_ZoneOverrides_RoundTripsValues()
+    {
+        var original = new GeneratorSettings
+        {
+            ZoneOverrides = new ZoneOverridesSettings
+            {
+                DiplomacyModifier = -0.25,
+                CrossroadsPosition = 2,
+                ContentBiomeType = "FromList",
+                ContentBiomeArg = "Sand",
+            },
+        };
+        var file = SettingsMapper.ToFile(original, advancedMode: false, experimentalMapSizes: false);
+        var (restored, _, _, _) = SettingsMapper.FromFile(file);
+
+        Assert.Equal(-0.25, restored.ZoneOverrides.DiplomacyModifier);
+        Assert.Equal(2, restored.ZoneOverrides.CrossroadsPosition);
+        Assert.Equal("FromList", restored.ZoneOverrides.ContentBiomeType);
+        Assert.Equal("Sand", restored.ZoneOverrides.ContentBiomeArg);
+    }
+
+    [Fact]
+    public void SettingsMapper_ZoneOverrides_DefaultsRoundTripAsUnset()
+    {
+        var file = SettingsMapper.ToFile(new GeneratorSettings(), advancedMode: false, experimentalMapSizes: false);
+        var (restored, _, _, _) = SettingsMapper.FromFile(file);
+
+        Assert.Null(restored.ZoneOverrides.DiplomacyModifier);
+        Assert.Null(restored.ZoneOverrides.CrossroadsPosition);
+        Assert.Equal("", restored.ZoneOverrides.ContentBiomeType);
+        Assert.Equal("", restored.ZoneOverrides.ContentBiomeArg);
+    }
+
+    [Fact]
+    public void SettingsShareCodec_ZoneOverrides_RoundTripsAcrossEncoded()
+    {
+        var file = new SettingsFile
+        {
+            ZoneDiplomacyModifier = 0.1,
+            ZoneCrossroadsPosition = 3,
+            ZoneContentBiomeType = "MatchMainObject",
+            ZoneContentBiomeArg = "0",
+        };
+        string encoded = SettingsShareCodec.Encode(file);
+        var decoded = SettingsShareCodec.TryDecode(encoded, out var status);
+        Assert.Equal(SettingsShareCodec.DecodeStatus.Ok, status);
+        Assert.NotNull(decoded);
+        Assert.Equal(0.1, decoded!.ZoneDiplomacyModifier);
+        Assert.Equal(3, decoded.ZoneCrossroadsPosition);
+        Assert.Equal("MatchMainObject", decoded.ZoneContentBiomeType);
+        Assert.Equal("0", decoded.ZoneContentBiomeArg);
+    }
 }

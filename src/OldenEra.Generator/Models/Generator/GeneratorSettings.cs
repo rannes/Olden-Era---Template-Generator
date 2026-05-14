@@ -239,7 +239,6 @@ namespace OldenEra.Generator.Models
         public bool UnitMultiplierStartHeroOnly { get; set; } = false;
     }
 
-    /// <summary>
     /// Per-connection defaults applied uniformly to every <see cref="Connection"/>
     /// after topology builders run. Each field has an "unset" sentinel that maps
     /// to no emission so default-settings output stays byte-identical to current.
@@ -261,6 +260,48 @@ namespace OldenEra.Generator.Models
         public bool? GuardEscape { get; set; }
         /// <summary>null = leave whatever the topology builder chose. Otherwise force this value on every connection.</summary>
         public bool? SimTurnSquad { get; set; }
+    }
+
+    /// <summary>
+    /// Per-zone schema knobs the game accepts but the generator currently bakes
+    /// to a single hardcoded value (see <c>BuildSpawnZone</c>, <c>BuildNeutralZone</c>,
+    /// <c>BuildHubZone</c>). Each property is "auto" by default and, when set,
+    /// is stamped onto every emitted zone by the experimental post-processor.
+    ///
+    /// <para>This is the seam T-006 will extend: per-zone overrides for content
+    /// caps, <c>guardCutoffValue</c>, and content-pool selection share the same
+    /// settings surface and the same UI panel.</para>
+    /// </summary>
+    public class ZoneOverridesSettings
+    {
+        /// <summary>
+        /// Replaces <c>diplomacyModifier</c> on every zone. <c>null</c> = generator
+        /// default (-0.5 today; matches every shipped example template).
+        /// </summary>
+        public double? DiplomacyModifier { get; set; }
+
+        /// <summary>
+        /// Replaces <c>crossroadsPosition</c> on every zone. Valid range 0..3
+        /// (only 0 and 1 appear in shipped templates today). <c>null</c> = generator
+        /// default (0 today).
+        /// </summary>
+        public int? CrossroadsPosition { get; set; }
+
+        /// <summary>
+        /// Override <c>contentBiome</c> selector type on every zone. Empty / null
+        /// = generator default (zone-aware <c>MatchMainObject</c> / <c>MatchZone</c>).
+        /// Valid values: "MatchMainObject", "MatchZone", "FromList".
+        /// </summary>
+        public string ContentBiomeType { get; set; } = "";
+
+        /// <summary>
+        /// Single argument forwarded into the override <c>contentBiome.args</c>.
+        /// Empty = no args (matches the <c>FromList []</c> idiom in shipped templates).
+        /// For <c>MatchMainObject</c> this is the main-object index ("0", "1");
+        /// for <c>FromList</c> this is a biome name ("Sand", "Deathland", …).
+        /// Ignored when <see cref="ContentBiomeType"/> is empty / "MatchZone".
+        /// </summary>
+        public string ContentBiomeArg { get; set; } = "";
     }
 
     public class BordersRoadsSettings
@@ -323,6 +364,7 @@ namespace OldenEra.Generator.Models
         public StartingBonusSettings Bonuses { get; set; } = new StartingBonusSettings();
         public BordersRoadsSettings BordersRoads { get; set; } = new BordersRoadsSettings();
         public ConnectionDefaultsSettings ConnectionDefaults { get; set; } = new ConnectionDefaultsSettings();
+        public ZoneOverridesSettings ZoneOverrides { get; set; } = new ZoneOverridesSettings();
         public ZoneContentList PlayerZoneContent { get; set; } = new();
         public NeutralZoneContent NeutralZoneContent { get; set; } = new();
         public List<ZoneRoadDecoration> ZoneRoadDecorations { get; set; } = new();

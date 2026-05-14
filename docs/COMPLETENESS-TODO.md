@@ -105,8 +105,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   setting alters the emitted array. Tests cover both.
 
 ### T-005 — Zone.diplomacyModifier, crossroadsPosition, contentBiome
-- **Status:** in-progress
-- **Owner:** orchestrator (Phase 1 batch)
+- **Status:** done
+- **Owner:** Rannes (Phase 1 batch)
 - **Effort:** S
 - **Files:** Zone builders in `TemplateGenerator.cs`, settings models, both UI
   hosts.
