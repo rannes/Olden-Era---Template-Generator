@@ -997,6 +997,7 @@ namespace OldenEra.TemplateEditor
             BonusSpellStartHeroOnly    = PnlExperimental.ChkBonusSpellStartHeroOnly.IsChecked == true,
             BonusUnitMultiplier        = PnlExperimental.SldBonusUnitMultiplier.Value / 100.0,
             BonusUnitMultiplierStartHeroOnly = PnlExperimental.ChkBonusUnitMultiplierStartHeroOnly.IsChecked == true,
+            BonusPerPlayerOverrides    = PnlExperimental.GetBonusPerPlayerOverrides(),
             TierLow    = new TierOverrideFile { BuildingPreset = PresetFromCombo(PnlExperimental.CmbLowTierPreset),    GuardWeeklyIncrement = PnlExperimental.SldLowTierGuardWeekly.Value / 100.0,    ObstaclesFill = PnlExperimental.SldLowTierObstacles.Value / 100.0,    LakesFill = PnlExperimental.SldLowTierLakes.Value / 100.0 },
             TierMedium = new TierOverrideFile { BuildingPreset = PresetFromCombo(PnlExperimental.CmbMediumTierPreset), GuardWeeklyIncrement = PnlExperimental.SldMediumTierGuardWeekly.Value / 100.0, ObstaclesFill = PnlExperimental.SldMediumTierObstacles.Value / 100.0, LakesFill = PnlExperimental.SldMediumTierLakes.Value / 100.0 },
             TierHigh   = new TierOverrideFile { BuildingPreset = PresetFromCombo(PnlExperimental.CmbHighTierPreset),   GuardWeeklyIncrement = PnlExperimental.SldHighTierGuardWeekly.Value / 100.0,   ObstaclesFill = PnlExperimental.SldHighTierObstacles.Value / 100.0,   LakesFill = PnlExperimental.SldHighTierLakes.Value / 100.0 },
@@ -1299,6 +1300,7 @@ namespace OldenEra.TemplateEditor
             PnlExperimental.ChkBonusSpellStartHeroOnly.IsChecked = s.BonusSpellStartHeroOnly;
             PnlExperimental.SldBonusUnitMultiplier.Value = Math.Clamp(s.BonusUnitMultiplier * 100.0, 0, 500);
             PnlExperimental.ChkBonusUnitMultiplierStartHeroOnly.IsChecked = s.BonusUnitMultiplierStartHeroOnly;
+            PnlExperimental.SetBonusPerPlayerOverrides(s.BonusPerPlayerOverrides, s.PlayerCount);
             SetPresetCombo(PnlExperimental.CmbLowTierPreset,    s.TierLow?.BuildingPreset ?? "");
             SetPresetCombo(PnlExperimental.CmbMediumTierPreset, s.TierMedium?.BuildingPreset ?? "");
             SetPresetCombo(PnlExperimental.CmbHighTierPreset,   s.TierHigh?.BuildingPreset ?? "");
@@ -1866,6 +1868,26 @@ namespace OldenEra.TemplateEditor
                 SpellStartHeroOnly = PnlExperimental.ChkBonusSpellStartHeroOnly.IsChecked == true,
                 UnitMultiplier = PnlExperimental.SldBonusUnitMultiplier.Value / 100.0,
                 UnitMultiplierStartHeroOnly = PnlExperimental.ChkBonusUnitMultiplierStartHeroOnly.IsChecked == true,
+                PerPlayerOverrides = PnlExperimental.GetBonusPerPlayerOverrides()
+                    .ConvertAll(r => new PerPlayerBonusOverride
+                    {
+                        PlayerSlot = r.PlayerSlot,
+                        Bonuses = new StartingBonusSettings
+                        {
+                            Resources = new Dictionary<string,int>(r.Resources),
+                            HeroAttack = r.HeroAttack,
+                            HeroDefense = r.HeroDefense,
+                            HeroSpellpower = r.HeroSpellpower,
+                            HeroKnowledge = r.HeroKnowledge,
+                            HeroStatStartHeroOnly = r.HeroStatStartHeroOnly,
+                            ItemSid = r.ItemSid,
+                            ItemStartHeroOnly = r.ItemStartHeroOnly,
+                            SpellSid = r.SpellSid,
+                            SpellStartHeroOnly = r.SpellStartHeroOnly,
+                            UnitMultiplier = r.UnitMultiplier,
+                            UnitMultiplierStartHeroOnly = r.UnitMultiplierStartHeroOnly,
+                        },
+                    }),
             },
 
             // ── Zone content (owned by ZoneContentPanelViewModel) ────────────
