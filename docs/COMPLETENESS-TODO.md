@@ -350,16 +350,20 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   presets pass clean.
 
 ### T-705 — Topology graph stats
-- **Status:** open
-- **Owner:** —
+- **Status:** done (PR pending)
+- **Owner:** Claude
 - **Effort:** S
-- **Files:** `TemplateAnalysis.cs`, topology panel.
-- **Scope:** Reuse the topology graph `TemplateGenerator` already builds:
-  show average degree, diameter, and articulation points (chokepoints).
-  Cheap analytic that gives template designers vocabulary for what they
-  built.
-- **Acceptance:** Stats render for every preset; values verified by hand on
-  Jebus Cross / Madness / All Around fixtures.
+- **Files:** `Services/TemplateAnalysis.Topology.cs` (new sibling partial),
+  `Components/TopologyPanel.razor` (+ scoped CSS),
+  `Views/TopologyStatsPanel.xaml`/`.xaml.cs`, `MainWindow.xaml`/`.xaml.cs`.
+- **Scope:** Reads emitted `Variant.Connections` as an undirected simple
+  graph (parallel edges + self-loops deduped). Reports node count, edge
+  count, average degree, diameter (BFS, largest component), component
+  count, and articulation points (Tarjan's algorithm, iterative DFS).
+- **Acceptance:** All ten shipped presets generate non-empty topology
+  reports under a fixed seed (pinned in
+  `TemplateAnalysisTopologyTests`); hand-built micro-graphs (triangle,
+  path, star, bridge-of-triangles, disconnected) verify each metric.
 
 ---
 

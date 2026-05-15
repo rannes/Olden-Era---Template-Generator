@@ -330,6 +330,8 @@
                             <RowDefinition Height="Auto"/>   <!-- T-701 value budget -->
                             <RowDefinition Height="8"/>
                             <RowDefinition Height="Auto"/>   <!-- T-702 guard chart -->
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>   <!-- T-705 topology stats -->
                         </Grid.RowDefinitions>
 
                         <Button Grid.Row="0"
@@ -486,6 +488,9 @@
 
                         <views:GuardValueChartPanel Grid.Row="14"
                                                     x:Name="PnlGuardChart"/>
+
+                        <views:TopologyStatsPanel Grid.Row="16"
+                                                  x:Name="PnlTopologyStats"/>
                     </Grid>
                 </Grid>
 
