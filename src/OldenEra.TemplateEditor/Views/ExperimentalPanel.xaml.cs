@@ -239,6 +239,15 @@ public partial class ExperimentalPanel : UserControl
     public void RefreshBonusOverridePlayerCount(int playerCount)
     {
         _bonusPlayerCount = System.Math.Max(1, playerCount);
+        // Clamp the model so a row created at slot 8 doesn't silently keep its
+        // old value when the player slider drops to 4. Without this clamp the
+        // ComboBox display clamps but the saved settings file still stores 8,
+        // and the validator warns on every save.
+        foreach (var row in _bonusOverrides)
+        {
+            if (row.PlayerSlot < 1) row.PlayerSlot = 1;
+            else if (row.PlayerSlot > _bonusPlayerCount) row.PlayerSlot = _bonusPlayerCount;
+        }
         RebuildBonusOverrideRows();
     }
 
