@@ -18,6 +18,12 @@
     "file": "tournament-duel.oetgs"
   },
   {
+    "id": "triad-3p",
+    "name": "Triad",
+    "description": "3 player ring map with balanced neutrals and standard pacing.",
+    "file": "triad-3p.oetgs"
+  },
+  {
     "id": "arcade-2v2",
     "name": "Arcade 2v2",
     "description": "4 player chain, fast pacing, low neutral count.",
@@ -40,6 +46,24 @@
     "name": "Citadel Siege",
     "description": "4 player defensive map: many neutral castles, lost-start-city pressure, hold to win.",
     "file": "citadel-siege.oetgs"
+  },
+  {
+    "id": "hub-defense",
+    "name": "Hub Defense",
+    "description": "4 player hub-and-spoke map: shared central castle, hold-city win, no shared borders.",
+    "file": "hub-defense.oetgs"
+  },
+  {
+    "id": "might-only",
+    "name": "Might Only",
+    "description": "4 player might-focused map: slow magic curve, sparse spell structures, hero stat bonuses to attack/defense.",
+    "file": "might-only.oetgs"
+  },
+  {
+    "id": "pentagram-5p",
+    "name": "Pentagram",
+    "description": "5 player balanced ring with moderate neutrals and standard pacing.",
+    "file": "pentagram-5p.oetgs"
   },
   {
     "id": "six-kings",

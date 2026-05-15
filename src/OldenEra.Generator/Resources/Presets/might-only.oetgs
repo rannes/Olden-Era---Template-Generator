@@ -1,0 +1,18 @@
+{
+  "templateName": "Might Only",
+  "playerCount": 4,
+  "topology": "Default",
+  "mapSize": 128,
+  "neutralZoneCount": 4,
+  "playerCastles": 1,
+  "resourceDensity": 110,
+  "structureDensity": 90,
+  "neutralStackStrength": 110,
+  "borderGuardStrength": 110,
+  "heroMin": 4,
+  "heroMax": 8,
+  "astrologyExp": 50,
+  "factionLawsExp": 110,
+  "bonusHeroAttack": 1,
+  "bonusHeroDefense": 1
+}
