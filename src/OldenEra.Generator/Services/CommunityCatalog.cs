@@ -147,12 +147,75 @@ namespace OldenEra.Generator.Services
         [property: JsonPropertyName("specialty")] string? Specialty,
         [property: JsonPropertyName("specDesc")] string? SpecialtyDescription);
 
+    /// <summary>
+    /// Catalog entry for a creature. The first five members
+    /// (<see cref="Id"/>, <see cref="Name"/>, <see cref="Faction"/>,
+    /// <see cref="Tier"/>, <see cref="Variant"/>) are positional and MUST NOT
+    /// be reordered — existing pickers and tests depend on positional
+    /// construction. Combat stats (T-602) and narrative payload are appended.
+    /// </summary>
     public sealed record UnitEntry(
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("faction")] string Faction,
         [property: JsonPropertyName("tier")] int Tier,
-        [property: JsonPropertyName("variant")] string? Variant);
+        [property: JsonPropertyName("variant")] string? Variant,
+        // ── T-602: combat stats from units.json ─────────────────────────────
+        [property: JsonPropertyName("attack")] string? Attack = null,
+        [property: JsonPropertyName("hp")] int Hp = 0,
+        [property: JsonPropertyName("off")] int Off = 0,
+        [property: JsonPropertyName("def")] int Def = 0,
+        [property: JsonPropertyName("dmgMin")] int DmgMin = 0,
+        [property: JsonPropertyName("dmgMax")] int DmgMax = 0,
+        [property: JsonPropertyName("init")] int Init = 0,
+        [property: JsonPropertyName("speed")] int Speed = 0,
+        [property: JsonPropertyName("squadValue")] int SquadValue = 0,
+        [property: JsonPropertyName("cost")] int Cost = 0,
+        [property: JsonPropertyName("ai")] string? Ai = null,
+        [property: JsonPropertyName("tags")] IReadOnlyList<string>? Tags = null,
+        [property: JsonPropertyName("narrative")] string? Narrative = null,
+        [property: JsonPropertyName("passives")] IReadOnlyList<UnitAbilityEntry>? Passives = null,
+        [property: JsonPropertyName("abilities")] IReadOnlyList<UnitAbilityEntry>? Abilities = null)
+    {
+        /// <summary>
+        /// Human-readable tooltip text for picker chips (Web title attr,
+        /// WPF ToolTip). Compact multi-line summary; lists at most one
+        /// active ability so the tooltip stays scannable. T-803 will
+        /// replace this with a richer tooltip system later.
+        /// </summary>
+        public string TooltipText()
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.Append('T').Append(Tier).Append(' ').Append(Name);
+            if (!string.IsNullOrEmpty(Variant)) sb.Append(" (").Append(Variant).Append(')');
+            if (Hp > 0)
+            {
+                sb.AppendLine();
+                if (!string.IsNullOrEmpty(Attack)) sb.Append(Attack).Append(" • ");
+                sb.Append("HP ").Append(Hp)
+                  .Append(" • Off ").Append(Off).Append(" / Def ").Append(Def);
+                sb.AppendLine();
+                sb.Append("Dmg ").Append(DmgMin).Append('-').Append(DmgMax)
+                  .Append(" • Init ").Append(Init).Append(" • Speed ").Append(Speed);
+                sb.AppendLine();
+                sb.Append("Squad ").Append(SquadValue).Append(" • Cost ").Append(Cost);
+            }
+            if (Abilities is { Count: > 0 })
+            {
+                sb.AppendLine();
+                sb.Append("Ability: ").Append(Abilities[0].Name);
+            }
+            return sb.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Passive trait or active ability on a creature — both use the same
+    /// {name, desc} shape in <c>units.json</c>.
+    /// </summary>
+    public sealed record UnitAbilityEntry(
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("desc")] string? Description);
 
     public sealed record SpellEntry(
         [property: JsonPropertyName("id")] string Id,

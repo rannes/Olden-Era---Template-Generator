@@ -24,7 +24,7 @@
                             bool banned = Settings.Content.GlobalBans.Contains(unit.Id);
                             <button type="button"
                                     class="@($"oe-ban-chip{(banned ? " selected" : "")}")"
-                                    title="@unit.Id"
+                                    title="@unit.TooltipText()"
                                     @onclick="@(() => ToggleBan(unit.Id))">
                                 @unit.Name@(string.IsNullOrEmpty(unit.Variant) ? "" : $" ({unit.Variant})")
                             </button>

@@ -219,7 +219,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   it unblocks T-602/T-603 tooltips that group skills by column.
 
 ### T-602 — Enrich UnitEntry with combat stats
-- **Status:** open
+- **Status:** done (PR pending)
 - **Owner:** —
 - **Effort:** M
 - **Files:** `CommunityCatalog.cs` (`UnitEntry` record), `UnitBanGrid.razor`,

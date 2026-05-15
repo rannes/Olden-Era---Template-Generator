@@ -25,7 +25,12 @@ public partial class ExperimentalPanel : UserControl
     }
 
     /// <summary>Row in the catalog-driven ban-unit ComboBox.</summary>
-    public sealed record BanUnitRow(string Id, string Display, string Faction)
+    /// <remarks>
+    /// T-602: <see cref="Tooltip"/> carries the multi-line stats summary
+    /// rendered by <c>UnitEntry.TooltipText()</c>. Bound to ToolTip on the
+    /// ComboBoxItem template so hovering a row reveals tier-correct stats.
+    /// </remarks>
+    public sealed record BanUnitRow(string Id, string Display, string Faction, string Tooltip)
     {
         public override string ToString() => Display;
     }
@@ -176,7 +181,8 @@ public partial class ExperimentalPanel : UserControl
             .Select(u => new BanUnitRow(
                 u.Id,
                 $"T{u.Tier}. {u.Name}" + (string.IsNullOrEmpty(u.Variant) ? "" : $" ({u.Variant})"),
-                factionNames.TryGetValue(u.Faction, out var n) ? n : u.Faction))
+                factionNames.TryGetValue(u.Faction, out var n) ? n : u.Faction,
+                u.TooltipText()))
             .ToList();
 
         var view = CollectionViewSource.GetDefaultView(rows);

@@ -413,9 +413,15 @@
                         <Label Content="Pick unit to ban (catalog)" Padding="5,2"/>
                         <ComboBox x:Name="CmbBanUnitPicker"
                                   IsEditable="False"
-                                  DisplayMemberPath="Display"
                                   SelectedValuePath="Id"
                                   SelectionChanged="CmbBanUnitPicker_SelectionChanged">
+                            <!-- T-602: ItemTemplate (replaces DisplayMemberPath) so each
+                                 row carries a per-item ToolTip with combat stats. -->
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Display}" ToolTip="{Binding Tooltip}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
                             <ComboBox.GroupStyle>
                                 <GroupStyle>
                                     <GroupStyle.HeaderTemplate>
