@@ -1,6 +1,8 @@
 @* Advanced zone tuning: per-quality neutral zone counts, sizes, randomization,
    minimum neutral separation. Only rendered when AdvancedMode == true. *@
 
+@using OldenEra.Generator.Services
+
 @if (AdvancedMode)
 {
     <div class="oe-section">
@@ -11,16 +13,19 @@
 
         <SliderRow Label="Player zone size" WideLabel="true"
                    Min="0.5" Max="2" Step="0.05" IsInt="false" Suffix="x"
+                   Tooltip="@Help.For(FieldHelpKeys.PlayerZoneSize)"
                    Value="Settings.ZoneCfg.Advanced.PlayerZoneSize"
                    ValueChanged="@(v => { Settings.ZoneCfg.Advanced.PlayerZoneSize = v; NotifyChanged(); })" />
         <SliderRow Label="Neutral zone size" WideLabel="true"
                    Min="0.5" Max="2" Step="0.05" IsInt="false" Suffix="x"
+                   Tooltip="@Help.For(FieldHelpKeys.NeutralZoneSize)"
                    Value="Settings.ZoneCfg.Advanced.NeutralZoneSize"
                    ValueChanged="@(v => { Settings.ZoneCfg.Advanced.NeutralZoneSize = v; NotifyChanged(); })" />
         <div class="oe-hint">Multiplier applied to the base zone area. 1x is the generator's default.</div>
 
         <SliderRow Label="Guard strength randomization" WideLabel="true"
                    Min="0" Max="50" Step="1" Suffix="%"
+                   Tooltip="@Help.For(FieldHelpKeys.GuardsRandomization)"
                    Value="@(Settings.ZoneCfg.Advanced.GuardRandomization * 100.0)"
                    ValueChanged="@(v => { Settings.ZoneCfg.Advanced.GuardRandomization = v / 100.0; NotifyChanged(); })" />
         <div class="oe-hint">How much each guard's strength varies from the zone's target. 0% = identical, 50% = up to half-strength swing either way.</div>
@@ -59,6 +64,7 @@
 
         <SliderRow Label="Min neutrals between players" WideLabel="true"
                    Min="0" Max="8" Step="1"
+                   Tooltip="@Help.For(ValidationFieldKeys.MinNeutralSeparation)"
                    Value="Settings.MinNeutralZonesBetweenPlayers"
                    ValueChanged="@(v => { Settings.MinNeutralZonesBetweenPlayers = (int)v; NotifyChanged(); })" />
         <div class="oe-hint">
@@ -74,4 +80,9 @@
     [Parameter] public EventCallback OnChanged { get; set; }
 
     private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    // T-803: shared field-help catalog. Returns null for unknown keys, which
+    // causes Blazor to omit the `title=` attribute entirely — default
+    // behavior is unchanged when the YAML is missing or stale.
+    private static readonly FieldHelpCatalog Help = FieldHelpCatalog.Default;
 }

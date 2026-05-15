@@ -19,5 +19,6 @@
     <EmbeddedResource Include="CommunityData\*.json" />
     <EmbeddedResource Include="Resources\Presets\*.json" />
     <EmbeddedResource Include="Resources\Presets\*.oetgs" />
+    <EmbeddedResource Include="..\..\docs\field-help.yaml" LogicalName="OldenEra.Generator.Resources.Docs.field-help.yaml" />
   </ItemGroup>
 </Project>
