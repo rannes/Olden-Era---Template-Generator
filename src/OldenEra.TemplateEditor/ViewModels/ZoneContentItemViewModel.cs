@@ -27,6 +27,7 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
     private string _factionAffinityCsv = "";
     private string _biomeFilterCsv = "";
     private string _rulesCsv = "";
+    private string _includeListIdsCsv = "";
     private IReadOnlyList<EmitWarning> _warnings = Array.Empty<EmitWarning>();
     private IReadOnlyList<EmitWarning> _minMaxWarnings = Array.Empty<EmitWarning>();
     private IReadOnlyList<EmitWarning> _poolWarnings = Array.Empty<EmitWarning>();
@@ -108,6 +109,21 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
     {
         get => _rulesCsv;
         set => SetField(ref _rulesCsv, value);
+    }
+
+    /// <summary>
+    /// Catalog-picked content-list IDs (T-605) flattened to a CSV string
+    /// for the WPF row-template binding. Format: <c>id_one, id_two</c>;
+    /// empty / whitespace = no <c>includeLists</c> emitted. Round-trips
+    /// through <see cref="FromModel"/> / <see cref="ToModel"/>. Catalog
+    /// validation lives in the picker dropdown — raw text typed here is
+    /// preserved verbatim so author-edited templates with non-catalog IDs
+    /// still round-trip cleanly.
+    /// </summary>
+    public string IncludeListIdsCsv
+    {
+        get => _includeListIdsCsv;
+        set => SetField(ref _includeListIdsCsv, value);
     }
 
     /// <summary>
@@ -199,6 +215,7 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
         _factionAffinityCsv = JoinCsv(model.FactionAffinity),
         _biomeFilterCsv = JoinCsv(model.BiomeFilter),
         _rulesCsv = ZoneContentRuleCsv.Join(model.Rules),
+        _includeListIdsCsv = JoinCsv(model.IncludeListIds),
     };
 
     public ZoneContentItem ToModel() => new()
@@ -215,6 +232,7 @@ public sealed class ZoneContentItemViewModel : INotifyPropertyChanged
         FactionAffinity = SplitCsv(_factionAffinityCsv),
         BiomeFilter = SplitCsv(_biomeFilterCsv),
         Rules = ZoneContentRuleCsv.Parse(_rulesCsv),
+        IncludeListIds = SplitCsv(_includeListIdsCsv),
     };
 
     private static List<string> SplitCsv(string? s) =>

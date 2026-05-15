@@ -55,6 +55,22 @@ namespace OldenEra.Generator.Services.ZoneContent
                     if (item.IsGroup) row.IncludeLists = new List<string> { item.Sid };
                     else row.Sid = item.Sid;
 
+                    // T-605: append catalog-picked content-list IDs. Merged
+                    // with the legacy IsGroup-derived single-element list
+                    // (de-duplicated, source order preserved) so authors can
+                    // pin multi-element <c>includeLists</c> arrays the
+                    // IsGroup flag can't express.
+                    if (item.IncludeListIds.Count > 0)
+                    {
+                        row.IncludeLists ??= new List<string>();
+                        foreach (var id in item.IncludeListIds)
+                        {
+                            if (string.IsNullOrWhiteSpace(id)) continue;
+                            if (!row.IncludeLists.Contains(id))
+                                row.IncludeLists.Add(id);
+                        }
+                    }
+
                     var rules = BuildPlacementRules(item);
                     if (rules.Count > 0) row.Rules = rules;
 

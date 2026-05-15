@@ -92,6 +92,17 @@ else
            still auto-emit their own rules. Format:
              Type|args1/args2|min|max|weight; Type|...
            Example: MainObject|0|0.05|0.25|1; Crossroads||0.10|0.30|1 *@
+        @* T-605: catalog-picked includeLists multi-select. Lives next to the
+           Sid input above (additive — does not replace the SID picker). The
+           emitted ContentItem row's includeLists array merges these IDs with
+           any IsGroup-derived single-element list at emit time. *@
+        <div class="oe-stacked">
+            <label class="oe-label">Include lists (catalog)</label>
+            <ContentListPicker Selected="@Item.IncludeListIds"
+                               OnChanged="@NotifyChanged"
+                               ReadOnly="@ReadOnly" />
+        </div>
+
         <div class="oe-stacked">
             <label class="oe-label">Rules</label>
             <input type="text" disabled="@ReadOnly"

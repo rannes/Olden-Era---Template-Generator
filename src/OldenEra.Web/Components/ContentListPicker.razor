@@ -1,0 +1,97 @@
+@using OldenEra.Generator.Services.ZoneContent
+
+@*
+    T-605: catalog-driven multi-select picker for ContentItem.includeLists
+    references. Additive — sits next to the existing Sid input in
+    ZoneContentItemDetail.razor (it does not replace the SID picker).
+
+    Design notes:
+    - Two-column layout: catalog on the left (grouped by category), selected
+      IDs on the right (in chosen order).
+    - Picker only emits IDs that exist in ContentListCatalog. Author-edited
+      templates whose includeLists references aren't in the catalog still
+      round-trip through the schema unchanged; they're surfaced here as
+      orphans so authors can remove them but not edit.
+    - The selection list is bound to @Selected. The component never mutates
+      anything else; the parent persists the new list via @bind-Selected.
+*@
+
+<div class="oe-content-list-picker">
+    <div class="oe-cl-grid">
+        <div class="oe-cl-catalog">
+            <label class="oe-label">Add from catalog</label>
+            <select size="8" disabled="@ReadOnly" @onchange="OnAdd">
+                <option value="">— pick to add —</option>
+                @foreach (var group in ContentListCatalog.Grouped())
+                {
+                    <optgroup label="@group.Key">
+                        @foreach (var entry in group)
+                        {
+                            <option value="@entry.Id" disabled="@(Selected.Contains(entry.Id))">@entry.Display</option>
+                        }
+                    </optgroup>
+                }
+            </select>
+        </div>
+        <div class="oe-cl-selected">
+            <label class="oe-label">Selected (@Selected.Count)</label>
+            @if (Selected.Count == 0)
+            {
+                <div class="oe-hint">No content lists selected.</div>
+            }
+            else
+            {
+                <ul class="oe-cl-selected-list">
+                    @for (var i = 0; i < Selected.Count; i++)
+                    {
+                        var idx = i;
+                        var id = Selected[idx];
+                        var label = LabelFor(id);
+                        var isOrphan = !ContentListCatalog.Contains(id);
+                        <li class="oe-cl-item @(isOrphan ? "is-orphan" : "")">
+                            <span class="oe-cl-id" title="@id">@label</span>
+                            @if (isOrphan)
+                            {
+                                <span class="oe-cl-orphan-badge" title="ID not in catalog (author-edited; removable but not editable here)">orphan</span>
+                            }
+                            <button type="button" class="oe-btn ghost"
+                                    disabled="@ReadOnly"
+                                    @onclick="() => Remove(idx)">Remove</button>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<string> Selected { get; set; } = new();
+    [Parameter] public EventCallback OnChanged { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private async Task OnAdd(ChangeEventArgs e)
+    {
+        if (ReadOnly) return;
+        var id = e.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(id)) return;
+        if (Selected.Contains(id)) return;
+        if (!ContentListCatalog.Contains(id)) return;
+        Selected.Add(id);
+        await OnChanged.InvokeAsync();
+    }
+
+    private async Task Remove(int idx)
+    {
+        if (ReadOnly) return;
+        if (idx < 0 || idx >= Selected.Count) return;
+        Selected.RemoveAt(idx);
+        await OnChanged.InvokeAsync();
+    }
+
+    private static string LabelFor(string id)
+    {
+        var entry = ContentListCatalog.All().FirstOrDefault(e => e.Id == id);
+        return entry is null ? id : entry.Display;
+    }
+}

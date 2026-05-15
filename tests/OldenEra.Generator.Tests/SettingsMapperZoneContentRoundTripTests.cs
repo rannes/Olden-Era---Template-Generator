@@ -21,6 +21,7 @@ public class SettingsMapperZoneContentRoundTripTests
             RoadDistance = RoadDistance.Mid,
             FactionAffinity = new() { "haven" },
             BiomeFilter = new() { "grass" },
+            IncludeListIds = new() { "basic_content_list_pickup_random_items" },
             Rules = new()
             {
                 new ZoneContentRule { Type = "Crossroads", TargetMin = 0.10, TargetMax = 0.30, Weight = 1 },

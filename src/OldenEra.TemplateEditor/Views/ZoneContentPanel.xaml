@@ -28,6 +28,18 @@
             </CollectionViewSource.GroupDescriptions>
         </CollectionViewSource>
 
+        <!-- T-605: grouped includeLists catalog. Powers the per-row content-list
+             ComboBox; selecting an entry appends its Id to the row's
+             IncludeListIdsCsv (additive, de-duplicated). Author-edited
+             templates whose IDs aren't in the catalog round-trip through the
+             CSV verbatim. -->
+        <CollectionViewSource x:Key="GroupedContentListCatalog"
+                              Source="{Binding DataContext.ContentListCatalog, Source={x:Reference Root}}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="Category"/>
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
+
         <!-- Style.Triggers, when added later, MUST come after all Setters
              (see CLAUDE.md -> feedback_wpf_style_child_order). BAML errors
              only surface in CI on Mac. -->
@@ -86,6 +98,7 @@
                     <ColumnDefinition Width="*"/>    <!-- FactionAffinity -->
                     <ColumnDefinition Width="*"/>    <!-- BiomeFilter -->
                     <ColumnDefinition Width="*"/>    <!-- Rules CSV (T-202) -->
+                    <ColumnDefinition Width="*"/>    <!-- IncludeLists picker + CSV (T-605) -->
                     <ColumnDefinition Width="Auto"/> <!-- Delete (placeholder; A8 wires deletion) -->
                     <ColumnDefinition Width="Auto"/> <!-- Warning badge -->
                 </Grid.ColumnDefinitions>
@@ -207,17 +220,50 @@
                          IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
                          ToolTip="Placement rules — Type|args/args|min|max|weight; semicolon-separate multiple rules. Example: MainObject|0|0.05|0.25|1; Crossroads||0.10|0.30|1"/>
 
+                <!-- T-605: includeLists picker + CSV. The ComboBox appends a
+                     catalog Id to the row's IncludeListIdsCsv on selection
+                     (handled in code-behind: ContentListCombo_SelectionChanged);
+                     the CSV TextBox shows the current selection and is the
+                     source of truth (also writable for round-tripping
+                     author-edited IDs that aren't in the catalog). -->
+                <DockPanel Grid.Column="9" Margin="4,0" LastChildFill="True">
+                    <ComboBox DockPanel.Dock="Top"
+                              ItemsSource="{Binding Source={StaticResource GroupedContentListCatalog}}"
+                              DisplayMemberPath="Display"
+                              SelectedValuePath="Id"
+                              IsEditable="False"
+                              IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                              Tag="{Binding}"
+                              SelectionChanged="ContentListCombo_SelectionChanged"
+                              ToolTip="Pick a catalog includeLists entry to append">
+                        <ComboBox.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontWeight="SemiBold"
+                                                   Margin="2,4,0,2"/>
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </ComboBox.GroupStyle>
+                    </ComboBox>
+                    <TextBox Text="{Binding IncludeListIdsCsv, UpdateSourceTrigger=LostFocus}"
+                             IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
+                             ToolTip="Selected includeLists IDs (comma-separated). Pick from the dropdown above to append; edit here to remove."/>
+                </DockPanel>
+
                 <!-- Delete button: removes the row's item-VM from its
                      owning scope. Disabled while the panel is in
                      defaults-compare (read-only) mode. -->
-                <Button Grid.Column="9" Content="✕"
+                <Button Grid.Column="10" Content="✕"
                         Click="DeleteRow_Click"
                         IsEnabled="{Binding DataContext.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBool}}"
                         Margin="4,0,0,0" Padding="6,0"/>
 
                 <!-- Per-row warning badge. Aggregates the row's full warning
                      count; per-field badges live next to the relevant input. -->
-                <Border Grid.Column="10" Style="{StaticResource OeWarningBadge}"
+                <Border Grid.Column="11" Style="{StaticResource OeWarningBadge}"
                         Visibility="{Binding HasWarnings, Converter={StaticResource BoolToVisibility}}">
                     <Border.ToolTip>
                         <ItemsControl ItemsSource="{Binding Warnings}">

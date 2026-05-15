@@ -260,7 +260,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   refresh workflow still passes.
 
 ### T-605 — ContentList catalog + picker
-- **Status:** open
+- **Status:** done (PR pending)
 - **Owner:** —
 - **Effort:** L
 - **Files:** New `Services/ZoneContent/ContentListCatalog.cs`,

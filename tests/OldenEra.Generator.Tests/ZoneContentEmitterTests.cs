@@ -185,4 +185,62 @@ public class ZoneContentEmitterTests
         Assert.Equal("name_user_side_red_mana_well_1", group.Content[1].Name);
         Assert.Equal("name_user_side_red_mana_well_2", group.Content[2].Name);
     }
+
+    // ---- T-605: catalog-picked includeLists IDs round-trip into row.IncludeLists. ----
+
+    [Fact]
+    public void ApplyToMandatoryGroup_IncludeListIds_AppendsToRow()
+    {
+        var group = NewGroup();
+        var item = CleanItem("placeholder");
+        item.IncludeListIds.Add("basic_content_list_pickup_pandora_box_units");
+        item.IncludeListIds.Add("basic_content_list_pickup_random_items");
+
+        ZoneContentEmitter.ApplyToMandatoryGroup(
+            group, new[] { item }, "side_red", NoRefs());
+
+        var row = Assert.Single(group.Content!);
+        Assert.Equal("placeholder", row.Sid);
+        Assert.NotNull(row.IncludeLists);
+        Assert.Equal(new[]
+        {
+            "basic_content_list_pickup_pandora_box_units",
+            "basic_content_list_pickup_random_items"
+        }, row.IncludeLists!);
+    }
+
+    [Fact]
+    public void ApplyToMandatoryGroup_IsGroup_PlusIncludeListIds_MergesAndDedupes()
+    {
+        var group = NewGroup();
+        var item = CleanItem("content_list_building_random_hires");
+        item.IsGroup = true;
+        // Duplicate the IsGroup-derived entry to verify de-dup.
+        item.IncludeListIds.Add("content_list_building_random_hires");
+        item.IncludeListIds.Add("content_list_building_random_hires_high_tier");
+
+        ZoneContentEmitter.ApplyToMandatoryGroup(
+            group, new[] { item }, "side_red", NoRefs());
+
+        var row = Assert.Single(group.Content!);
+        Assert.Null(row.Sid);
+        Assert.Equal(new[]
+        {
+            "content_list_building_random_hires",
+            "content_list_building_random_hires_high_tier"
+        }, row.IncludeLists!);
+    }
+
+    [Fact]
+    public void ApplyToMandatoryGroup_NoIncludeListIds_LeavesRowIncludeListsNull()
+    {
+        var group = NewGroup();
+        var item = CleanItem("obj.x");
+
+        ZoneContentEmitter.ApplyToMandatoryGroup(
+            group, new[] { item }, "side_red", NoRefs());
+
+        var row = Assert.Single(group.Content!);
+        Assert.Null(row.IncludeLists);
+    }
 }
