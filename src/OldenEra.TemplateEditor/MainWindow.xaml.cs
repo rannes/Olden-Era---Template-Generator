@@ -288,6 +288,9 @@ namespace OldenEra.TemplateEditor
                 _templateOutdated = true;
             UpdateOutdatedWarning();
             UpdateTitle();
+            // T-805 — keep the preset-diff panel in sync with every setting
+            // edit. Hidden until ShowFor() runs; cheap reflection walk.
+            UpdatePresetDiffPanel();
         }
 
         private void MarkDirtyNameOnly()
@@ -1740,15 +1743,41 @@ namespace OldenEra.TemplateEditor
             try
             {
                 var settings = _presetCatalog.Load(id);
+                // T-805 — snapshot the freshly-deserialized preset BEFORE
+                // ApplySettings, so the diff baseline is the on-disk preset
+                // rather than whatever ApplySettings ↔ GatherSettings round-
+                // trip produces. Reload to get an independent instance.
+                PnlPresetDiff.ShowFor(_presetCatalog.Load(id), name);
                 ApplySettings(settings);
                 _currentSettingsPath = null;
                 _isDirty = true;
                 UpdateTitle();
+                UpdatePresetDiffPanel();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Failed to load preset '{name}':\n{ex.Message}", "Preset Error",
                                 MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// T-805 — recompute the preset-diff panel from current settings.
+        /// No-op when the panel is hidden (no preset loaded this session).
+        /// </summary>
+        private void UpdatePresetDiffPanel()
+        {
+            if (PnlPresetDiff is null) return;
+            if (PnlPresetDiff.Visibility != Visibility.Visible) return;
+            try
+            {
+                PnlPresetDiff.Update(GatherSettings());
+            }
+            catch
+            {
+                // GatherSettings can throw mid-edit (e.g. user typing into a
+                // numeric field); leave the previous diff render alone rather
+                // than collapsing the panel on every keystroke.
             }
         }
 
