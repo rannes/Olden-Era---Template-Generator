@@ -499,8 +499,10 @@
                     </Grid>
                 </Grid>
 
-                <!-- Hidden combos still required by code-behind. -->
-                <ComboBox x:Name="CmbGameMode" Visibility="Collapsed"/>
+                <!-- Hidden controls still required by code-behind.
+                     T-808: GameMode is now sourced from PnlExperimental.ChkSingleHero,
+                     mirroring the Web host (single-hero checkbox under Experimental →
+                     Game mode). The legacy hidden CmbGameMode picker has been removed. -->
                 <TextBlock x:Name="TxtAppTitle" Visibility="Collapsed"/>
             </Grid>
         </Grid>

@@ -160,8 +160,8 @@ namespace OldenEra.TemplateEditor
             TxtAppTitle.Text = $"Olden Era - Simple Template Generator  {versionLabel}";
             TxtWipWarning.Text = $"⚠️ Work in progress — Some generated templates may contain game-breaking bugs or issues.";
 
-            CmbGameMode.ItemsSource = KnownValues.GameModes;
-            CmbGameMode.SelectedIndex = 0;
+            // T-808: GameMode editor lives in the Experimental → Game mode card.
+            // No top-level dropdown is needed (matches the Web host).
             RefreshMapSizeOptions(160);
             PnlGameRules.CmbVictory.ItemsSource = KnownValues.VictoryConditionLabels;
             PnlGameRules.CmbVictory.SelectedIndex = 0; // Classic (win_condition_1)
@@ -1808,7 +1808,9 @@ namespace OldenEra.TemplateEditor
             Description = PnlMap.TxtTemplateDescription.Text ?? "",
             DisplayWinCondition = PnlGameRules.TxtDisplayWinCondition.Text ?? "",
             Seed = int.TryParse(PnlMap.TxtSeed.Text, out var builtSeed) ? builtSeed : (int?)null,
-            GameMode = CmbGameMode.SelectedItem as string ?? "Classic",
+            // T-808: source GameMode from the experimental Single Hero checkbox,
+            // mirroring the Web host. Same field, same two values, one editor.
+            GameMode = PnlExperimental.ChkSingleHero.IsChecked == true ? "SingleHero" : "Classic",
             PlayerCount = (int)PnlMap.SldPlayers.Value,
             HeroSettings = new HeroSettings
             {

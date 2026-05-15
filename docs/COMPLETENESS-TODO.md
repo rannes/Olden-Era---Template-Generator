@@ -461,19 +461,45 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   identical settings.
 
 ### T-808 — Web ↔ WPF parity gaps
-- **Status:** open
-- **Owner:** —
+- **Status:** done (PR pending)
+- **Owner:** rannes
 - **Effort:** M
 - **Files:** Various components in both hosts.
 - **Scope:** Upstream issues
   https://github.com/KhanDevelopsGames/Olden-Era---Template-Generator/issues/21
   and
   https://github.com/KhanDevelopsGames/Olden-Era---Template-Generator/issues/22
-  enumerate parity gaps: GameMode picker hidden on WPF, installer-ZIP save
-  is Web-only, `FixedStartingHeroByFaction` round-trips on Web but is
-  uneditable. Close them.
-- **Acceptance:** Both hosts expose the same set of editable fields for the
-  enumerated items. Manual smoke on each.
+  enumerate parity gaps:
+  - **GameMode picker** — *closed*. The legacy hidden `CmbGameMode`
+    ComboBox in `MainWindow.xaml` was dead code; the Web host has only
+    ever exposed game mode through the experimental "Single Hero"
+    checkbox. WPF now sources `GameMode` from the same checkbox under
+    Experimental → Game mode (`PnlExperimental.ChkSingleHero`), and the
+    hidden picker is gone. Both hosts now have a single editable
+    surface for this field.
+  - **Installer-ZIP save** — *N/A on WPF (rationale)*. The Web installer
+    ZIP exists because browsers can only download files; the bundled
+    `install.bat` / `install.ps1` exist to copy the `.rmg.json` into the
+    Steam Olden Era templates folder for the user. WPF already saves
+    directly to disk via `SaveFileDialog`, and the dialog's
+    `InitialDirectory` is auto-resolved to that exact templates folder
+    via `FindOldenEraTemplatesPath()` (with a wrong-folder warning if
+    the user navigates elsewhere). Replicating an installer ZIP on WPF
+    would be ceremony around a path it already knows. No action taken.
+  - **`FixedStartingHeroByFaction`** — *closed*. Both hosts now expose a
+    "Pin starting hero per faction" expander/details (one ComboBox per
+    faction) that writes directly into the dict. Web edit lives in
+    `Components/HeroSettingsPanel.razor`; WPF edit lives in
+    `Views/HeroesPanel.xaml(.cs)`. Note: emission to `.rmg.json` is a
+    future generator task (the schema currently has no field for it);
+    the editor today exists for round-trip preservation through the
+    settings file. Cross-checked by validator (pinned + banned = blocker)
+    and locked by a new
+    `SettingsMapper_FixedStartingHeroByFaction_RoundTrips` test.
+- **Acceptance:** Met. Both hosts expose the same set of editable
+  fields for the enumerated items, modulo the documented N/A on
+  installer-ZIP. Settings round-trip continues passing (231 WPF + 446
+  generator tests, 0 failures).
 
 ---
 
