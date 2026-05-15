@@ -97,7 +97,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   round-trips.
 
 ### T-503 — Per-area content/resource value overrides
-- **Status:** open (partial — emitted from tuning profile, not user-settable)
+- **Status:** done (PR TBD)
 - **Owner:** —
 - **Effort:** M
 - **Files:** Zone builders (`TemplateGenerator.cs:2520-2525, 2880-2885,

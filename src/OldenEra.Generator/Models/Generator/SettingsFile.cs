@@ -161,6 +161,13 @@ namespace OldenEra.Generator.Models
         // T-502 — per-template overrides for the per-zone guard scalars. null = unset.
         [JsonPropertyName("zoneGuardMultiplier")]    public double? ZoneGuardMultiplier    { get; set; }
         [JsonPropertyName("zoneGuardRandomization")] public double? ZoneGuardRandomization { get; set; }
+        // T-503 — per-template overrides for the per-zone content/resource values. null = unset.
+        [JsonPropertyName("zoneResourcesValue")]              public int? ZoneResourcesValue              { get; set; }
+        [JsonPropertyName("zoneResourcesValuePerArea")]       public int? ZoneResourcesValuePerArea       { get; set; }
+        [JsonPropertyName("zoneGuardedContentValue")]         public int? ZoneGuardedContentValue         { get; set; }
+        [JsonPropertyName("zoneGuardedContentValuePerArea")]  public int? ZoneGuardedContentValuePerArea  { get; set; }
+        [JsonPropertyName("zoneUnguardedContentValue")]       public int? ZoneUnguardedContentValue       { get; set; }
+        [JsonPropertyName("zoneUnguardedContentValuePerArea")] public int? ZoneUnguardedContentValuePerArea { get; set; }
 
         // T-201 — encounter-holes (multi-stack battles). Disabled by default;
         // existing snapshots stay byte-identical. When enabled, GameRules.encounterHoles
