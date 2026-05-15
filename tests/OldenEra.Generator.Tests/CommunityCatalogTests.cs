@@ -115,4 +115,70 @@ public class CommunityCatalogTests
         Assert.Equal("Offense", off.Name);
         Assert.Equal("combat", off.Group);
     }
+
+    // ── T-604 ───────────────────────────────────────────────────────────────
+    // catalog/out/{classes,specializations}.json mirror the alcaras catalog
+    // generator output: 12 hero classes (one might + one magic per faction)
+    // and 126 specializations keyed by spec id. Pin counts so any upstream
+    // shape change surfaces in CI rather than silently degrading the
+    // upcoming T-603 hero picker.
+    [Fact]
+    public void Classes_LoadedWithExpectedCount()
+    {
+        Assert.Equal(12, Catalog.Classes.Count);
+    }
+
+    [Fact]
+    public void Classes_ContainsKnightHumanMight()
+    {
+        var knight = Catalog.Classes.Single(c => c.Name == "Knight");
+        Assert.Equal("human", knight.FactionId);
+        Assert.Equal("might", knight.ClassType);
+        Assert.NotNull(knight.Subclasses);
+        Assert.Contains("Swashbuckler", knight.Subclasses!.Keys);
+    }
+
+    [Fact]
+    public void Classes_PartitionByFactionAndType()
+    {
+        // Each faction publishes exactly one might + one magic class.
+        var byFaction = Catalog.Classes
+            .GroupBy(c => c.FactionId)
+            .ToDictionary(g => g.Key, g => g.Select(c => c.ClassType).ToList());
+
+        Assert.Equal(6, byFaction.Count);
+        foreach (var (faction, types) in byFaction)
+        {
+            Assert.Contains("might", types);
+            Assert.Contains("magic", types);
+            Assert.Equal(2, types.Count);
+        }
+    }
+
+    [Fact]
+    public void Specializations_LoadedWithExpectedCount()
+    {
+        Assert.Equal(126, Catalog.Specializations.Count);
+    }
+
+    [Fact]
+    public void Specializations_HaveUniqueIds()
+    {
+        var ids = Catalog.Specializations.Select(s => s.Id).ToList();
+        Assert.Equal(ids.Count, ids.Distinct(StringComparer.Ordinal).Count());
+    }
+
+    [Fact]
+    public void Specializations_ContainsKnownEntry()
+    {
+        // "Born to Lead" is Valentina's campaign specialization, locked in
+        // upstream's catalog generator output.
+        var entry = Catalog.Specializations.Single(s =>
+            s.Id == "campaign_hero_3_specialization");
+        Assert.Equal("Born to Lead", entry.Name);
+        Assert.Equal("human", entry.Faction);
+        Assert.Equal("might", entry.ClassType);
+        Assert.NotNull(entry.Heroes);
+        Assert.Contains(entry.Heroes!, h => h.Name == "Valentina");
+    }
 }
