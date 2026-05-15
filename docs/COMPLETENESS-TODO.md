@@ -450,7 +450,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   settings. Each has a one-line description in the picker.
 
 ### T-807 — User preset slots (named saves)
-- **Status:** done (PR TBD)
+- **Status:** done — https://github.com/rannes/olden-era-templates/pull/74
 - **Owner:** —
 - **Effort:** S
 - **Files:** Both UI hosts (localStorage / `%AppData%`),
