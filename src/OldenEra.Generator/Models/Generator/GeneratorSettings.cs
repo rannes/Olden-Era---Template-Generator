@@ -25,6 +25,21 @@ namespace OldenEra.Generator.Models
         public bool LostStartHero { get; set; } = false;
         public bool CityHold { get; set; } = false;
         public int CityHoldDays { get; set; } = 6;
+
+        /// <summary>
+        /// Hero-lighting (resurrection) victory rule. Default <c>true</c> matches
+        /// every shipped preset, which emit <c>heroLighting: true, heroLightingDay: 1</c>
+        /// on <c>winConditions</c>. Set to <c>false</c> to omit both fields entirely.
+        /// T-506.
+        /// </summary>
+        public bool HeroLighting { get; set; } = true;
+
+        /// <summary>
+        /// Day on which the hero-lighting rule activates. Only emitted when
+        /// <see cref="HeroLighting"/> is <c>true</c>. Clamped to 1..30 on emit.
+        /// Default <c>1</c> matches every shipped preset. T-506.
+        /// </summary>
+        public int HeroLightingDay { get; set; } = 1;
     }
 
     public class HeroSettings

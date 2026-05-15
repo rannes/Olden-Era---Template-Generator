@@ -1081,14 +1081,21 @@ namespace OldenEra.Generator.Services
             bool useGladiator = settings.GladiatorArenaRules.Enabled || effectiveVictoryCondition == "win_condition_4";
             bool useTournament = settings.TournamentRules.Enabled || effectiveVictoryCondition == "win_condition_6";
 
+            // T-506 — heroLighting/heroLightingDay are user-controlled.
+            // Default settings (HeroLighting=true, HeroLightingDay=1) reproduce
+            // the shipped-preset emission byte-for-byte. Setting HeroLighting=false
+            // omits both fields entirely.
+            bool heroLightingOn = settings.GameEndConditions.HeroLighting;
+            int heroLightingDay = Math.Clamp(settings.GameEndConditions.HeroLightingDay, 1, 30);
+
             var winConditions = new WinConditions
             {
                 Classic = true,
                 Desertion = true,
                 DesertionDay = 3,
                 DesertionValue = 3000,
-                HeroLighting = true,
-                HeroLightingDay = 1,
+                HeroLighting = heroLightingOn ? true : (bool?)null,
+                HeroLightingDay = heroLightingOn ? heroLightingDay : (int?)null,
                 LostStartCity = useLostStartCity,
                 LostStartCityDay = Math.Clamp(settings.GameEndConditions.LostStartCityDay, 1, 30),
                 LostStartHero = settings.GameEndConditions.LostStartHero || useGladiator,

@@ -90,6 +90,23 @@
         <div class="oe-hint" style="margin-left:1.5rem;">Locked because primary win condition is Tournament.</div>
     }
 
+    @* T-506 — hero-lighting (resurrection) victory rule. Default on, day 1; off omits both fields. *@
+    <label class="oe-check" title="Emits winConditions.heroLighting + heroLightingDay. Off omits both fields.">
+        <input type="checkbox"
+               checked="@Settings.GameEndConditions.HeroLighting"
+               @onchange="@(e => { Settings.GameEndConditions.HeroLighting = (bool)e.Value!; NotifyChanged(); })" />
+        <span>Hero lighting (resurrection) rule</span>
+    </label>
+    @if (Settings.GameEndConditions.HeroLighting)
+    {
+        <div style="margin-left:1.5rem;">
+            <SliderRow Label="Hero lighting day" WideLabel="true"
+                       Min="1" Max="30" Step="1"
+                       Value="Settings.GameEndConditions.HeroLightingDay"
+                       ValueChanged="@(v => { Settings.GameEndConditions.HeroLightingDay = (int)v; NotifyChanged(); })" />
+        </div>
+    }
+
     <div class="oe-subsection-header">Alternate victory</div>
 
     <label class="oe-check">
