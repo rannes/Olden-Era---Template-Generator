@@ -411,6 +411,11 @@
                             to append a SID to the list, or edit the comma-separated list directly.
                         </TextBlock>
                         <Label Content="Pick unit to ban (catalog)" Padding="5,2"/>
+                        <!-- T-804: substring filter for the catalog dropdown. -->
+                        <TextBox x:Name="TxtBanUnitFilter"
+                                 ToolTip="Filter units by name, id, faction, or tier (e.g. T5)"
+                                 Margin="0,0,0,4"
+                                 TextChanged="TxtBanUnitFilter_TextChanged"/>
                         <ComboBox x:Name="CmbBanUnitPicker"
                                   IsEditable="False"
                                   SelectedValuePath="Id"

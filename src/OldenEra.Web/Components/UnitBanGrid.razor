@@ -3,8 +3,27 @@
 <div class="oe-stacked">
     <label class="oe-label">Banned units (@Settings.Content.GlobalBans.Count selected)</label>
 
+    @* T-804: substring search across the unit ban grid (id / display / tier). *@
+    <input type="search"
+           class="oe-picker-search"
+           placeholder="Search units…"
+           aria-label="Search units"
+           value="@UnitFilter"
+           @oninput="@(e => UnitFilter = e.Value?.ToString() ?? string.Empty)" />
+
+    @{
+        bool anyMatch = false;
+    }
     @foreach (var fg in FactionGroups)
     {
+        var filteredTiers = fg.Tiers
+            .Select(t => new TierGroup(t.Tier, t.Units
+                .Where(u => PickerFilter.Matches(UnitFilter, u.Name, u.Id, u.Variant, $"T{t.Tier}", fg.FactionName))
+                .ToList()))
+            .Where(t => t.Units.Count > 0)
+            .ToList();
+        if (filteredTiers.Count == 0) continue;
+        anyMatch = true;
         <div class="oe-faction-section">
             <div class="oe-faction-header">
                 <span class="oe-faction-name">@fg.FactionName</span>
@@ -14,7 +33,7 @@
                             title="Clear bans for @fg.FactionName">Clear</button>
                 </span>
             </div>
-            @foreach (var tier in fg.Tiers)
+            @foreach (var tier in filteredTiers)
             {
                 <div class="oe-tier-row">
                     <span class="oe-tier-label">T@(tier.Tier)</span>
@@ -33,6 +52,10 @@
                 </div>
             }
         </div>
+    }
+    @if (!anyMatch && !string.IsNullOrWhiteSpace(UnitFilter))
+    {
+        <div class="oe-hint">No units match "@UnitFilter".</div>
     }
 
     @if (LegacyBans.Count > 0)
@@ -62,6 +85,9 @@
 
     private sealed record TierGroup(int Tier, List<UnitEntry> Units);
     private sealed record FactionGroup(string FactionId, string FactionName, List<TierGroup> Tiers);
+
+    // T-804: substring filter applied across name / id / variant / tier label.
+    private string UnitFilter { get; set; } = string.Empty;
 
     private List<FactionGroup> FactionGroups { get; set; } = new();
     private HashSet<string> CatalogIds { get; set; } = new(StringComparer.OrdinalIgnoreCase);

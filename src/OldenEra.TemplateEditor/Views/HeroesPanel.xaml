@@ -64,6 +64,11 @@
                         <TextBlock Style="{StaticResource HintText}">
                             Banned heroes are removed from the template's hero pool (emitted as globalBans.heroes).
                         </TextBlock>
+                        <!-- T-804: substring search filter for the hero ban list. -->
+                        <TextBox x:Name="TxtHeroBanFilter"
+                                 ToolTip="Filter heroes by name or specialty"
+                                 Margin="0,2,0,4"
+                                 TextChanged="TxtHeroBanFilter_TextChanged"/>
                         <TabControl x:Name="TcHeroBans" Margin="0,4,0,0" MinHeight="180"/>
                     </StackPanel>
                 </Expander>
@@ -73,6 +78,11 @@
                         <TextBlock Style="{StaticResource HintText}">
                             Banned spells are removed from mage guilds, shrines, and pandora boxes (emitted as globalBans.magics).
                         </TextBlock>
+                        <!-- T-804: substring search filter for the spell ban list. -->
+                        <TextBox x:Name="TxtSpellBanFilter"
+                                 ToolTip="Filter spells by name or tier (e.g. T3)"
+                                 Margin="0,2,0,4"
+                                 TextChanged="TxtSpellBanFilter_TextChanged"/>
                         <TabControl x:Name="TcSpellBans" Margin="0,4,0,0" MinHeight="180"/>
                     </StackPanel>
                 </Expander>

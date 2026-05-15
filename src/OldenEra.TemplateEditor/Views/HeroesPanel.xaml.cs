@@ -19,6 +19,13 @@ public partial class HeroesPanel : UserControl
     // Per-school CheckBox map for spell bans, keyed by spell id.
     private readonly Dictionary<string, CheckBox> _spellBanCheckBoxes = new();
 
+    // T-804: search-filter haystack per CheckBox. The dictionary is keyed by
+    // the CheckBox itself so the filter can match against display text + id +
+    // optional metadata (specialty for heroes, tier label for spells) without
+    // re-querying the catalog on every keystroke.
+    private readonly Dictionary<CheckBox, string[]> _heroBanHaystacks = new();
+    private readonly Dictionary<CheckBox, string[]> _spellBanHaystacks = new();
+
     public HeroesPanel()
     {
         InitializeComponent();
@@ -30,6 +37,7 @@ public partial class HeroesPanel : UserControl
     {
         TcHeroBans.Items.Clear();
         _heroBanCheckBoxes.Clear();
+        _heroBanHaystacks.Clear();
 
         foreach (var faction in CommunityCatalog.Default.Factions)
         {
@@ -47,6 +55,7 @@ public partial class HeroesPanel : UserControl
                     Tag = hero.Id,
                 };
                 _heroBanCheckBoxes[hero.Id] = cb;
+                _heroBanHaystacks[cb] = new[] { hero.Name, hero.Id, hero.Specialty ?? string.Empty };
                 stack.Children.Add(cb);
             }
             var scroll = new ScrollViewer
@@ -97,6 +106,7 @@ public partial class HeroesPanel : UserControl
     {
         TcSpellBans.Items.Clear();
         _spellBanCheckBoxes.Clear();
+        _spellBanHaystacks.Clear();
 
         foreach (var school in CommunityCatalog.Default.SpellSchools)
         {
@@ -115,6 +125,7 @@ public partial class HeroesPanel : UserControl
                     Tag = spell.Id,
                 };
                 _spellBanCheckBoxes[spell.Id] = cb;
+                _spellBanHaystacks[cb] = new[] { spell.Name, spell.Id, $"T{spell.Tier}" };
                 stack.Children.Add(cb);
             }
             var scroll = new ScrollViewer
@@ -144,4 +155,26 @@ public partial class HeroesPanel : UserControl
         foreach (var (id, cb) in _spellBanCheckBoxes)
             cb.IsChecked = bans.Contains(id);
     }
+
+    // ── T-804: substring search filters ─────────────────────────────────────
+    // Empty filter = all rows visible (preserves prior behavior). Match runs
+    // against name + id (+ specialty / tier) via the shared PickerFilter helper
+    // so filter semantics stay identical to the Web host.
+
+    private void TxtHeroBanFilter_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        => ApplyFilter(_heroBanHaystacks, TxtHeroBanFilter.Text);
+
+    private void TxtSpellBanFilter_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        => ApplyFilter(_spellBanHaystacks, TxtSpellBanFilter.Text);
+
+    private static void ApplyFilter(Dictionary<CheckBox, string[]> haystacks, string? filter)
+    {
+        foreach (var (cb, hay) in haystacks)
+        {
+            cb.Visibility = PickerFilter.Matches(filter, hay)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+    }
+
 }

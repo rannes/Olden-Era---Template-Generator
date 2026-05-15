@@ -417,6 +417,26 @@ public partial class ExperimentalPanel : UserControl
         return cb;
     }
 
+    /// <summary>
+    /// T-804: substring filter for the catalog ComboBox. Re-applies the live
+    /// filter on every keystroke; an empty box matches every row (prior behavior).
+    /// </summary>
+    private void TxtBanUnitFilter_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (CmbBanUnitPicker.ItemsSource is not ICollectionView view) return;
+        var filter = TxtBanUnitFilter.Text;
+        if (string.IsNullOrWhiteSpace(filter))
+        {
+            view.Filter = null;
+        }
+        else
+        {
+            view.Filter = obj => obj is BanUnitRow row
+                && PickerFilter.Matches(filter, row.Display, row.Id, row.Faction);
+        }
+        view.Refresh();
+    }
+
     private void CmbBanUnitPicker_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (CmbBanUnitPicker.SelectedItem is not BanUnitRow row) return;

@@ -50,8 +50,26 @@
             }
         </div>
 
+        @* T-804: substring search across the hero ban list. *@
+        <input type="search"
+               class="oe-picker-search"
+               placeholder="Search heroes…"
+               aria-label="Search heroes"
+               value="@HeroFilter"
+               @oninput="@(e => HeroFilter = e.Value?.ToString() ?? string.Empty)" />
+
         <div class="oe-ban-chips">
-            @foreach (var hero in Catalog.HeroesByFaction(ActiveFactionId).OrderBy(h => h.Name))
+            @{
+                var heroMatches = Catalog.HeroesByFaction(ActiveFactionId)
+                    .Where(h => PickerFilter.Matches(HeroFilter, h.Name, h.Id, h.Specialty))
+                    .OrderBy(h => h.Name)
+                    .ToList();
+            }
+            @if (heroMatches.Count == 0 && !string.IsNullOrWhiteSpace(HeroFilter))
+            {
+                <span class="oe-hint">No heroes match "@HeroFilter".</span>
+            }
+            @foreach (var hero in heroMatches)
             {
                 bool banned = Settings.HeroSettings.HeroBans.Contains(hero.Id);
                 var tooltip = hero.TooltipText();
@@ -87,8 +105,25 @@
             }
         </div>
 
+        @* T-804: substring search across the spell ban list. *@
+        <input type="search"
+               class="oe-picker-search"
+               placeholder="Search spells…"
+               aria-label="Search spells"
+               value="@SpellFilter"
+               @oninput="@(e => SpellFilter = e.Value?.ToString() ?? string.Empty)" />
+
         <div class="oe-ban-chips">
-            @foreach (var spell in SpellsBySchool(ActiveSchool))
+            @{
+                var spellMatches = SpellsBySchool(ActiveSchool)
+                    .Where(s => PickerFilter.Matches(SpellFilter, s.Name, s.Id, $"T{s.Tier}"))
+                    .ToList();
+            }
+            @if (spellMatches.Count == 0 && !string.IsNullOrWhiteSpace(SpellFilter))
+            {
+                <span class="oe-hint">No spells match "@SpellFilter".</span>
+            }
+            @foreach (var spell in spellMatches)
             {
                 bool banned = Settings.HeroSettings.BannedSpells.Contains(spell.Id);
                 var tooltip = spell.TooltipText();
@@ -115,6 +150,11 @@
 
     private static CommunityCatalog Catalog => CommunityCatalog.Default;
     private string ActiveFactionId { get; set; } = Catalog.Factions.FirstOrDefault()?.Id ?? "temple";
+
+    // T-804: per-list substring filters. Empty string preserves prior behavior
+    // (every hero / spell visible).
+    private string HeroFilter { get; set; } = string.Empty;
+    private string SpellFilter { get; set; } = string.Empty;
 
     private Task NotifyChanged() => OnChanged.InvokeAsync();
 

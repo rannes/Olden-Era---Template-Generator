@@ -339,6 +339,23 @@ code { color: var(--oe-accent); background: var(--oe-surface-2); padding: 0 4px;
     color: #ffd9d9;
     text-decoration: line-through;
 }
+/* T-804: shared substring search input for pickers (heroes / spells / units / content). */
+.oe-picker-search {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 4px 0 6px 0;
+    padding: 4px 8px;
+    font-size: 12px;
+    background: var(--oe-bg-input, #1c1c1c);
+    color: var(--oe-text, #ddd);
+    border: 1px solid var(--oe-border, #444);
+    border-radius: 4px;
+}
+.oe-picker-search:focus {
+    outline: none;
+    border-color: var(--oe-text-dim, #888);
+}
 
 /* ── Faction × tier ban grid ────────────────────────────── */
 .oe-faction-section {

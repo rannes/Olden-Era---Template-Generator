@@ -416,7 +416,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   hover/focus on both hosts.
 
 ### T-804 — Universal picker search
-- **Status:** open
+- **Status:** done — PR pending
 - **Owner:** —
 - **Effort:** S
 - **Files:** Picker components.
