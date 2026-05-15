@@ -370,7 +370,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 ## Phase 8 — Editor ergonomics &amp; reach
 
 ### T-801 — Seed control + reproducible generation
-- **Status:** open (partial — Web has it; verify all-callsites + WPF parity)
+- **Status:** done (PR TBD)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `GeneratorSettings.cs:445`, `SettingsFile.cs:56`,
