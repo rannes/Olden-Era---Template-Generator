@@ -160,7 +160,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   (`TemplateGenerator.cs:2808-2811`). No work needed.
 
 ### T-508 — Zone randomHire weekly/initial unit increment
-- **Status:** done (PR TBA)
+- **Status:** done (#56)
 - **Owner:** Claude
 - **Effort:** S
 - **Files:** `Zone.cs` (added `RandomHireEnableWeeklyUnitIncrement` /
