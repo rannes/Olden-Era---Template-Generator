@@ -1,0 +1,16 @@
+{
+  "templateName": "Hub Defense",
+  "playerCount": 4,
+  "topology": "HubAndSpoke",
+  "mapSize": 128,
+  "neutralZoneCount": 0,
+  "playerCastles": 1,
+  "hubCastles": 1,
+  "victoryCondition": "win_condition_5",
+  "cityHold": true,
+  "cityHoldDays": 7,
+  "resourceDensity": 110,
+  "structureDensity": 110,
+  "neutralStackStrength": 110,
+  "borderGuardStrength": 110
+}

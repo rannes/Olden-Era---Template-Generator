@@ -12,8 +12,8 @@ public class PresetCatalogTests
     public void Entries_AreReadFromEmbeddedManifest()
     {
         var catalog = new PresetCatalog();
-        // T-103 expanded the manifest to 10 archetype presets covering 2/4/6/8 player counts.
-        Assert.True(catalog.Entries.Count >= 10, $"Expected ≥10 presets, got {catalog.Entries.Count}.");
+        // T-103 shipped 10 archetype presets; T-806 added 4 more (3p / 5p / hub / might-only).
+        Assert.True(catalog.Entries.Count >= 14, $"Expected ≥14 presets, got {catalog.Entries.Count}.");
         Assert.Contains(catalog.Entries, e => e.Id == "jebus-like");
         Assert.Contains(catalog.Entries, e => e.Id == "arcade-2v2");
         Assert.Contains(catalog.Entries, e => e.Id == "big-map-ffa");
@@ -25,6 +25,11 @@ public class PresetCatalogTests
         Assert.Contains(catalog.Entries, e => e.Id == "citadel-siege");
         Assert.Contains(catalog.Entries, e => e.Id == "six-kings");
         Assert.Contains(catalog.Entries, e => e.Id == "dragon-empire");
+        // T-806 archetypes — fill 3p / 5p / hub / might-only gaps.
+        Assert.Contains(catalog.Entries, e => e.Id == "triad-3p");
+        Assert.Contains(catalog.Entries, e => e.Id == "pentagram-5p");
+        Assert.Contains(catalog.Entries, e => e.Id == "hub-defense");
+        Assert.Contains(catalog.Entries, e => e.Id == "might-only");
     }
 
     [Fact]
@@ -58,6 +63,9 @@ public class PresetCatalogTests
             Assert.True(
                 result.IsValid,
                 $"Preset '{entry.Id}' produced validator blockers: {string.Join("; ", result.Blockers)}");
+            Assert.True(
+                result.Warnings.Count == 0,
+                $"Preset '{entry.Id}' produced validator warnings on default settings: {string.Join("; ", result.Warnings)}");
 
             var template = TemplateGenerator.Generate(settings);
             Assert.NotNull(template);

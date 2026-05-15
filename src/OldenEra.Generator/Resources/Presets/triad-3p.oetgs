@@ -1,0 +1,14 @@
+{
+  "templateName": "Triad",
+  "playerCount": 3,
+  "topology": "Default",
+  "mapSize": 112,
+  "neutralZoneCount": 3,
+  "playerCastles": 1,
+  "resourceDensity": 110,
+  "structureDensity": 110,
+  "neutralStackStrength": 100,
+  "borderGuardStrength": 100,
+  "heroMin": 4,
+  "heroMax": 8
+}

@@ -438,7 +438,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   those 3 in the diff. Empty diff after fresh preset load.
 
 ### T-806 — Fill preset archetype gaps (3p / 5p / hub / might-only)
-- **Status:** open
+- **Status:** done (PR pending)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `Services/PresetCatalog.cs`,

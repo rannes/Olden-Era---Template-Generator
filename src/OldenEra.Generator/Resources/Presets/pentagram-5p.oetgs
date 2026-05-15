@@ -1,0 +1,14 @@
+{
+  "templateName": "Pentagram",
+  "playerCount": 5,
+  "topology": "Balanced",
+  "mapSize": 144,
+  "neutralZoneCount": 5,
+  "playerCastles": 1,
+  "resourceDensity": 110,
+  "structureDensity": 110,
+  "neutralStackStrength": 100,
+  "borderGuardStrength": 100,
+  "heroMin": 4,
+  "heroMax": 8
+}
