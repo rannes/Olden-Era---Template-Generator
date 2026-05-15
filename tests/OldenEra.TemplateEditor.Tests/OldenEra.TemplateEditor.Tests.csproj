@@ -26,6 +26,8 @@
     <Compile Include="..\..\src\OldenEra.TemplateEditor\ViewModels\*.cs" LinkBase="ViewModels" />
     <!-- AutoUpdate services are kept WPF-free so they can be unit-tested cross-platform. -->
     <Compile Include="..\..\src\OldenEra.TemplateEditor\Services\AutoUpdate\*.cs" LinkBase="Services\AutoUpdate" />
+    <!-- T-807: FileSystemUserPresetStorage is WPF-free for the same reason. -->
+    <Compile Include="..\..\src\OldenEra.TemplateEditor\Services\FileSystemUserPresetStorage.cs" LinkBase="Services" />
   </ItemGroup>
 
   <ItemGroup>

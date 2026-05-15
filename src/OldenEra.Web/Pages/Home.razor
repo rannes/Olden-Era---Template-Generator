@@ -3,6 +3,7 @@
 @inject BrowserSettingsStore SettingsStore
 @inject UpdateChecker UpdateChecker
 @inject OldenEra.Generator.Services.PresetCatalog PresetCatalog
+@inject OldenEra.Generator.Services.UserPresetStore UserPresetStore
 @implements IDisposable
 
 <PageTitle>Olden Era - Template Generator</PageTitle>
@@ -48,7 +49,10 @@
         </div>
     </header>
 
-    <PresetPickerModal @bind-IsOpen="IsPresetPickerOpen" OnPick="OnPresetPicked" />
+    <PresetPickerModal @bind-IsOpen="IsPresetPickerOpen"
+                       OnPick="OnPresetPicked"
+                       OnPickUser="OnUserPresetPicked"
+                       GetCurrentSettings="GetCurrentSettingsForPreset" />
 
     <div class="oe-warning">
         ⚠️ Work in progress — some generated templates may contain game-breaking bugs or issues.
@@ -543,19 +547,54 @@
         try
         {
             var s = PresetCatalog.Load(id);
-            var (mapped, advanced, experimental, expFlags) = SettingsMapper.FromFile(s);
-            Settings = mapped;
-            AdvancedMode = advanced;
-            ExperimentalMapSizes = experimental;
-            ExperimentalFlags = expFlags;
-            Validate();
-            await SettingsStore.SaveAsync(SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalFlags));
-            StateHasChanged();
+            await ApplyLoadedSettingsAsync(s);
         }
         catch (Exception ex)
         {
             await FlashToast($"Failed to load preset: {ex.Message}");
         }
+    }
+
+    private async Task OnUserPresetPicked(string name)
+    {
+        try
+        {
+            var s = await UserPresetStore.LoadAsync(name);
+            if (s is null)
+            {
+                await FlashToast($"User preset '{name}' is empty or missing.");
+                return;
+            }
+            await ApplyLoadedSettingsAsync(s);
+        }
+        catch (Exception ex)
+        {
+            await FlashToast($"Failed to load preset: {ex.Message}");
+        }
+    }
+
+    private SettingsFile? GetCurrentSettingsForPreset()
+    {
+        try
+        {
+            return SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalFlags);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private async Task ApplyLoadedSettingsAsync(SettingsFile s)
+    {
+        var (mapped, advanced, experimental, expFlags) = SettingsMapper.FromFile(s);
+        Settings = mapped;
+        AdvancedMode = advanced;
+        ExperimentalMapSizes = experimental;
+        ExperimentalFlags = expFlags;
+        Validate();
+        await SettingsStore.SaveAsync(SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalFlags));
+        StateHasChanged();
     }
 
     private async Task OnSettingsFileSelected(InputFileChangeEventArgs e)

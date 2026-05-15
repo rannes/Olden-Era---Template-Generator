@@ -43,6 +43,7 @@ namespace OldenEra.TemplateEditor
         private string? _currentSettingsPath = null;
         private bool _isDirty = false;
         private readonly PresetCatalog _presetCatalog = new();
+        private readonly UserPresetStore _userPresetStore = new(new FileSystemUserPresetStorage());
         private bool _isRefreshingMapSizes = false;
         private string _baseTitle = string.Empty;
 
@@ -1590,30 +1591,143 @@ namespace OldenEra.TemplateEditor
             UpdateTitle();
         }
 
-        private ContextMenu? _presetContextMenu;
-
-        private void BtnLoadPreset_Click(object sender, RoutedEventArgs e)
+        private async void BtnLoadPreset_Click(object sender, RoutedEventArgs e)
         {
-            if (_presetContextMenu is null)
+            // Rebuild every open so user-preset list reflects recent saves/deletes.
+            var menu = new ContextMenu();
+
+            // Built-in catalog.
+            var builtinHeader = new MenuItem { Header = "Built-in", IsEnabled = false };
+            menu.Items.Add(builtinHeader);
+            foreach (var entry in _presetCatalog.Entries)
             {
-                _presetContextMenu = new ContextMenu();
-                foreach (var entry in _presetCatalog.Entries)
+                var item = new MenuItem
                 {
-                    var item = new MenuItem
-                    {
-                        Header = entry.Name,
-                        ToolTip = entry.Description,
-                    };
-                    var id = entry.Id;
+                    Header = entry.Name,
+                    ToolTip = entry.Description,
+                };
+                var id = entry.Id;
+                var name = entry.Name;
+                item.Click += (_, _) => LoadPresetById(id, name);
+                menu.Items.Add(item);
+            }
+
+            // User presets — separate, never mixed with built-ins.
+            menu.Items.Add(new Separator());
+            var myHeader = new MenuItem { Header = "My Presets", IsEnabled = false };
+            menu.Items.Add(myHeader);
+            IReadOnlyList<UserPresetEntry> userEntries;
+            try { userEntries = await _userPresetStore.ListAsync(); }
+            catch { userEntries = Array.Empty<UserPresetEntry>(); }
+
+            if (userEntries.Count == 0)
+            {
+                menu.Items.Add(new MenuItem { Header = "(none saved)", IsEnabled = false });
+            }
+            else
+            {
+                foreach (var entry in userEntries)
+                {
                     var name = entry.Name;
-                    item.Click += (_, _) => LoadPresetById(id, name);
-                    _presetContextMenu.Items.Add(item);
+                    var item = new MenuItem { Header = name };
+                    item.Click += (_, _) => LoadUserPresetByName(name);
+
+                    var deleteItem = new MenuItem { Header = "Delete" };
+                    deleteItem.Click += async (_, _) => await DeleteUserPresetAsync(name);
+
+                    item.ContextMenu = new ContextMenu();
+                    item.ContextMenu.Items.Add(deleteItem);
+                    menu.Items.Add(item);
                 }
             }
 
-            _presetContextMenu.PlacementTarget = BtnLoadPreset;
-            _presetContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
-            _presetContextMenu.IsOpen = true;
+            menu.Items.Add(new Separator());
+            var saveItem = new MenuItem { Header = "Save current as preset…" };
+            saveItem.Click += async (_, _) => await SaveCurrentAsUserPresetAsync();
+            menu.Items.Add(saveItem);
+
+            menu.PlacementTarget = BtnLoadPreset;
+            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            menu.IsOpen = true;
+        }
+
+        private void LoadUserPresetByName(string name)
+        {
+            try
+            {
+                var task = _userPresetStore.LoadAsync(name);
+                task.Wait();
+                var settings = task.Result;
+                if (settings is null)
+                {
+                    MessageBox.Show($"User preset '{name}' is empty or missing.",
+                        "Preset Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                var confirm = MessageBox.Show(
+                    $"Replace your current settings with the '{name}' preset?",
+                    "Load Preset", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (confirm != MessageBoxResult.Yes) return;
+
+                ApplySettings(settings);
+                _currentSettingsPath = null;
+                _isDirty = true;
+                UpdateTitle();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load preset '{name}':\n{ex.Message}", "Preset Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async Task SaveCurrentAsUserPresetAsync()
+        {
+            var dlg = new PresetNameDialog { Owner = this };
+            if (dlg.ShowDialog() != true) return;
+            var name = UserPresetStore.NormalizeName(dlg.PresetName);
+            if (string.IsNullOrEmpty(name))
+            {
+                MessageBox.Show("Preset name cannot be empty.", "Save Preset",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                var existing = await _userPresetStore.ListAsync();
+                if (existing.Any(e => string.Equals(e.Name, name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    var overwrite = MessageBox.Show(
+                        $"A preset named '{name}' already exists. Overwrite?",
+                        "Save Preset", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (overwrite != MessageBoxResult.Yes) return;
+                }
+
+                var settings = GatherSettings();
+                await _userPresetStore.SaveAsync(name, settings);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to save preset:\n{ex.Message}", "Save Preset",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async Task DeleteUserPresetAsync(string name)
+        {
+            var confirm = MessageBox.Show($"Delete preset '{name}'?", "Delete Preset",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (confirm != MessageBoxResult.Yes) return;
+            try
+            {
+                await _userPresetStore.DeleteAsync(name);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to delete preset:\n{ex.Message}", "Delete Preset",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void LoadPresetById(string id, string name)
