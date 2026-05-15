@@ -245,7 +245,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   per type, regression tests pin presence.
 
 ### T-604 — Fetch alcaras catalog/out/{classes,specializations}.json
-- **Status:** open
+- **Status:** done (PR #TBD — t-604-alcaras-classes-specializations)
 - **Owner:** —
 - **Effort:** M
 - **Files:** `CommunityData/scripts/fetch-from-alcaras.py`,

@@ -22,6 +22,8 @@ namespace OldenEra.Generator.Services
         public IReadOnlyList<SubclassEntry> Subclasses { get; }
         public IReadOnlyList<FactionEntry> Factions { get; }
         public IReadOnlyList<SkillColumnEntry> SkillColumns { get; }
+        public IReadOnlyList<ClassEntry> Classes { get; }
+        public IReadOnlyList<SpecializationEntry> Specializations { get; }
 
         private CommunityCatalog(
             IReadOnlyList<HeroEntry> heroes,
@@ -30,7 +32,9 @@ namespace OldenEra.Generator.Services
             IReadOnlyList<SkillEntry> skills,
             IReadOnlyList<SubclassEntry> subclasses,
             IReadOnlyList<FactionEntry> factions,
-            IReadOnlyList<SkillColumnEntry> skillColumns)
+            IReadOnlyList<SkillColumnEntry> skillColumns,
+            IReadOnlyList<ClassEntry> classes,
+            IReadOnlyList<SpecializationEntry> specializations)
         {
             Heroes = heroes;
             Units = units;
@@ -39,6 +43,8 @@ namespace OldenEra.Generator.Services
             Subclasses = subclasses;
             Factions = factions;
             SkillColumns = skillColumns;
+            Classes = classes;
+            Specializations = specializations;
 
             _spellSchools = new Lazy<IReadOnlyList<string>>(() =>
                 Spells.Select(s => s.School ?? "")
@@ -69,7 +75,9 @@ namespace OldenEra.Generator.Services
                 skills: LoadArray<SkillEntry>("skills.json"),
                 subclasses: LoadArray<SubclassEntry>("subclasses.json"),
                 factions: LoadArray<FactionEntry>("factions.json"),
-                skillColumns: LoadArray<SkillColumnEntry>("skill-columns.json"));
+                skillColumns: LoadArray<SkillColumnEntry>("skill-columns.json"),
+                classes: LoadArray<ClassEntry>("classes.json"),
+                specializations: LoadArray<SpecializationEntry>("specializations.json"));
         }
 
         private static IReadOnlyList<T> LoadArray<T>(string fileName)
@@ -177,4 +185,48 @@ namespace OldenEra.Generator.Services
         [property: JsonPropertyName("class")] string Class,
         [property: JsonPropertyName("skills")] IReadOnlyList<string> Skills,
         [property: JsonPropertyName("effect")] string Effect);
+
+    /// <summary>
+    /// Hero class metadata sourced from <c>catalog/out/classes.json</c>
+    /// (12 entries: one might + one magic class per faction). Carries
+    /// the primary stat priors and the subclass map; the full skill-roll
+    /// weight table is preserved in the on-disk JSON for future use but
+    /// not surfaced here yet — keeping the C# surface focused on fields
+    /// that are stable across upstream refreshes.
+    /// </summary>
+    public sealed record ClassEntry(
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("factionId")] string FactionId,
+        [property: JsonPropertyName("classType")] string ClassType,
+        [property: JsonPropertyName("attack")] int Attack,
+        [property: JsonPropertyName("defence")] int Defence,
+        [property: JsonPropertyName("power")] int Power,
+        [property: JsonPropertyName("knowledge")] int Knowledge,
+        [property: JsonPropertyName("statsBreakpointLevel")] int StatsBreakpointLevel,
+        [property: JsonPropertyName("subclasses")] IReadOnlyDictionary<string, ClassSubclassEntry>? Subclasses);
+
+    public sealed record ClassSubclassEntry(
+        [property: JsonPropertyName("id")] string Id,
+        [property: JsonPropertyName("skills")] IReadOnlyList<string> Skills,
+        [property: JsonPropertyName("effect")] string Effect);
+
+    /// <summary>
+    /// Hero specialization metadata sourced from
+    /// <c>catalog/out/specializations.json</c>. 126 entries keyed by
+    /// <see cref="Id"/>; pairs with the upcoming T-603 <c>HeroEntry.specId</c>
+    /// to surface descriptions in the picker.
+    /// </summary>
+    public sealed record SpecializationEntry(
+        [property: JsonPropertyName("id")] string Id,
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("description")] string? Description,
+        [property: JsonPropertyName("faction")] string? Faction,
+        [property: JsonPropertyName("classType")] string? ClassType,
+        [property: JsonPropertyName("heroes")] IReadOnlyList<SpecializationHeroRef>? Heroes);
+
+    public sealed record SpecializationHeroRef(
+        [property: JsonPropertyName("id")] string Id,
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("faction")] string? Faction,
+        [property: JsonPropertyName("classType")] string? ClassType);
 }

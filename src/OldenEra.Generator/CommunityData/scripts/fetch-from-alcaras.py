@@ -115,6 +115,24 @@ def main():
     spells_js = fetch("docs/spells-data.js")
     spells = extract_window_object(spells_js, "OE_SPELLS_DATA")["SPELLS"]
 
+    # catalog/out/{classes,specializations}.json — raw JSON published by
+    # alcaras' catalog generator. classes.json is keyed under "heroClasses";
+    # specializations.json buckets entries by faction under "specializations".
+    # We flatten both into plain arrays so the C# loader uses the same
+    # JsonSerializer.Deserialize<List<T>> pattern as every other catalog file.
+    classes_raw = json.loads(fetch("catalog/out/classes.json"))
+    classes = classes_raw["heroClasses"]
+
+    specs_raw = json.loads(fetch("catalog/out/specializations.json"))
+    specs_by_faction = specs_raw["specializations"]
+    specializations = [s for bucket in specs_by_faction.values() for s in bucket]
+    expected = specs_raw.get("totalCount")
+    if expected is not None and expected != len(specializations):
+        raise SystemExit(
+            f"specializations.json totalCount={expected} but flattened to "
+            f"{len(specializations)} entries — upstream shape changed."
+        )
+
     write_json("factions.json", factions)
     write_json("heroes.json", heroes)
     write_json("units.json", units)
@@ -122,10 +140,13 @@ def main():
     write_json("skills.json", skills)
     write_json("skill-columns.json", skill_columns)
     write_json("spells.json", spells)
+    write_json("classes.json", classes)
+    write_json("specializations.json", specializations)
 
     print(f"\nDone. {len(factions)} factions, {len(heroes)} heroes, "
           f"{len(units)} units, {len(skills)} skills, {len(spells)} spells, "
-          f"{len(subclasses)} subclasses.")
+          f"{len(subclasses)} subclasses, {len(classes)} hero classes, "
+          f"{len(specializations)} specializations.")
 
 
 if __name__ == "__main__":
