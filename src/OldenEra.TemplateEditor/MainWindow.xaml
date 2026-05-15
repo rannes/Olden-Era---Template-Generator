@@ -332,6 +332,8 @@
                             <RowDefinition Height="Auto"/>   <!-- T-702 guard chart -->
                             <RowDefinition Height="8"/>
                             <RowDefinition Height="Auto"/>   <!-- T-705 topology stats -->
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>   <!-- T-704 fairness audit -->
                         </Grid.RowDefinitions>
 
                         <Button Grid.Row="0"
@@ -491,6 +493,9 @@
 
                         <views:TopologyStatsPanel Grid.Row="16"
                                                   x:Name="PnlTopologyStats"/>
+
+                        <views:FairnessPanel Grid.Row="18"
+                                             x:Name="PnlFairness"/>
                     </Grid>
                 </Grid>
 
