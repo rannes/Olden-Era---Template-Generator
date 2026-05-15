@@ -39,6 +39,48 @@ window.oePreview = {
     },
 };
 
+// T-802 — global Ctrl-Z / Ctrl-Y / Ctrl-Shift-Z handler that forwards into
+// the Blazor host's EditHistory. The .NET side hands us an object reference
+// with [JSInvokable] Undo / Redo methods; we install a single window-level
+// keydown listener and detach it on dispose.
+window.oeUndoRedo = (function () {
+    let dotNetRef = null;
+    let listener = null;
+
+    function isMod(ev) {
+        // Treat metaKey (⌘ on macOS) the same as Ctrl so the hotkey works
+        // for browser users on Mac as well.
+        return ev.ctrlKey || ev.metaKey;
+    }
+
+    return {
+        attach: function (ref) {
+            this.detach();
+            dotNetRef = ref;
+            listener = function (ev) {
+                if (!dotNetRef) return;
+                if (!isMod(ev)) return;
+                const key = (ev.key || "").toLowerCase();
+                if (key === "z" && !ev.shiftKey) {
+                    ev.preventDefault();
+                    dotNetRef.invokeMethodAsync("OnUndoFromJs");
+                } else if ((key === "z" && ev.shiftKey) || key === "y") {
+                    ev.preventDefault();
+                    dotNetRef.invokeMethodAsync("OnRedoFromJs");
+                }
+            };
+            window.addEventListener("keydown", listener, true);
+        },
+        detach: function () {
+            if (listener) {
+                window.removeEventListener("keydown", listener, true);
+                listener = null;
+            }
+            dotNetRef = null;
+        },
+    };
+})();
+
 window.oeShare = {
     getHash: function () {
         return (window.location.hash || "").replace(/^#/, "");

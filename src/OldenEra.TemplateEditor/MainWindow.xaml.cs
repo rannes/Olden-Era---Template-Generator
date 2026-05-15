@@ -42,6 +42,14 @@ namespace OldenEra.TemplateEditor
         // Currently open settings file path (null = unsaved / untitled)
         private string? _currentSettingsPath = null;
         private bool _isDirty = false;
+
+        // T-802 — undo / redo for settings edits. Snapshots are JSON strings
+        // produced by GatherSettings → JsonSerializer, which matches the
+        // path Save / Open already uses, so undo restores byte-for-byte the
+        // same shape the user could have round-tripped to disk.
+        private readonly OldenEra.Generator.Services.EditHistory<string> _editHistory = new();
+        private string? _lastSnapshotJson;
+        private bool _suppressHistoryCapture;
         private readonly PresetCatalog _presetCatalog = new();
         private readonly UserPresetStore _userPresetStore = new(new FileSystemUserPresetStorage());
         private bool _isRefreshingMapSizes = false;
@@ -190,6 +198,11 @@ namespace OldenEra.TemplateEditor
             PnlGameRules.TxtDisplayWinCondition.TextChanged += (_, _) => MarkDirty();
             UpdateTitle();
             TxtWindowTitle.Text = Title;
+
+            // T-802 — once the visual tree is fully wired, seed the undo
+            // baseline from the initial settings shape so the user's first
+            // edit can be reverted to launch defaults.
+            this.Loaded += (_, _) => ResetEditHistory();
         }
 
         private async Task RunUpdateCheckAsync(Version currentVersion)
@@ -291,6 +304,93 @@ namespace OldenEra.TemplateEditor
             // T-805 — keep the preset-diff panel in sync with every setting
             // edit. Hidden until ShowFor() runs; cheap reflection walk.
             UpdatePresetDiffPanel();
+            // T-802 — capture the prior committed snapshot for undo.
+            CaptureHistorySnapshot();
+        }
+
+        // T-802 — push the *previous* committed snapshot onto the undo
+        // stack so Ctrl-Z restores the state that was current before this
+        // change. EditHistory dedupes consecutive duplicates, so a typing
+        // burst that re-emits an identical SettingsFile shape (rare in
+        // practice, but possible for textbox round-trips through tier
+        // builders) does not flood the stack.
+        private void CaptureHistorySnapshot()
+        {
+            if (_suppressHistoryCapture) return;
+            string current;
+            try { current = SerializeCurrentSettings(); }
+            catch { return; }
+
+            if (_lastSnapshotJson is null)
+            {
+                _lastSnapshotJson = current;
+                return;
+            }
+            if (current == _lastSnapshotJson) return;
+            _editHistory.Push(_lastSnapshotJson);
+            _lastSnapshotJson = current;
+        }
+
+        private string SerializeCurrentSettings()
+            => JsonSerializer.Serialize(GatherSettings(), JsonOptions);
+
+        private void ResetEditHistory()
+        {
+            _editHistory.Clear();
+            try { _lastSnapshotJson = SerializeCurrentSettings(); }
+            catch { _lastSnapshotJson = null; }
+        }
+
+        private void ApplyHistorySnapshot(string json)
+        {
+            SettingsFile? s;
+            try { s = JsonSerializer.Deserialize<SettingsFile>(json, JsonOptions); }
+            catch { return; }
+            if (s is null) return;
+
+            _suppressHistoryCapture = true;
+            try
+            {
+                ApplySettings(s);
+                _lastSnapshotJson = json;
+                Validate();
+            }
+            finally
+            {
+                _suppressHistoryCapture = false;
+            }
+        }
+
+        private void EditUndo_CanExecute(object sender, System.Windows.Input.CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = _editHistory.CanUndo;
+            e.Handled = true;
+        }
+
+        private void EditRedo_CanExecute(object sender, System.Windows.Input.CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = _editHistory.CanRedo;
+            e.Handled = true;
+        }
+
+        private void EditUndo_Executed(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
+        {
+            if (!_editHistory.CanUndo) return;
+            string current;
+            try { current = SerializeCurrentSettings(); } catch { return; }
+            if (_editHistory.TryUndo(current, out var prev))
+                ApplyHistorySnapshot(prev);
+            e.Handled = true;
+        }
+
+        private void EditRedo_Executed(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
+        {
+            if (!_editHistory.CanRedo) return;
+            string current;
+            try { current = SerializeCurrentSettings(); } catch { return; }
+            if (_editHistory.TryRedo(current, out var next))
+                ApplyHistorySnapshot(next);
+            e.Handled = true;
         }
 
         private void MarkDirtyNameOnly()
@@ -1592,6 +1692,7 @@ namespace OldenEra.TemplateEditor
             _currentSettingsPath = null;
             _isDirty = false;
             UpdateTitle();
+            ResetEditHistory();
         }
 
         private async void BtnLoadPreset_Click(object sender, RoutedEventArgs e)
@@ -1676,6 +1777,7 @@ namespace OldenEra.TemplateEditor
                 _currentSettingsPath = null;
                 _isDirty = true;
                 UpdateTitle();
+                ResetEditHistory();
             }
             catch (Exception ex)
             {
@@ -1753,6 +1855,7 @@ namespace OldenEra.TemplateEditor
                 _isDirty = true;
                 UpdateTitle();
                 UpdatePresetDiffPanel();
+                ResetEditHistory();
             }
             catch (Exception ex)
             {
@@ -1798,6 +1901,7 @@ namespace OldenEra.TemplateEditor
                 _currentSettingsPath = dlg.FileName;
                 _isDirty = false;
                 UpdateTitle();
+                ResetEditHistory();
             }
             catch (Exception ex)
             {
