@@ -54,9 +54,7 @@
             @foreach (var hero in Catalog.HeroesByFaction(ActiveFactionId).OrderBy(h => h.Name))
             {
                 bool banned = Settings.HeroSettings.HeroBans.Contains(hero.Id);
-                var tooltip = string.IsNullOrWhiteSpace(hero.Specialty)
-                    ? hero.Id
-                    : $"{hero.Specialty}: {hero.SpecialtyDescription ?? ""}".Trim().TrimEnd(':');
+                var tooltip = hero.TooltipText();
                 <button type="button"
                         class="@($"oe-ban-chip{(banned ? " selected" : "")}")"
                         title="@tooltip"
@@ -93,9 +91,7 @@
             @foreach (var spell in SpellsBySchool(ActiveSchool))
             {
                 bool banned = Settings.HeroSettings.BannedSpells.Contains(spell.Id);
-                var tooltip = string.IsNullOrWhiteSpace(spell.Description)
-                    ? $"T{spell.Tier} · {CommunityCatalog.FriendlySpellSchool(spell.School)}"
-                    : spell.Description;
+                var tooltip = spell.TooltipText();
                 <button type="button"
                         class="@($"oe-ban-chip{(banned ? " selected" : "")}")"
                         title="@tooltip"

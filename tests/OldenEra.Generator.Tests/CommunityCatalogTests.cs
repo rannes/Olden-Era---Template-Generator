@@ -212,6 +212,101 @@ public class CommunityCatalogTests
         Assert.Contains("Speed 4", tip);
     }
 
+    // ── T-603 ───────────────────────────────────────────────────────────────
+    // HeroEntry / SpellEntry / SkillEntry now load the rest of the alcaras
+    // payload (specId, armyScore, stats {A,D,P,K}, starter skills, army for
+    // heroes; manaCost / cooldown / learnCost / icon / magicType for spells;
+    // baseDesc / levels / subclasses / starters for skills). Pin one entry
+    // per type so a future catalog refresh that drops any of these fields
+    // fails loudly.
+    [Fact]
+    public void Heroes_LoadEnrichedFields_FromKnownEntry()
+    {
+        var h = Catalog.Heroes.Single(x => x.Id == "human_hero_10");
+        Assert.Equal("Merry Elias", h.Name);
+        Assert.Equal("human_hero_10_specialization", h.SpecId);
+        Assert.Equal(3046, h.ArmyScore);
+        Assert.NotNull(h.Stats);
+        Assert.Equal(1, h.Stats!.A);
+        Assert.Equal(1, h.Stats.D);
+        Assert.Equal(2, h.Stats.P);
+        Assert.Equal(3, h.Stats.K);
+        Assert.NotNull(h.Skills);
+        Assert.Contains("Righteousness L1", h.Skills!);
+        Assert.NotNull(h.Army);
+        Assert.Contains("Swordsman", h.Army!);
+    }
+
+    [Fact]
+    public void Heroes_TooltipText_IncludesNewFields()
+    {
+        var h = Catalog.Heroes.Single(x => x.Id == "human_hero_10");
+        var tip = h.TooltipText();
+        Assert.Contains("Merry Elias", tip);
+        Assert.Contains("A 1", tip);
+        Assert.Contains("K 3", tip);
+        Assert.Contains("Army score 3046", tip);
+        Assert.Contains("Righteousness L1", tip);
+    }
+
+    [Fact]
+    public void Spells_LoadEnrichedFields_FromKnownEntry()
+    {
+        var s = Catalog.Spells.Single(x => x.Id == "day_2_magic_sharp_edge");
+        Assert.Equal("Blessing", s.Name);
+        Assert.Equal("day_2_magic_sharp_edge", s.Icon);
+        Assert.NotNull(s.ManaCost);
+        Assert.Equal(4, s.ManaCost!.Count);
+        Assert.All(s.ManaCost!, m => Assert.Equal(7, m));
+        Assert.Equal(2, s.Cooldown);
+        Assert.NotNull(s.LearnCost);
+        Assert.Contains(s.LearnCost!, c => c.Name == "crystals" && c.Cost == 2);
+        // magicType is empty string in the dump — round-tripped as-is.
+        Assert.NotNull(s.MagicType);
+    }
+
+    [Fact]
+    public void Spells_TooltipText_IncludesNewFields()
+    {
+        var s = Catalog.Spells.Single(x => x.Id == "day_2_magic_sharp_edge");
+        var tip = s.TooltipText();
+        Assert.Contains("T1 Blessing", tip);
+        Assert.Contains("Mana 7", tip);
+        Assert.Contains("CD 2", tip);
+    }
+
+    [Fact]
+    public void Skills_LoadEnrichedFields_FromKnownEntry()
+    {
+        var sk = Catalog.Skills.Single(x => x.Id == "skill_assault");
+        Assert.Equal("Offense", sk.Name);
+        Assert.False(string.IsNullOrWhiteSpace(sk.BaseDesc));
+        Assert.NotNull(sk.Levels);
+        Assert.True(sk.Levels!.Count >= 3);
+        var basic = sk.Levels!.Single(l => l.Level == 1);
+        Assert.Equal("Basic Offense", basic.Name);
+        Assert.NotNull(basic.Bonuses);
+        Assert.NotEmpty(basic.Bonuses!);
+        Assert.NotNull(sk.Subclasses);
+        Assert.NotEmpty(sk.Subclasses!);
+        Assert.NotNull(sk.Starters);
+        Assert.NotEmpty(sk.Starters!);
+    }
+
+    [Fact]
+    public void Skills_TooltipText_IncludesNewFields()
+    {
+        var sk = Catalog.Skills.Single(x => x.Id == "skill_assault");
+        var tip = sk.TooltipText();
+        Assert.Contains("Offense", tip);
+        // baseDesc surfaces verbatim.
+        Assert.Contains(sk.BaseDesc!, tip);
+        // tier/subclass/starter counts surface as a summary line.
+        Assert.Contains("tier(s)", tip);
+        Assert.Contains("subclass(es)", tip);
+        Assert.Contains("starter(s)", tip);
+    }
+
     [Fact]
     public void Specializations_ContainsKnownEntry()
     {

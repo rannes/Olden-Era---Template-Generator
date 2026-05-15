@@ -233,7 +233,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   performance regression in picker open time.
 
 ### T-603 — Enrich HeroEntry / SpellEntry / SkillEntry
-- **Status:** open
+- **Status:** done (PR pending)
 - **Owner:** —
 - **Effort:** M
 - **Files:** `CommunityCatalog.cs`, picker components in both hosts.

@@ -43,7 +43,7 @@ public partial class HeroesPanel : UserControl
                         ? hero.Name
                         : $"{hero.Name} — {hero.Specialty}",
                     Margin = new Thickness(2),
-                    ToolTip = hero.SpecialtyDescription,
+                    ToolTip = hero.TooltipText(),
                     Tag = hero.Id,
                 };
                 _heroBanCheckBoxes[hero.Id] = cb;
@@ -111,9 +111,7 @@ public partial class HeroesPanel : UserControl
                 {
                     Content = $"T{spell.Tier}. {spell.Name}",
                     Margin = new Thickness(2),
-                    ToolTip = string.IsNullOrWhiteSpace(spell.Description)
-                        ? $"T{spell.Tier} · {CommunityCatalog.FriendlySpellSchool(spell.School)}"
-                        : spell.Description,
+                    ToolTip = spell.TooltipText(),
                     Tag = spell.Id,
                 };
                 _spellBanCheckBoxes[spell.Id] = cb;
