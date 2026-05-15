@@ -13,9 +13,8 @@ Phase 5–8 rescan summary:
 - Partially shipped (need narrowing rather than full build): **T-503**,
   **T-504**, **T-506**, **T-801**. Scope sections now spell out exactly what
   remains.
-- **Phase 5 complete (2026-05-15):** T-501 → T-510 all done. Remaining open:
-  Phase 6 (T-601 → T-606); Phase 7 (T-701 → T-705); T-802 → T-808.
-- **Phase 8 complete (2026-05-15):** T-801 → T-808 all done.
+- **All phases complete (2026-05-15):** T-501 → T-808 done. No open work
+  remaining for this round. Next round will be filed against a fresh rescan.
 
 ---
 
@@ -70,7 +69,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 ## Phase 5 — Schema gap closure
 
 ### T-501 — Connection.guardRandomization (model + emit)
-- **Status:** done (PR TBD)
+- **Status:** done (PR #50)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `src/OldenEra.Generator/Models/Unfrozen/Connection.cs`,
@@ -83,7 +82,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   null → field omitted.
 
 ### T-502 — Zone.guardMultiplier and guardRandomization per-zone overrides
-- **Status:** done (PR TBD)
+- **Status:** done (PR #51)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `Zone.cs` (already modeled), `TemplateGenerator.cs:1150-1158,
@@ -98,7 +97,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   round-trips.
 
 ### T-503 — Per-area content/resource value overrides
-- **Status:** done (PR TBD)
+- **Status:** done (PR #52)
 - **Owner:** —
 - **Effort:** M
 - **Files:** Zone builders (`TemplateGenerator.cs:2520-2525, 2880-2885,
@@ -112,7 +111,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   defaults unchanged.
 
 ### T-504 — User-editable RmgTemplate.description / displayWinCondition
-- **Status:** done (PR TBD)
+- **Status:** done (PR #53)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `RmgTemplate.cs:14-18`, `TemplateGenerator.cs:70-71` +
@@ -126,7 +125,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   current auto-generated output (default snapshot byte-identical).
 
 ### T-505 — GameRules.holdCityWinCon (top-level)
-- **Status:** done (PR TBD)
+- **Status:** done (PR #54)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `Models/Unfrozen/GameRules.cs`, `TemplateGenerator.cs`.
@@ -137,7 +136,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 - **Acceptance:** Hold-city preset emits the top-level flag and round-trips.
 
 ### T-506 — User-controlled heroLighting + heroLightingDay
-- **Status:** done (PR TBD)
+- **Status:** done (PR #55)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `TemplateGenerator.cs:1047-1048` (inside
@@ -183,7 +182,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   in the catalog; mapper + share-codec round-trip; malformed CSV → empty.
 
 ### T-509 — MainObject schema completion (owner, isKeyObject, unit-increment, factions list)
-- **Status:** done (PR TBD)
+- **Status:** done (PR #57)
 - **Owner:** —
 - **Effort:** M
 - **Resolution:** Added five nullable round-trip fields to `MainObject`
@@ -220,7 +219,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   it unblocks T-602/T-603 tooltips that group skills by column.
 
 ### T-602 — Enrich UnitEntry with combat stats
-- **Status:** done (PR pending)
+- **Status:** done (PR #61)
 - **Owner:** —
 - **Effort:** M
 - **Files:** `CommunityCatalog.cs` (`UnitEntry` record), `UnitBanGrid.razor`,
@@ -234,7 +233,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   performance regression in picker open time.
 
 ### T-603 — Enrich HeroEntry / SpellEntry / SkillEntry
-- **Status:** done (PR pending)
+- **Status:** done (PR #62)
 - **Owner:** —
 - **Effort:** M
 - **Files:** `CommunityCatalog.cs`, picker components in both hosts.
@@ -246,7 +245,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   per type, regression tests pin presence.
 
 ### T-604 — Fetch alcaras catalog/out/{classes,specializations}.json
-- **Status:** done (PR #TBD — t-604-alcaras-classes-specializations)
+- **Status:** done (PR #60)
 - **Owner:** —
 - **Effort:** M
 - **Files:** `CommunityData/scripts/fetch-from-alcaras.py`,
@@ -261,7 +260,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   refresh workflow still passes.
 
 ### T-605 — ContentList catalog + picker
-- **Status:** done (PR pending)
+- **Status:** done (PR #63)
 - **Owner:** —
 - **Effort:** L
 - **Files:** New `Services/ZoneContent/ContentListCatalog.cs`,
@@ -308,7 +307,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   emitted JSON. Hidden when generation has not run.
 
 ### T-702 — Guard-power vs. zone-value chart
-- **Status:** done (PR pending)
+- **Status:** done (PR #65)
 - **Owner:** Claude
 - **Effort:** M
 - **Files:** `Services/TemplateAnalysis.GuardChart.cs` (new sibling partial),
@@ -339,7 +338,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   expected warning; presets stay warning-free.
 
 ### T-704 — Per-player fairness audit
-- **Status:** done (PR pending)
+- **Status:** done (PR #67)
 - **Owner:** Claude
 - **Effort:** M
 - **Files:** `TemplateAnalysis.cs`, fairness panel in both hosts.
@@ -351,7 +350,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   presets pass clean.
 
 ### T-705 — Topology graph stats
-- **Status:** done (PR pending)
+- **Status:** done (PR #66)
 - **Owner:** Claude
 - **Effort:** S
 - **Files:** `Services/TemplateAnalysis.Topology.cs` (new sibling partial),
@@ -371,7 +370,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 ## Phase 8 — Editor ergonomics &amp; reach
 
 ### T-801 — Seed control + reproducible generation
-- **Status:** done (PR TBD)
+- **Status:** done (PR #69)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `GeneratorSettings.cs:445`, `SettingsFile.cs:56`,
