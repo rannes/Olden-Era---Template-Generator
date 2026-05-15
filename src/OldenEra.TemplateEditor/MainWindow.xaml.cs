@@ -1705,6 +1705,7 @@ namespace OldenEra.TemplateEditor
             LblNoPreview.Visibility = Visibility.Collapsed;
             PnlPreviewToolbar.Visibility = Visibility.Visible;
             BtnSaveGenerated.Visibility = Visibility.Visible;
+            PnlValueBudget.Update(_generatedTemplate); // T-701
             PnlMap.TxtSeedUsed.Text = settings.Seed.HasValue
                 ? $"Seed used: {settings.Seed.Value}"
                 : "Seed used: (random — set a seed to reproduce)";
