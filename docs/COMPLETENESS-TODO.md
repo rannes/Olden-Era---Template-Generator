@@ -3,6 +3,19 @@
 Agents pick the next unowned, unblocked task and work it end-to-end. One task per
 PR. Update the **Status** and **Owner** lines in this file as part of the PR.
 
+Last full rescan + verification pass: 2026-05-15. Each Phase 5–8 entry was
+checked against the codebase before being filed. See [Done log](#done-log)
+for the prior phases (T-001 → T-304).
+
+Phase 5–8 rescan summary:
+- Confirmed already shipped (closed before any work): **T-507** border noise
+  + variant orientation jitter; **T-510** spell bans by school.
+- Partially shipped (need narrowing rather than full build): **T-502**, **T-503**,
+  **T-504**, **T-506**, **T-801**. Scope sections now spell out exactly what
+  remains.
+- Genuinely open: T-501, T-505, T-508, T-509; all of Phase 6 (T-601 → T-606);
+  all of Phase 7 (T-701 → T-705); T-802 → T-808.
+
 ---
 
 ## Mindset
@@ -17,358 +30,431 @@ That means:
    `RmgTemplate` / `Zone` / `Connection` / `MainObject` is a knob the game reads.
    If we emit `null`, we are silently narrowing user choice.
 2. **Reflect the full game catalog.** If `CommunityData/` has it, the picker
-   should let users reach it. Today the SID catalog covers ~20 of hundreds of
-   object types; skills and subclasses are loaded but invisible.
+   should let users reach it.
 3. **Stop at template generation.** This tool emits `.rmg.json`. It is not a
    scenario editor, not a map painter, not a balance simulator. Features that
    require runtime game state are explicit non-goals (see bottom).
 
-Polish, mobile UX, and ergonomics matter only when they block someone from
-reaching completeness. Fix the broken mobile layout (T-301) because users on
-phones cannot finish; defer drag-drop import because the file picker works.
+A field/feature only earns a task when:
+- the schema accepts it, **and**
+- a shipped example template or community request actually uses it, **and**
+- emitting it under user control changes the resulting map.
+
+If two of three are missing, the work is scenario authoring, not generation.
+
+---
 
 ## Path / sequencing rationale
 
-We tackle in four phases. Each phase unblocks the next.
+Phases 5–8 are the new round. Each unblocks the next.
 
-1. **Schema surface first** (T-001 → T-006). The generator currently emits
-   `null` for connection/main-object/zone fields the game uses. Filling these
-   in is small per-item but unlocks expressiveness everything else depends on.
-   Done first because it has no UI dependency on catalog growth.
-2. **Catalog depth** (T-101 → T-104). The biggest visible gap: pickers expose a
-   sliver of what's loaded. We mine `CommunityData/` and grow `SidCatalog`,
-   then add skills/subclasses pickers, then a refresh pipeline so the snapshot
-   doesn't rot.
-3. **Generation tuning** (T-201 → T-204). Once knobs and catalogs exist, the
-   tuning math (guard distributions, value overrides, per-zone limits) lets
-   templates feel hand-authored. These build on phase 1.
-4. **UX that supports completeness** (T-301 → T-304). Validation, mobile, and
-   per-feature experimental toggles. Strictly the items that gate users from
-   exercising the new surface area.
+5. **Schema gap closure** (T-501 → T-510). Quick wins where the model has the
+   field but generator never emits it, plus the small set of model holes the
+   shipped example templates exercise. Single PR each, no catalog dependency.
+6. **Catalog enrichment** (T-601 → T-606). The community datamine has stat-level
+   detail we drop on the floor. Loading it lets every picker grow tooltips
+   without rewriting any picker. Also closes the visible `includeLists` gap.
+7. **Analysis features** (T-701 → T-705). Read-only computations over the
+   generated template. They make balance issues visible *before* the user
+   uploads the .rmg.json into a game. Strictly inside the no-runtime-state
+   constraint — value math, graph stats, fairness diff — never simulation.
+8. **Editor ergonomics + reach** (T-801 → T-808). Undo, search, presets, and
+   the parity gaps the upstream issue tracker flags. Each one removes a
+   reported friction; none invent new schema.
 
 Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 
 ---
 
-## Phase 1 — Expose schema surface
+## Phase 5 — Schema gap closure
 
-### T-001 — Connection: length, gatePlacement, escape hatch
-- **Status:** done
-- **Owner:** orchestrator (Phase 1 batch)
+### T-501 — Connection.guardRandomization (model + emit)
+- **Status:** open
+- **Owner:** —
 - **Effort:** S
-- **Files:** `src/OldenEra.Generator/Services/TemplateGenerator.cs`,
-  `src/OldenEra.Generator/Models/Generator/GeneratorSettings.cs`,
-  `src/OldenEra.Generator/Models/Unfrozen/Connection.cs` (no schema change),
-  `src/OldenEra.Web/Components/`, `src/OldenEra.TemplateEditor/MainWindow.xaml`.
-- **Scope:** Surface `Connection.length`, `gatePlacement`,
-  `portalPlacementRulesFrom/To`, `guardEscape`, `simTurnSquad`. Add fields to
-  `GeneratorSettings`, wire through both UIs, populate during connection build.
-- **Acceptance:**
-  - Generated templates with non-default values emit the fields and round-trip
-    through `HostParityTests`.
-  - At least one preset uses a non-default value to prove the path.
-  - Snapshot test for a chain topology with `length` set.
+- **Files:** `src/OldenEra.Generator/Models/Unfrozen/Connection.cs`,
+  `TemplateGenerator.cs`, `GeneratorSettings.cs`, both UI hosts.
+- **Scope:** `Connection.guardRandomization` is in shipped templates
+  (e.g. `All Around.rmg.json:1076`, `0.10`–`0.15`) but our `Connection` model
+  has no such property. Add the field, surface a per-template default plus a
+  per-connection override.
+- **Acceptance:** Round-trip on `All Around.rmg.json` matches input. Default
+  null → field omitted.
 
-### T-002 — MainObject: guardChance, removeGuardIfHasOwner
-- **Status:** done
-- **Owner:** Rannes (Phase 1 batch)
+### T-502 — Zone.guardMultiplier and guardRandomization per-zone overrides
+- **Status:** open (partial — global slider only)
+- **Owner:** —
 - **Effort:** S
-- **Files:** `TemplateGenerator.cs` (`BuildNeutralZone` mainObject builder),
-  `GeneratorSettings.cs`, both UI hosts.
-- **Scope:** Allow neutral castles to be partially-guarded
-  (`guardChance < 1.0`) and to drop guards on capture
-  (`removeGuardIfHasOwner = true`). Settings already partly model this; emitter
-  ignores them.
-- **Acceptance:** Settings round-trip; a neutral castle with `guardChance: 0.3`
-  appears in fixture output; existing tests still pass.
+- **Files:** `Zone.cs` (already modeled), `TemplateGenerator.cs:1150-1158,
+  2510-2511, 2870-2871, 2944-2945`, `GeneratorSettings.cs`, per-zone
+  overrides panel, both UI hosts.
+- **Scope:** Properties exist on Zone and the generator emits them per-zone
+  from hardcoded tuning profiles. The only user-facing knob is the global
+  `Settings.ZoneCfg.Advanced.GuardRandomization` slider
+  (`AdvancedPanel.razor:24`); `EffectiveGuardRandomization` reads only the
+  global value. Add per-zone overrides via the panel introduced in T-006.
+- **Acceptance:** Defaults byte-identical. Per-zone override emits and
+  round-trips.
 
-### T-003 — RmgTemplate.valueOverrides
-- **Status:** done
-- **Owner:** Rannes (Phase 1 batch)
-- **Effort:** S
-- **Files:** `Models/Generator/`, `TemplateGenerator.cs`, both UI hosts.
-- **Scope:** Add a `List<ValueOverride>` (sid + value or sid + variant + value)
-  to `GeneratorSettings`. Emit as `valueOverrides`. Provide a small editor list
-  (similar to spell bans) on both hosts.
-- **Acceptance:** Empty list → field omitted (preserves clean diffs). Non-empty
-  list emits as the game expects. New unit test for emission shape.
-
-### T-004 — Zone.guardReactionDistribution
-- **Status:** done
-- **Owner:** Rannes (Phase 1 batch)
-- **Effort:** M
-- **Files:** `TemplateGenerator.cs` (`BuildNeutralZone`, `BuildSpawnZone`),
-  `GeneratorSettings.cs` (new TuningSettings field).
-- **Scope:** Replace the implicit "spawn day 1" with a configurable weekly
-  curve. Default to current behavior so existing snapshots are stable.
-- **Acceptance:** Default-settings output is byte-identical to current. New
-  setting alters the emitted array. Tests cover both.
-
-### T-005 — Zone.diplomacyModifier, crossroadsPosition, contentBiome
-- **Status:** done
-- **Owner:** Rannes (Phase 1 batch)
-- **Effort:** S
-- **Files:** Zone builders in `TemplateGenerator.cs`, settings models, both UI
-  hosts.
-- **Scope:** Three independent zone-level knobs. Group them so reviewers see
-  one cohesive PR. Each defaults to "auto/null", emitting nothing unless set.
-- **Acceptance:** Round-trip through `SettingsFile` and `HostParityTests`.
-
-### T-006 — Zone.contentCountLimits, guardCutoffValue, content pool assignments
-- **Status:** done
-- **Owner:** orchestrator (Phase 2 batch)
-- **Blocked by:** T-005 (shares the per-zone settings UI surface)
-- **Effort:** M
-- **Files:** Zone builders, `GeneratorSettings.cs`, UI hosts, possibly new
-  `PerZoneOverridesPanel` component.
-- **Scope:** Per-zone caps for SIDs (separate from global), explicit
-  `guardCutoffValue`, explicit `guardedContentPool` / `unguardedContentPool`
-  selection. Today these are inferred from tier; allow override.
-- **Acceptance:** Tournament/balanced-placement snapshots unchanged when
-  overrides are absent. Override emits and round-trips.
-
----
-
-## Phase 2 — Catalog depth
-
-### T-101 — Expand ZoneContentSidCatalog to broad coverage
-- **Status:** done
-- **Owner:** orchestrator (Phase 2 batch)
-- **Effort:** L
-- **Files:** `src/OldenEra.Generator/Services/ZoneContent/ZoneContentSidCatalog.cs`,
-  `src/OldenEra.Generator/CommunityData/` (read-only), test fixtures.
-- **Scope:** The single biggest catalog gap. Today ~20 SIDs. Mine
-  `CommunityData/` and any `ExampleTemplates/*.rmg.json` for distinct SID
-  strings, group by category (artifacts by tier, creature dwellings by tier,
-  learning structures, banks, utopias, resource generators, scholars, war
-  machines, footholds, portals, mandatory). Drive the picker from this.
-- **Acceptance:**
-  - Catalog has every SID found in the example templates (verified by a unit
-    test that scans them and asserts coverage).
-  - Categories are stable, documented, and ordered.
-  - Existing presets still validate.
-
-### T-102 — Skills + subclasses pickers
-- **Status:** cancelled (2026-05-14)
+### T-503 — Per-area content/resource value overrides
+- **Status:** open (partial — emitted from tuning profile, not user-settable)
 - **Owner:** —
 - **Effort:** M
-- **Cancellation rationale:** Schema verification (full sweep of
-  `src/OldenEra.TemplateEditor/GameData/ExampleTemplates/*.rmg.json` plus the
-  `GlobalBans` model in `Models/Unfrozen/Miscellaneous.cs`) shows the
-  `.rmg.json` contract has **no ban or availability surface for skills or
-  subclasses**. `globalBans` accepts only `items`, `heroes`, `magics`. No
-  example template uses any skill/subclass-shaped key. `CommunityCatalog`
-  loads skills.json / subclasses.json as **descriptive wiki metadata** from
-  the alcaras community datamine — these IDs are not template inputs.
-  Building this UI would either emit invented keys the game silently ignores
-  or persist settings with zero effect on the emitted file. Both violate the
-  completeness mindset. If a future patch exposes such a field, reopen — the
-  hero/spell ban pattern (`SettingsFile.GlobalBans`, `HeroesPanel`,
-  `UnitBanGrid`) is mechanical to extend.
+- **Files:** Zone builders (`TemplateGenerator.cs:2520-2525, 2880-2885,
+  2954-2959`), `GeneratorSettings.cs`, UI hosts.
+- **Scope:** Both scalar and per-area variants are declared on Zone and
+  always emitted side-by-side from hardcoded tuning profiles. No
+  GeneratorSettings field, no UI for users to override either number.
+  Add per-zone overrides for each of `resourcesValue[PerArea]`,
+  `guardedContentValue[PerArea]`, `unguardedContentValue[PerArea]`.
+- **Acceptance:** Override round-trips, emission reflects user value,
+  defaults unchanged.
 
-### T-103 — More preset archetypes
-- **Status:** done
-- **Owner:** orchestrator (Phase 2 batch)
-- **Blocked by:** T-101 (depends on broader SID catalog)
-- **Effort:** M
-- **Files:** `src/OldenEra.Generator/Services/PresetCatalog.cs`,
-  `src/OldenEra.Generator/Services/ZoneContent/ZoneContentPresets.cs`.
-- **Scope:** Today's 3 top-level presets (Jebus / Arcade 2v2 / Big FFA) cover
-  one playstyle each. Add: economy-heavy, magic-focused, aggressive/rush,
-  late-game scaling, faction-strategy variants. Aim for ~10 presets total
-  spanning 2/4/6/8 player counts.
-- **Acceptance:** Each preset generates without validation warnings on default
-  settings. Each preset has a one-sentence description visible in the picker.
+### T-504 — User-editable RmgTemplate.description / displayWinCondition
+- **Status:** open (partial — auto-generated, not user-editable)
+- **Owner:** —
+- **Effort:** S
+- **Files:** `RmgTemplate.cs:14-18`, `TemplateGenerator.cs:70-71` +
+  `BuildTemplateDescription` at 746-779, `GeneratorSettings.cs`, UI hosts.
+- **Scope:** Both fields are emitted today: `Description` is auto-built
+  from settings; `DisplayWinCondition` derives from
+  `effectiveVictoryCondition`. Neither is user-editable. Add a textarea
+  for `Description` (override) and a text input for `DisplayWinCondition`;
+  empty → fall back to current auto-generated value.
+- **Acceptance:** User-supplied text emits verbatim. Empty input keeps
+  current auto-generated output (default snapshot byte-identical).
 
-### T-104 — Community-data refresh workflow
-- **Status:** done
-- **Owner:** orchestrator (Phase 2 batch)
+### T-505 — GameRules.holdCityWinCon (top-level)
+- **Status:** open
+- **Owner:** —
+- **Effort:** S
+- **Files:** `Models/Unfrozen/GameRules.cs`, `TemplateGenerator.cs`.
+- **Scope:** Shipped hold-city templates set `gameRules.holdCityWinCon: true`
+  in addition to the per-MainObject `holdCityWinCon` flag. Our `GameRules`
+  model is missing the property entirely. Add it; have the city-hold game
+  mode flip both.
+- **Acceptance:** Hold-city preset emits the top-level flag and round-trips.
+
+### T-506 — User-controlled heroLighting + heroLightingDay
+- **Status:** open (partial — emitted unconditionally, not user-settable)
+- **Owner:** —
+- **Effort:** S
+- **Files:** `TemplateGenerator.cs:1047-1048` (inside
+  `BuildAdvancedWinConditions` → `WinConditions`), `GeneratorSettings.cs`,
+  UI hosts.
+- **Scope:** `HeroLighting=true, HeroLightingDay=1` are emitted
+  unconditionally on `WinConditions` (verifier confirmed default-on, no
+  longer tournament-gated). Expose checkbox + day-number input for
+  explicit override / off.
+- **Acceptance:** Default snapshot byte-identical. Explicit off omits both;
+  custom day round-trips.
+
+### T-507 — Border noise + variant orientation jitter
+- **Status:** done (verified 2026-05-15)
+- **Owner:** —
+- **Effort:** S
+- **Resolution:** `Border.ObstaclesNoise`/`WaterNoise` declared
+  (`Variant.cs:50-57`) and emitted (`TemplateGenerator.cs:2817, 2819`).
+  `Variant` orientation fields `BaseAngleMin/Max`,
+  `RandomAngleAmplitude/Step` declared (`Variant.cs:29-39`) and emitted
+  (`TemplateGenerator.cs:2808-2811`). No work needed.
+
+### T-508 — Zone randomHire weekly/initial unit increment
+- **Status:** open
+- **Owner:** —
+- **Effort:** S
+- **Files:** `Zone.cs` (add fields), `TemplateGenerator.cs`,
+  `GeneratorSettings.cs`, UI hosts.
+- **Scope:** Templates in the Maze/Massacre family use
+  `randomHireEnableWeeklyUnitIncrement` + `randomHireInitialUnitIncrement` to
+  tune random-hire creature growth. Add the fields, surface them where the
+  per-zone hire pool is configured.
+- **Acceptance:** Round-trip on a template that uses them. Default omits.
+
+### T-509 — MainObject schema completion (owner, isKeyObject, unit-increment, factions list)
+- **Status:** open
+- **Owner:** —
 - **Effort:** M
-- **Files:** `src/OldenEra.Generator/CommunityData/scripts/fetch-from-alcaras.py`,
-  `.github/workflows/`.
-- **Scope:** Document and automate refresh from `alcaras/homm-olden`. Add a
-  scheduled GitHub Action (weekly) that runs the script, opens a PR if
-  catalogs change, and runs the test suite against the new data.
-- **Acceptance:** A dry-run of the workflow succeeds. README updated. Stale
-  data is no longer a silent failure mode.
+- **Files:** `MainObject.cs` (add `Owner`, `IsKeyObject`,
+  `EnableWeeklyUnitIncrement`, `InitialUnitIncrement`, `Factions` list
+  alongside singular `Faction`), `TemplateGenerator.cs`, UI hosts.
+- **Scope:** Round-trip-only for now: load shipped templates without dropping
+  these fields, and emit them when the city-hold game mode/per-tier hire
+  pools need them. Don't build a full mainObject authoring UI — that's
+  scenario authoring (see non-goals).
+- **Acceptance:** Round-trip on a hold-city shipped template preserves
+  `mainObject.owner` / `isKeyObject`. Generated templates without these set
+  remain unchanged.
+
+### T-510 — Spell bans by school (globalBans.magics)
+- **Status:** done (verified 2026-05-15)
+- **Owner:** —
+- **Effort:** S
+- **Resolution:** Generator emits `globalBans.magics` from `BannedSpells`
+  (`TemplateGenerator.cs:167-176`). Web UI is school-tabbed
+  (`HeroSettingsPanel.razor:79-106`, iterates `Catalog.SpellSchools`).
+  Round-trip via `SettingsFile.BannedSpells` (`SettingsFile.cs:82`),
+  `SettingsMapper.cs:210, 345`. WPF host wires through
+  `MainWindow.xaml.cs:909, 1199, 1726`. Closes upstream issue #24.
 
 ---
 
-## Phase 3 — Generation tuning
+## Phase 6 — Catalog enrichment
 
-### T-201 — Encounter holes (multi-stack battles)
-- **Status:** done
-- **Owner:** orchestrator (Phase 3+4 batch)
+### T-601 — Load skill-columns.json
+- **Status:** open
+- **Owner:** —
+- **Effort:** S
+- **Files:** `Services/CommunityCatalog.cs`, `CommunityData/skill-columns.json`.
+- **Scope:** File is shipped but never loaded. Add a `SkillColumns` collection
+  on `CommunityCatalog`. Closes a silent drop. Even if not user-visible yet,
+  it unblocks T-602/T-603 tooltips that group skills by column.
+
+### T-602 — Enrich UnitEntry with combat stats
+- **Status:** open
+- **Owner:** —
 - **Effort:** M
-- **Files:** `TemplateGenerator.cs` (`Zone.encounterHolesSettings`,
-  `GameRules`), `GeneratorSettings.cs`, both UI hosts.
-- **Scope:** Surface the encounter-holes setting (currently hardcoded false in
-  `GameRules`). Add UI toggle and per-zone override.
-- **Acceptance:** Toggle round-trips; snapshot diff shows only the intended
-  field flipping.
+- **Files:** `CommunityCatalog.cs` (`UnitEntry` record), `UnitBanGrid.razor`,
+  WPF unit picker XAML.
+- **Scope:** `units.json` has `attack, hp, off, def, dmgMin, dmgMax, init,
+  speed, squadValue, cost, ai, tags, narrative, passives[], abilities[]` —
+  every gameplay stat. We load only id/name/faction/tier/variant. Load the
+  rest, surface in tooltip on hover (reuses tooltip infra from T-803 if it
+  lands first — but does not block).
+- **Acceptance:** Tooltip on a unit chip shows tier-correct stats. No
+  performance regression in picker open time.
 
-### T-202 — Mandatory content placement rules
-- **Status:** done
-- **Owner:** orchestrator (Phase 3+4 batch)
+### T-603 — Enrich HeroEntry / SpellEntry / SkillEntry
+- **Status:** open
+- **Owner:** —
+- **Effort:** M
+- **Files:** `CommunityCatalog.cs`, picker components in both hosts.
+- **Scope:** Single PR loading the rest of the silently-dropped fields:
+  - HeroEntry: `specId`, `armyScore`, `stats {A,D,P,K}`, `skills[]`, `army`.
+  - SpellEntry: `manaCost[]`, `cooldown`, `learnCost[]`, `icon`, `magicType`.
+  - SkillEntry: `baseDesc`, `levels[]`, `subclasses[]`, `starters[]`.
+- **Acceptance:** Catalog round-trips, tooltips render at least one new field
+  per type, regression tests pin presence.
+
+### T-604 — Fetch alcaras catalog/out/{classes,specializations}.json
+- **Status:** open
+- **Owner:** —
+- **Effort:** M
+- **Files:** `CommunityData/scripts/fetch-from-alcaras.py`,
+  `CommunityCatalog.cs`, `.github/workflows/` (the T-104 refresh workflow).
+- **Scope:** Upstream `alcaras/homm-olden` publishes `catalog/out/classes.json`
+  (12 hero classes with stat-roll tables) and `catalog/out/specializations.json`
+  (126 specializations keyed by specId). Currently only the `docs/*.js`
+  bundles are fetched. Add the two raw JSON files; expose as
+  `CommunityCatalog.Classes` / `Specializations`. Pairs with T-603's
+  `HeroEntry.specId`.
+- **Acceptance:** Fetch script pulls both. Catalog tests lock counts. Existing
+  refresh workflow still passes.
+
+### T-605 — ContentList catalog + picker
+- **Status:** open
+- **Owner:** —
 - **Effort:** L
-- **Files:** New rules editor in both UI hosts, `MandatoryContent` emission in
-  `TemplateGenerator.cs`.
-- **Scope:** `ContentItem.rules` lets templates pin mandatory content with
-  position/min/max/weight constraints. Enables scenario-style authoring while
-  staying inside the .rmg.json contract. Build a small repeatable row editor.
-- **Acceptance:** Rules round-trip; an example preset uses one to demonstrate.
+- **Files:** New `Services/ZoneContent/ContentListCatalog.cs`,
+  `Components/ContentListPicker.razor`, WPF parity, zone builder wiring.
+- **Scope:** Shipped templates reference ~30 distinct `includeLists` IDs
+  (e.g. `basic_content_list_building_guarded_resource_banks_tier_3`,
+  `basic_content_list_pickup_pandora_box_units`,
+  `content_list_building_random_hires_high_tier`) that the SID picker doesn't
+  cover. These are first-class zone-content references. Mine the example
+  templates and `GameData`/`GeneratorData` for canonical IDs, group by
+  semantic category (resource-banks / pickups / random-hires / pandora /
+  artifact-tiers), surface a picker.
+- **Acceptance:** Coverage test: every `includeLists` ID in any shipped
+  template appears in the catalog. Round-trip on Anarchy/AnarchySmall keeps
+  the references intact.
 
-### T-203 — MetaObjectsBiome selectors and themed pools
-- **Status:** done
-- **Owner:** orchestrator (Phase 3+4 batch)
+### T-606 — Code-gen formulaic SID catalog entries
+- **Status:** open
+- **Owner:** —
 - **Effort:** S
-- **Files:** Zone builders, settings models, both UI hosts.
-- **Scope:** Expose `metaObjectsBiome` as a preset selector (e.g.,
-  swamp/desert/snow themes). Auto-match remains the default.
-- **Acceptance:** Preset selection emits the field; default omits it.
-
-### T-204 — Per-tier-8 neutral creature support in pickers
-- **Status:** done (no-op; verified already covered)
-- **Owner:** orchestrator (Phase 3+4 batch)
-- **Effort:** S
-- **Files:** `tests/OldenEra.Generator.Tests/CommunityCatalogTests.cs`
-  (regression net only).
-- **Scope:** Neutral units reach tier 8 in `units.json` but no preset or
-  picker exposes that tier. Add a tier-8 option for guard pools.
-- **Resolution (2026-05-14):** Verified no-op. Both unit-ban pickers —
-  `src/OldenEra.Web/Components/UnitBanGrid.razor` (Blazor) and
-  `src/OldenEra.TemplateEditor/Views/ExperimentalPanel.xaml.cs`
-  `PopulateBanUnitPicker` (WPF) — already group `CommunityCatalog.Units`
-  by `(Faction, Tier)` dynamically. The four tier-8 neutral entries
-  (`avatar`, `avatar_nature`, `avatar_unfrozen`, `lich_dragon`) render as
-  `T8. Avatar` etc. with no hardcoded tier ceiling. The `.rmg.json`
-  contract has no separate "guard pool tier-N" surface that takes unit
-  tiers — `random_hire_*` SIDs and `basic_content_list_..._tier_N`
-  content lists are game-side and stop at tier 7 / tier 3 respectively
-  (no `random_hire_8` exists in `KnownValues.cs` or in any shipped
-  `ExampleTemplates/*.rmg.json`). Inventing a tier-8 hire SID would emit
-  a key the game silently ignores — same anti-pattern that cancelled
-  T-102. Added a regression test
-  (`Units_Tier8_AreNeutralAndReachableViaCatalog`) that pins the
-  catalog-side invariant so a future catalog refresh that drops tier-8
-  entries fails loudly instead of silently regressing the picker.
-- **Acceptance:** A preset using tier-8 neutrals validates and generates.
-  → Acceptance criterion is presentation-only and already satisfied:
-  tier-8 entries appear in both pickers, are bannable through
-  `GlobalBans`, and round-trip through `SettingsFile`. No preset change
-  needed because no template field accepts tier-8 unit SIDs as guard
-  pool members.
-
-### T-205 — Per-tier terrain density
-- **Status:** done
-- **Owner:** Rannes
-- **Effort:** M
-- **Files:** `src/OldenEra.Generator/Services/TemplateGenerator.cs`
-  (`ApplyExperimentalSettings`), `src/OldenEra.Web/Components/PerTierOverridesPanel.razor`,
-  `src/OldenEra.TemplateEditor/Views/ExperimentalPanel.xaml`,
-  `tests/OldenEra.Generator.Tests/`.
-- **Scope:** `TierOverrides.ObstaclesFill` / `LakesFill` already exist on
-  `GeneratorSettings` and round-trip via `SettingsMapper`, but the generator
-  ignores them. Wire them through `ApplyExperimentalSettings` gated on
-  `ExperimentalFlags.PerTierOverrides`. Strategy: clone only diverging
-  layouts. For each base neutral layout (Sides / TreasureZone / Center),
-  resolve effective `(obstacles, lakes)` per tier with precedence
-  tier > global Terrain > baseline; mutate the base layout in place when
-  all using-tiers agree, otherwise add a suffixed clone (e.g.
-  `zone_layout_sides_high`) to `template.ZoneLayouts` and rewrite
-  `zone.Layout` for that tier's neutral zones. Surface obstacles/lakes
-  sliders per tier in both UI hosts.
-- **Acceptance:** Defaults emit byte-identical output. A tier with a
-  density override produces one cloned layout per (base layout, tier)
-  pair actually used by neutral zones, and retargets those zones'
-  `zone.Layout` to the clone. Tiers with no override stay on the base
-  layout (which still carries any global `Terrain` stamp). Tier override
-  beats global `Terrain` for that tier. Unit tests cover defaults,
-  single-tier override, and tier-vs-global precedence.
-
-### T-206 — Per-player Starting Bonuses
-- **Status:** done
-- **Owner:** Rannes
-- **Effort:** M
-- **Files:** `src/OldenEra.Generator/Models/Generator/GeneratorSettings.cs`,
-  `src/OldenEra.Generator/Models/Generator/SettingsFile.cs`,
-  `src/OldenEra.Generator/Services/SettingsMapper.cs`,
-  `src/OldenEra.Generator/Services/TemplateGenerator.cs`
-  (`BuildExperimentalBonuses`),
-  `src/OldenEra.Generator/Services/SettingsValidator.cs`,
-  `src/OldenEra.Web/Components/StartingBonusesPanel.razor`,
-  `src/OldenEra.TemplateEditor/Views/ExperimentalPanel.xaml` +
-  `MainWindow.xaml.cs`,
-  `tests/OldenEra.Generator.Tests/`.
-- **Scope:** The experimental Starting Bonuses panel emits a uniform block
-  with `ReceiverSide = -1`. `Bonus` schema already supports `ReceiverSide`
-  (player index). Add a per-player override table on top of the uniform
-  block. Each row carries `PlayerSlot` + a reused `StartingBonusSettings`;
-  fields a row sets replace the uniform value for that slot only (config
-  overlay semantics, last-write-wins on duplicate slot). Empty list →
-  byte-identical output. Emit per-slot rows only for fields that any
-  override touches; other fields stay as `ReceiverSide = -1` to keep diffs
-  minimal. Gated on existing starting-bonuses experimental flag.
-  Design doc: `docs/plans/2026-05-14-t-206-per-player-bonuses-design.md`.
-- **Acceptance:** Defaults byte-identical (snapshot test). Single-slot
-  override emits per-player rows for the touched field only and inherits
-  uniform for the rest. Out-of-range slot warns and is skipped. Round-trip
-  through `SettingsFile`. Both Web and WPF hosts expose the editor.
+- **Files:** `ZoneContentSidCatalog.cs`.
+- **Scope:** ~25 of 106 catalog entries are formulaic (`random_hire_1..7`,
+  `mine_<resource>`, `name_mine_<resource>[_N]`, `name_remote_foothold[_N|_NN]`).
+  Replace hand-listing with `Enumerable.Range` generation. Reduces drift risk
+  when a future patch grows tier ceilings or resource enums.
+- **Acceptance:** Catalog snapshot test stays byte-identical (or has the
+  intentional new entries explicitly listed). Public API unchanged.
 
 ---
 
-## Phase 4 — UX that supports completeness
+## Phase 7 — Analysis features
 
-### T-301 — Mobile layout: web preview + Generate reachable below 600 px
-- **Status:** done
-- **Owner:** orchestrator (Phase 3+4 batch)
+### T-701 — Zone value budget summary
+- **Status:** open
+- **Owner:** —
 - **Effort:** M
-- **Files:** `src/OldenEra.Web/wwwroot/css/app.css`,
-  `src/OldenEra.Web/Pages/Home.razor`, `src/OldenEra.Web/Components/PreviewPanel.razor`.
-- **Scope:** At narrow widths the preview column overflows and Generate is off
-  screen. Restack to single column, make preview collapsible, keep the action
-  bar pinned. Validate on iPhone-SE-class viewports.
-- **Acceptance:** Playwright e2e test at 375×667 reaches Generate and
-  downloads a template.
+- **Files:** New `Components/ValueBudgetPanel.razor`, WPF parity,
+  `Services/TemplateAnalysis.cs` (new).
+- **Scope:** Read `Zone.ResourcesValue/PerArea`,
+  `GuardedContentValue/PerArea`, `UnguardedContentValue/PerArea` off the
+  generated `RmgTemplate`; render per-zone and total cards under the preview.
+  Pure display over generator output — no simulation.
+- **Acceptance:** Summary updates on every regenerate. Numbers match the
+  emitted JSON. Hidden when generation has not run.
 
-### T-302 — Per-experimental-feature toggles
-- **Status:** done
-- **Owner:** orchestrator (Phase 3+4 batch 2)
+### T-702 — Guard-power vs. zone-value chart
+- **Status:** open
+- **Owner:** —
 - **Effort:** M
-- **Files:** Both UI hosts, `SettingsFile.cs`, `SettingsMapper.cs`,
-  new `Services/ExperimentalFeatures.cs`,
-  `Components/ExperimentalFeaturesMenu.razor`,
-  `Views/ExperimentalPanel.xaml`.
-- **Scope:** `Experimental ⚗` bundled 5 unrelated features at different
-  stability levels. Split into per-feature flags (game-mode,
-  starting-bonuses, zone-content, borders/roads, per-tier overrides) with a
-  registry-driven "graduated" marker so stable ones can promote without
-  removing the toggle.
-- **Acceptance:** Existing experimental settings auto-migrate. Per-feature
-  state round-trips through `.oetgs`.
+- **Files:** `TemplateAnalysis.cs`, new chart component, both UI hosts.
+- **Scope:** The most common balance bug is "rich zone with weak guards".
+  Plot guard-tier-scaled `BorderGuardStrengthPercent` against `ResourcesValue`
+  per zone; flag outliers in red. Catches misconfiguration before users open
+  the game.
+- **Acceptance:** Chart renders for any generated template. Outlier rule has
+  unit tests.
 
-### T-303 — Inline validation remediation
-- **Status:** done
-- **Owner:** orchestrator (Phase 3+4 batch 2)
-- **Effort:** M
-- **Files:** `SettingsValidator.cs`, both UI hosts.
-- **Scope:** Validator already produces actionable messages. Surface them
-  inline on the offending control (red border + popover) instead of only in a
-  side panel. Add a "fix" affordance where the remediation is mechanical
-  (e.g., "Add a neutral zone" → button that does it).
-- **Acceptance:** Each blocker has an inline anchor. Manual smoke covers the
-  five most common blockers.
+### T-703 — Content-pool sanity warnings (validator extension)
+- **Status:** open
+- **Owner:** —
+- **Effort:** S
+- **Files:** `Services/SettingsValidator.cs`, validator UI surface.
+- **Scope:** Sweep enabled `ContentLists` and warn when expectations
+  obviously fail: "no tier-7 dwellings reachable", "no shrines", "no
+  creature banks", given current per-tier overrides. Plug into existing
+  inline-validation surface (T-303).
+- **Acceptance:** Five canonical misconfig fixtures each surface the
+  expected warning; presets stay warning-free.
 
-### T-304 — Preview: zoom + pan + reseed-in-place
-- **Status:** done
-- **Owner:** orchestrator (Phase 3+4 batch)
+### T-704 — Per-player fairness audit
+- **Status:** open
+- **Owner:** —
 - **Effort:** M
-- **Files:** `PreviewPanel.razor`, WPF preview adapter,
-  `TemplatePreviewRenderer.cs` (only if vector hooks needed).
-- **Scope:** Large maps render unreadable at fixed size. Add zoom/pan controls
-  on the PNG. Add a one-click "regenerate with new seed" that re-renders
-  without scrolling away from the current view.
-- **Acceptance:** Manual: zoom and pan responsive; reseed keeps view position.
+- **Files:** `TemplateAnalysis.cs`, fairness panel in both hosts.
+- **Scope:** For each player zone compute neighbor count, starting-castle
+  count, expected resource yield (sum of bank values + bonuses); flag any
+  player whose values deviate by >X% from the median. Catches asymmetric
+  generation in templates that should be mirrored.
+- **Acceptance:** A deliberately-asymmetric fixture lights up; balanced
+  presets pass clean.
+
+### T-705 — Topology graph stats
+- **Status:** open
+- **Owner:** —
+- **Effort:** S
+- **Files:** `TemplateAnalysis.cs`, topology panel.
+- **Scope:** Reuse the topology graph `TemplateGenerator` already builds:
+  show average degree, diameter, and articulation points (chokepoints).
+  Cheap analytic that gives template designers vocabulary for what they
+  built.
+- **Acceptance:** Stats render for every preset; values verified by hand on
+  Jebus Cross / Madness / All Around fixtures.
+
+---
+
+## Phase 8 — Editor ergonomics &amp; reach
+
+### T-801 — Seed control + reproducible generation
+- **Status:** open (partial — Web has it; verify all-callsites + WPF parity)
+- **Owner:** —
+- **Effort:** S
+- **Files:** `GeneratorSettings.cs:445`, `SettingsFile.cs:56`,
+  `TemplateGenerator.cs:33`, `MapSettingsPanel.razor:56-65, 138-140`,
+  `Home.razor:163-169`, WPF `MainWindow.xaml`/`.xaml.cs`.
+- **Scope:** Web side is shipped: `int? Seed` round-trips, generator
+  uses `settings.Seed.HasValue ? new Random(settings.Seed.Value) :
+  new Random()`, UI exposes seed input + 🎲 randomize and "Seed used: …"
+  readout. Two gaps to close: (1) audit every `new Random()` callsite
+  inside `TemplateGenerator` to confirm they all flow from the seeded
+  instance — the constructor seeds one Random, but ad-hoc allocations
+  elsewhere would leak determinism; (2) add the equivalent seed input +
+  readout to the WPF host. Closes upstream issue #20 once both ship.
+- **Acceptance:** Same seed + same settings produces byte-identical
+  output (test). No `new Random()` left in `TemplateGenerator` outside
+  the seeded plumbing. WPF surface matches Web.
+
+### T-802 — Undo / redo for settings edits
+- **Status:** open
+- **Owner:** —
+- **Effort:** M
+- **Files:** New `Services/EditHistory.cs`, both UI hosts.
+- **Scope:** Snapshot `GeneratorSettings` on every change-event; expose
+  Ctrl-Z / Ctrl-Y. Cap stack at 50 to bound memory. Lowers the cost of
+  experimentation — by far the most common user friction in HoMM template
+  authoring.
+- **Acceptance:** Manual: a slider tweak followed by Ctrl-Z restores prior
+  value across both hosts. Snapshot serialization is identical to the
+  in-memory clone.
+
+### T-803 — Inline field help (tooltips driven by docs YAML)
+- **Status:** open
+- **Owner:** —
+- **Effort:** M
+- **Files:** New `docs/field-help.yaml`, tooltip components in both hosts.
+- **Scope:** Half the obscure flags (`MinNeutralZonesBetweenPlayers`,
+  `GuardRandomization`, `EncounterHolesSettings`) have no inline help. Add
+  one YAML keyed by `ValidationFieldKeys`-style ids; both hosts read it at
+  build time. Upstream issue
+  https://github.com/KhanDevelopsGames/Olden-Era---Template-Generator/issues/21
+  flags Web ↔ WPF tooltip parity.
+- **Acceptance:** ≥30 fields documented; tooltip displays the YAML entry on
+  hover/focus on both hosts.
+
+### T-804 — Universal picker search
+- **Status:** open
+- **Owner:** —
+- **Effort:** S
+- **Files:** Picker components.
+- **Scope:** Single search box that filters heroes, spells, units, items,
+  SIDs in their respective pickers. Today every picker re-implements ad-hoc
+  scrolling.
+- **Acceptance:** Search input filters the open picker; works on Web and WPF.
+
+### T-805 — Settings-vs-preset diff view
+- **Status:** open
+- **Owner:** —
+- **Effort:** M
+- **Files:** New `Components/PresetDiffPanel.razor`, WPF parity,
+  `Services/SettingsDiff.cs`.
+- **Scope:** Side-by-side field-level diff between current settings and
+  nearest preset. Helps users learn the tool and recover from bad
+  exploration. Builds on the per-feature flag registry from T-302.
+- **Acceptance:** Loading a preset then changing 3 fields shows exactly
+  those 3 in the diff. Empty diff after fresh preset load.
+
+### T-806 — Fill preset archetype gaps (3p / 5p / hub / might-only)
+- **Status:** open
+- **Owner:** —
+- **Effort:** S
+- **Files:** `Services/PresetCatalog.cs`,
+  `Resources/Presets/presets.json`.
+- **Scope:** Today's 10 presets skip 3- and 5-player counts, hub-and-spoke
+  topology, and a "no-magic / might-only" archetype. Add `triad-3p`,
+  `pentagram-5p`, `hub-defense`, `might-only`.
+- **Acceptance:** Each new preset generates without warnings on default
+  settings. Each has a one-line description in the picker.
+
+### T-807 — User preset slots (named saves)
+- **Status:** open
+- **Owner:** —
+- **Effort:** S
+- **Files:** Both UI hosts (localStorage / `%AppData%`),
+  `SettingsFile.cs`.
+- **Scope:** Persist named user presets locally; show under a "My Presets"
+  section in the preset picker. Independent of the bundled catalog.
+- **Acceptance:** Save → reload page/app → preset is still listed and loads
+  identical settings.
+
+### T-808 — Web ↔ WPF parity gaps
+- **Status:** open
+- **Owner:** —
+- **Effort:** M
+- **Files:** Various components in both hosts.
+- **Scope:** Upstream issues
+  https://github.com/KhanDevelopsGames/Olden-Era---Template-Generator/issues/21
+  and
+  https://github.com/KhanDevelopsGames/Olden-Era---Template-Generator/issues/22
+  enumerate parity gaps: GameMode picker hidden on WPF, installer-ZIP save
+  is Web-only, `FixedStartingHeroByFaction` round-trips on Web but is
+  uneditable. Close them.
+- **Acceptance:** Both hosts expose the same set of editable fields for the
+  enumerated items. Manual smoke on each.
 
 ---
 
@@ -376,10 +462,16 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 
 The tool emits `.rmg.json` and stops there. These are explicit non-goals:
 
+- **Scenario-style authoring.** `RmgTemplate.contentPools`/`contentLists`
+  authoring, `MandatoryContentGroup` editing, full `ContentItem.rules` trees,
+  and `ZoneLayout` authoring all start to look like a content editor rather
+  than a generator. We round-trip these without data loss but do not build
+  authoring UIs for them. Skill/subclass bans are similarly out — the
+  schema has no surface for them (see prior cancellation of T-102).
 - Live map preview using game assets (renderer stays schematic).
 - Balance simulation, AI playthroughs, win-rate prediction.
 - Editing scenario maps (`.h5m`-style content).
-- A server-hosted catalog or login-based preset sharing. Share-link codec is
+- Server-hosted catalog or login-based preset sharing. Share-link codec is
   the intended ceiling.
 - Localization. English only until the catalog stabilizes.
 
@@ -394,3 +486,43 @@ If a task seems to drift toward these, stop and reopen the discussion.
    **Owner:** to your handle/agent id, commit alongside your work.
 3. On merge: set **Status: done** and link the PR. Do not delete the entry —
    the audit trail is the point.
+
+---
+
+## Done log
+
+Compact record of completed phases. The detailed entries lived in this file
+through T-206; they have been pruned to keep the index navigable. Git history
+preserves the full text.
+
+### Phase 1 — Expose schema surface (all done)
+- T-001 Connection length / gatePlacement / portal placement / guardEscape /
+  simTurnSquad
+- T-002 MainObject guardChance + removeGuardIfHasOwner
+- T-003 RmgTemplate.valueOverrides
+- T-004 Zone.guardReactionDistribution
+- T-005 Zone.diplomacyModifier / crossroadsPosition / contentBiome
+- T-006 Zone.contentCountLimits / guardCutoffValue / content pool assignments
+
+### Phase 2 — Catalog depth (T-101, T-103, T-104 done; T-102 cancelled)
+- T-101 ZoneContentSidCatalog broad coverage
+- T-102 Skills + subclasses pickers — **cancelled 2026-05-14**: schema has no
+  ban or availability surface for skills/subclasses.
+- T-103 More preset archetypes (10 total spanning 2/4/6/8 players)
+- T-104 Community-data refresh workflow (weekly GH Action)
+
+### Phase 3 — Generation tuning (all done)
+- T-201 Encounter holes (multi-stack battles)
+- T-202 Mandatory content placement rules
+- T-203 MetaObjectsBiome selectors and themed pools
+- T-204 Per-tier-8 neutral creature support — **no-op (verified)**: pickers
+  already group by `(Faction, Tier)` dynamically; schema has no tier-8
+  guard-pool surface. Regression test added.
+- T-205 Per-tier terrain density
+- T-206 Per-player Starting Bonuses overrides
+
+### Phase 4 — UX baseline (all done)
+- T-301 Mobile layout under 600 px
+- T-302 Per-experimental-feature toggles
+- T-303 Inline validation remediation
+- T-304 Preview zoom + pan + reseed-in-place
