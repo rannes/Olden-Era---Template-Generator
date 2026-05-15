@@ -157,6 +157,8 @@
                           OnReseed="OnReseedClick"
                           ReseedDisabled="@(!IsValid || IsGenerating)" />
 
+            <ValueBudgetPanel Template="GeneratedTemplate" />
+
             @if (GeneratedTemplate is not null)
             {
                 <div class="oe-hint oe-seed-used">

@@ -326,6 +326,8 @@
                             <RowDefinition Height="Auto"/>   <!-- show preview checkbox -->
                             <RowDefinition Height="8"/>
                             <RowDefinition Height="Auto"/>   <!-- save button -->
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>   <!-- T-701 value budget -->
                         </Grid.RowDefinitions>
 
                         <Button Grid.Row="0"
@@ -476,6 +478,9 @@
                                 HorizontalAlignment="Stretch"
                                 IsEnabled="False"
                                 Click="BtnSaveGenerated_Click"/>
+
+                        <views:ValueBudgetPanel Grid.Row="12"
+                                                x:Name="PnlValueBudget"/>
                     </Grid>
                 </Grid>
 

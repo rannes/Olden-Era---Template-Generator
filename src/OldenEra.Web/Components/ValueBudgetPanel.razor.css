@@ -1,0 +1,70 @@
+/* T-701 — Zone value budget panel. Scoped styles; isolated from app.css. */
+
+.oe-value-budget {
+    margin-top: 8px;
+    border: 1px solid var(--oe-border);
+    border-radius: 6px;
+    background: var(--oe-surface-1);
+    padding: 6px 10px;
+}
+
+.oe-value-budget-summary {
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+}
+
+.oe-value-budget-total {
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--oe-text-dim);
+}
+
+.oe-value-budget-grid {
+    display: grid;
+    grid-template-columns: minmax(80px, 1.4fr) repeat(3, minmax(70px, 1fr));
+    gap: 2px 8px;
+    margin-top: 6px;
+    font-size: 0.85rem;
+}
+
+.oe-vb-head,
+.oe-vb-row {
+    display: contents;
+}
+
+.oe-vb-head > div {
+    font-weight: 600;
+    color: var(--oe-text-dim);
+    border-bottom: 1px solid var(--oe-border);
+    padding: 2px 0;
+}
+
+.oe-vb-row > div {
+    padding: 2px 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.oe-vb-name {
+    color: var(--oe-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.oe-vb-totals > div {
+    border-top: 1px solid var(--oe-border);
+    font-weight: 600;
+    padding-top: 4px;
+    margin-top: 2px;
+}
+
+.oe-vb-hint {
+    margin: 6px 0 0 0;
+    font-size: 0.75rem;
+    color: var(--oe-text-dim);
+}
