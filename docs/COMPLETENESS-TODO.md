@@ -15,6 +15,7 @@ Phase 5–8 rescan summary:
   remains.
 - **Phase 5 complete (2026-05-15):** T-501 → T-510 all done. Remaining open:
   Phase 6 (T-601 → T-606); Phase 7 (T-701 → T-705); T-802 → T-808.
+- **Phase 8 complete (2026-05-15):** T-801 → T-808 all done.
 
 ---
 
@@ -389,7 +390,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   the seeded plumbing. WPF surface matches Web.
 
 ### T-802 — Undo / redo for settings edits
-- **Status:** open
+- **Status:** done — https://github.com/rannes/olden-era-templates/pull/76
 - **Owner:** —
 - **Effort:** M
 - **Files:** New `Services/EditHistory.cs`, both UI hosts.

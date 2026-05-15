@@ -277,6 +277,15 @@
     private System.Threading.CancellationTokenSource? _saveCts;
     private bool _hasLoadedFromStorage;
 
+    // T-802 — undo / redo for settings edits. We snapshot the SettingsFile
+    // JSON (the canonical persisted shape) at every commit point. The
+    // serialized form is identical to the in-memory clone path because
+    // BrowserSettingsStore round-trips through SettingsFile already.
+    private readonly OldenEra.Generator.Services.EditHistory<string> _editHistory = new();
+    private string? _lastSnapshotJson;
+    private bool _suppressHistoryCapture;
+    private DotNetObjectReference<Home>? _undoRedoRef;
+
     protected override async Task OnInitializedAsync()
     {
         CurrentVersion = typeof(Home).Assembly.GetName().Version;
@@ -314,7 +323,27 @@
         _hasLoadedFromStorage = true;
 
         Validate();
+        // T-802 — seed the history baseline once the initial settings are
+        // resolved so the very first user edit can be undone back to this
+        // initial state.
+        try { _lastSnapshotJson = SerializeCurrentSettings(); } catch { /* best effort */ }
         _ = CheckForUpdatesAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _undoRedoRef = DotNetObjectReference.Create(this);
+            try
+            {
+                await Js.InvokeVoidAsync("oeUndoRedo.attach", _undoRedoRef);
+            }
+            catch
+            {
+                // Static prerender / JS not yet ready — ignore.
+            }
+        }
     }
 
     private async Task CheckForUpdatesAsync()
@@ -381,7 +410,90 @@
     {
         Validate();
         SchedulePersist();
+        CaptureHistorySnapshot();
         StateHasChanged();
+    }
+
+    // T-802 — push the *previous* committed snapshot onto the undo stack
+    // so Ctrl-Z restores the state that was current before this change.
+    // Consecutive identical states are deduped inside EditHistory so a
+    // burst of textbox keystrokes that don't actually change the
+    // serialized shape (e.g. typing inside a debounce window that never
+    // commits) doesn't flood the stack.
+    private void CaptureHistorySnapshot()
+    {
+        if (_suppressHistoryCapture) return;
+        string current;
+        try
+        {
+            current = SerializeCurrentSettings();
+        }
+        catch
+        {
+            return;
+        }
+        if (_lastSnapshotJson is null)
+        {
+            _lastSnapshotJson = current;
+            return;
+        }
+        if (current == _lastSnapshotJson) return;
+        _editHistory.Push(_lastSnapshotJson);
+        _lastSnapshotJson = current;
+    }
+
+    private string SerializeCurrentSettings()
+    {
+        var snapshot = SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalFlags);
+        return System.Text.Json.JsonSerializer.Serialize(snapshot, JsonOptions);
+    }
+
+    private async Task ApplyHistorySnapshotAsync(string json)
+    {
+        var s = System.Text.Json.JsonSerializer.Deserialize<SettingsFile>(json, JsonOptions);
+        if (s is null) return;
+        _suppressHistoryCapture = true;
+        try
+        {
+            var (mapped, advanced, experimental, expFlags) = SettingsMapper.FromFile(s);
+            Settings = mapped;
+            AdvancedMode = advanced;
+            ExperimentalMapSizes = experimental;
+            ExperimentalFlags = expFlags;
+            _lastSnapshotJson = json;
+            Validate();
+            SchedulePersist();
+            StateHasChanged();
+        }
+        finally
+        {
+            _suppressHistoryCapture = false;
+        }
+        await Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public async Task OnUndoFromJs()
+    {
+        if (!_editHistory.CanUndo) return;
+        string current;
+        try { current = SerializeCurrentSettings(); } catch { return; }
+        if (_editHistory.TryUndo(current, out var prev))
+        {
+            await ApplyHistorySnapshotAsync(prev);
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnRedoFromJs()
+    {
+        if (!_editHistory.CanRedo) return;
+        string current;
+        try { current = SerializeCurrentSettings(); } catch { return; }
+        if (_editHistory.TryRedo(current, out var next))
+        {
+            await ApplyHistorySnapshotAsync(next);
+        }
     }
 
     /// <summary>
@@ -615,6 +727,11 @@
         ExperimentalMapSizes = experimental;
         ExperimentalFlags = expFlags;
         Validate();
+        // T-802 — bulk replacement (preset/file load) drops the prior
+        // history; restoring random partial states from another preset
+        // would be confusing.
+        _editHistory.Clear();
+        try { _lastSnapshotJson = SerializeCurrentSettings(); } catch { _lastSnapshotJson = null; }
         await SettingsStore.SaveAsync(SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalFlags));
         StateHasChanged();
     }
@@ -638,6 +755,9 @@
             ExperimentalMapSizes = experimental;
             ExperimentalFlags = expFlags;
             Validate();
+            // T-802 — see ApplyLoadedSettingsAsync.
+            _editHistory.Clear();
+            try { _lastSnapshotJson = SerializeCurrentSettings(); } catch { _lastSnapshotJson = null; }
             // Persist the freshly imported settings so they survive a reload.
             await SettingsStore.SaveAsync(SettingsMapper.ToFile(Settings, AdvancedMode, ExperimentalMapSizes, ExperimentalFlags));
             StateHasChanged();
@@ -711,5 +831,9 @@
         _saveCts?.Dispose();
         _toastCts?.Cancel();
         _toastCts?.Dispose();
+        // T-802 — best-effort detach; JS may already be torn down on page
+        // unload.
+        try { _ = Js.InvokeVoidAsync("oeUndoRedo.detach"); } catch { }
+        _undoRedoRef?.Dispose();
     }
 }
