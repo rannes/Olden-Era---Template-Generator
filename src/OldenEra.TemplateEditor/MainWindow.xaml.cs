@@ -124,6 +124,7 @@ namespace OldenEra.TemplateEditor
             PnlGameRules.SldAstrologyExp.ValueChanged += Slider_ValueChanged;
             PnlGameRules.SldLostStartCityDay.ValueChanged += Slider_ValueChanged;
             PnlGameRules.SldCityHoldDays.ValueChanged += Slider_ValueChanged;
+            PnlGameRules.SldHeroLightingDay.ValueChanged += Slider_ValueChanged;
             PnlGameRules.SldGladiatorDelay.ValueChanged += Slider_ValueChanged;
             PnlGameRules.SldGladiatorCountDay.ValueChanged += Slider_ValueChanged;
             PnlGameRules.SldTournamentPointsToWin.ValueChanged += Slider_ValueChanged;
@@ -141,6 +142,8 @@ namespace OldenEra.TemplateEditor
             PnlGameRules.ChkGladiatorArena.Unchecked += WinConditionOption_Changed;
             PnlGameRules.ChkTournament.Checked   += WinConditionOption_Changed;
             PnlGameRules.ChkTournament.Unchecked += WinConditionOption_Changed;
+            PnlGameRules.ChkHeroLighting.Checked   += WinConditionOption_Changed;
+            PnlGameRules.ChkHeroLighting.Unchecked += WinConditionOption_Changed;
             PnlGameRules.ChkTournamentSaveArmy.Checked   += ChkOption_Changed;
             PnlGameRules.ChkTournamentSaveArmy.Unchecked += ChkOption_Changed;
 
@@ -489,6 +492,7 @@ namespace OldenEra.TemplateEditor
             PnlZones.TxtGuardRandomization.Text = $"{(int)PnlZones.SldGuardRandomization.Value}%";
             PnlGameRules.TxtLostStartCityDay.Text = ((int)PnlGameRules.SldLostStartCityDay.Value).ToString();
             PnlGameRules.TxtCityHoldDays.Text = ((int)PnlGameRules.SldCityHoldDays.Value).ToString();
+            PnlGameRules.TxtHeroLightingDay.Text = ((int)PnlGameRules.SldHeroLightingDay.Value).ToString();
             PnlGameRules.TxtGladiatorDelay.Text = ((int)PnlGameRules.SldGladiatorDelay.Value).ToString();
             PnlGameRules.TxtGladiatorCountDay.Text = ((int)PnlGameRules.SldGladiatorCountDay.Value).ToString();
             PnlGameRules.TxtTournamentPointsToWin.Text = ((int)PnlGameRules.SldTournamentPointsToWin.Value).ToString();
@@ -849,6 +853,8 @@ namespace OldenEra.TemplateEditor
             PnlGameRules.PnlCityHoldDetails.Visibility = PnlGameRules.ChkCityHold.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
             PnlGameRules.PnlGladiatorDetails.Visibility = PnlGameRules.ChkGladiatorArena.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
             PnlGameRules.PnlTournamentDetails.Visibility = isTournament ? Visibility.Visible : Visibility.Collapsed;
+            // T-506 — only show day slider when hero-lighting is on.
+            PnlGameRules.PnlHeroLightingDetails.Visibility = PnlGameRules.ChkHeroLighting.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void UpdateExperimentalMapSizeWarningVisibility()
@@ -934,6 +940,8 @@ namespace OldenEra.TemplateEditor
             LostStartHero         = PnlGameRules.ChkLostStartHero.IsChecked == true,
             CityHold              = PnlGameRules.ChkCityHold.IsChecked == true,
             CityHoldDays = (int)PnlGameRules.SldCityHoldDays.Value,
+            HeroLighting          = PnlGameRules.ChkHeroLighting.IsChecked == true,
+            HeroLightingDay       = (int)PnlGameRules.SldHeroLightingDay.Value,
             GladiatorArena               = PnlGameRules.ChkGladiatorArena.IsChecked == true,
             GladiatorArenaDaysDelayStart = (int)PnlGameRules.SldGladiatorDelay.Value,
             GladiatorArenaCountDay       = (int)PnlGameRules.SldGladiatorCountDay.Value,
@@ -1238,6 +1246,8 @@ namespace OldenEra.TemplateEditor
             PnlGameRules.ChkLostStartHero.IsChecked = s.LostStartHero;
             PnlGameRules.ChkCityHold.IsChecked = s.CityHold;
             PnlGameRules.SldCityHoldDays.Value = Math.Clamp(s.CityHoldDays, 1, 30);
+            PnlGameRules.ChkHeroLighting.IsChecked = s.HeroLighting;
+            PnlGameRules.SldHeroLightingDay.Value = Math.Clamp(s.HeroLightingDay, 1, 30);
             PnlGameRules.ChkGladiatorArena.IsChecked = s.GladiatorArena;
             PnlGameRules.SldGladiatorDelay.Value = Math.Clamp(s.GladiatorArenaDaysDelayStart, 1, 60);
             PnlGameRules.SldGladiatorCountDay.Value = Math.Clamp(s.GladiatorArenaCountDay, 1, 30);
@@ -1779,6 +1789,8 @@ namespace OldenEra.TemplateEditor
                 LostStartHero = PnlGameRules.ChkLostStartHero.IsChecked == true,
                 CityHold = PnlGameRules.ChkCityHold.IsChecked == true,
                 CityHoldDays = (int)PnlGameRules.SldCityHoldDays.Value,
+                HeroLighting = PnlGameRules.ChkHeroLighting.IsChecked == true,
+                HeroLightingDay = (int)PnlGameRules.SldHeroLightingDay.Value,
             },
             ZoneCfg = new ZoneConfiguration
             {

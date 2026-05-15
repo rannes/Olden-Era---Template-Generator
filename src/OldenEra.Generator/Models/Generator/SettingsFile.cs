@@ -105,6 +105,12 @@ namespace OldenEra.Generator.Models
         [JsonPropertyName("lostStartHero")]     public bool    LostStartHero                { get; set; } = false;
         [JsonPropertyName("cityHold")]          public bool    CityHold                     { get; set; } = false;
         [JsonPropertyName("cityHoldDays")]      public int     CityHoldDays                 { get; set; } = 6;
+        // T-506 — user-controlled hero-lighting victory rule. Defaults match
+        // shipped presets (true, day 1) so byte-identity is preserved for
+        // legacy .oetgs files that did not persist these fields (System.Text.Json
+        // applies the C# default for missing properties on deserialization).
+        [JsonPropertyName("heroLighting")]      public bool    HeroLighting                 { get; set; } = true;
+        [JsonPropertyName("heroLightingDay")]   public int     HeroLightingDay              { get; set; } = 1;
         [JsonPropertyName("gladiatorArena")]    public bool    GladiatorArena               { get; set; } = false;
         [JsonPropertyName("gladiatorArenaDaysDelayStart")] public int GladiatorArenaDaysDelayStart { get; set; } = 30;
         [JsonPropertyName("gladiatorArenaCountDay")] public int GladiatorArenaCountDay       { get; set; } = 3;

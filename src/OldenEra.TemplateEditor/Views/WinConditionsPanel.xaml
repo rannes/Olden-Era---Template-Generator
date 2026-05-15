@@ -105,6 +105,27 @@
                                    FontSize="11"
                                    TextWrapping="Wrap"/>
 
+                        <!-- T-506 — hero-lighting (resurrection) victory rule. Default on (day 1). -->
+                        <CheckBox x:Name="ChkHeroLighting"
+                                  Content="Hero lighting (resurrection) rule"
+                                  IsChecked="True"
+                                  ToolTip="Emits winConditions.heroLighting + heroLightingDay. Off omits both fields."/>
+                        <Grid x:Name="PnlHeroLightingDetails" Margin="18,3,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="167"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <DockPanel Grid.Column="0">
+                                <Label Content="Hero lighting day" Padding="5,2" DockPanel.Dock="Left"/>
+                                <TextBlock x:Name="TxtHeroLightingDay" Text="1" DockPanel.Dock="Right"
+                                           HorizontalAlignment="Right" VerticalAlignment="Center"
+                                           Margin="0,0,0,0" Style="{StaticResource ValueText}"/>
+                            </DockPanel>
+                            <Slider Grid.Column="1" x:Name="SldHeroLightingDay"
+                                    Minimum="1" Maximum="30" Value="1"
+                                    TickFrequency="1" IsSnapToTickEnabled="True"/>
+                        </Grid>
+
                         <TextBlock Text="Alternate victory" FontWeight="SemiBold" Margin="0,12,0,4"/>
                         <CheckBox x:Name="ChkCityHold"
                                   Content="Win by holding a neutral city"/>

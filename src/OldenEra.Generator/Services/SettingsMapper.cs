@@ -271,6 +271,9 @@ public static class SettingsMapper
                 LostStartHero = s.LostStartHero,
                 CityHold = s.CityHold,
                 CityHoldDays = Math.Clamp(s.CityHoldDays, 1, 30),
+                // T-506 — round-trip hero-lighting toggle and day.
+                HeroLighting = s.HeroLighting,
+                HeroLightingDay = Math.Clamp(s.HeroLightingDay, 1, 30),
             },
             GladiatorArenaRules = new GladiatorArenaRules
             {
@@ -378,6 +381,9 @@ public static class SettingsMapper
             LostStartHero = g.GameEndConditions.LostStartHero,
             CityHold = g.GameEndConditions.CityHold,
             CityHoldDays = g.GameEndConditions.CityHoldDays,
+            // T-506 — persist hero-lighting toggle and day.
+            HeroLighting = g.GameEndConditions.HeroLighting,
+            HeroLightingDay = g.GameEndConditions.HeroLightingDay,
             GladiatorArena = g.GladiatorArenaRules.Enabled,
             GladiatorArenaDaysDelayStart = g.GladiatorArenaRules.DaysDelayStart,
             GladiatorArenaCountDay = g.GladiatorArenaRules.CountDay,

@@ -136,7 +136,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 - **Acceptance:** Hold-city preset emits the top-level flag and round-trips.
 
 ### T-506 — User-controlled heroLighting + heroLightingDay
-- **Status:** open (partial — emitted unconditionally, not user-settable)
+- **Status:** done (PR TBD)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `TemplateGenerator.cs:1047-1048` (inside
