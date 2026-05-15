@@ -21,6 +21,7 @@ namespace OldenEra.Generator.Services
         public IReadOnlyList<SkillEntry> Skills { get; }
         public IReadOnlyList<SubclassEntry> Subclasses { get; }
         public IReadOnlyList<FactionEntry> Factions { get; }
+        public IReadOnlyList<SkillColumnEntry> SkillColumns { get; }
 
         private CommunityCatalog(
             IReadOnlyList<HeroEntry> heroes,
@@ -28,7 +29,8 @@ namespace OldenEra.Generator.Services
             IReadOnlyList<SpellEntry> spells,
             IReadOnlyList<SkillEntry> skills,
             IReadOnlyList<SubclassEntry> subclasses,
-            IReadOnlyList<FactionEntry> factions)
+            IReadOnlyList<FactionEntry> factions,
+            IReadOnlyList<SkillColumnEntry> skillColumns)
         {
             Heroes = heroes;
             Units = units;
@@ -36,6 +38,7 @@ namespace OldenEra.Generator.Services
             Skills = skills;
             Subclasses = subclasses;
             Factions = factions;
+            SkillColumns = skillColumns;
 
             _spellSchools = new Lazy<IReadOnlyList<string>>(() =>
                 Spells.Select(s => s.School ?? "")
@@ -65,7 +68,8 @@ namespace OldenEra.Generator.Services
                 spells: LoadArray<SpellEntry>("spells.json"),
                 skills: LoadArray<SkillEntry>("skills.json"),
                 subclasses: LoadArray<SubclassEntry>("subclasses.json"),
-                factions: LoadArray<FactionEntry>("factions.json"));
+                factions: LoadArray<FactionEntry>("factions.json"),
+                skillColumns: LoadArray<SkillColumnEntry>("skill-columns.json"));
         }
 
         private static IReadOnlyList<T> LoadArray<T>(string fileName)
@@ -156,6 +160,15 @@ namespace OldenEra.Generator.Services
         [property: JsonPropertyName("group")] string Group,
         [property: JsonPropertyName("skillType")] string SkillType,
         [property: JsonPropertyName("factionId")] string? FactionId);
+
+    /// <summary>
+    /// Skill-tree column metadata (e.g. OFF/Offense/combat). Sourced from
+    /// <c>skill-columns.json</c>; used by upcoming tooltip groupings (T-602/T-603).
+    /// </summary>
+    public sealed record SkillColumnEntry(
+        [property: JsonPropertyName("key")] string Key,
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("group")] string Group);
 
     public sealed record SubclassEntry(
         [property: JsonPropertyName("faction")] string Faction,

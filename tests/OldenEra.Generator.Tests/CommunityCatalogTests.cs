@@ -96,4 +96,23 @@ public class CommunityCatalogTests
             .ToHashSet();
         Assert.Contains(8, neutralTiers);
     }
+
+    // ── T-601 ───────────────────────────────────────────────────────────────
+    // skill-columns.json ships with the assembly but was never loaded.
+    // Pin the count + a sentinel entry so future catalog refreshes can't
+    // silently drop columns the upcoming tooltip groupings depend on.
+    [Fact]
+    public void SkillColumns_LoadedWithExpectedCount()
+    {
+        Assert.Equal(20, Catalog.SkillColumns.Count);
+    }
+
+    [Fact]
+    public void SkillColumns_ContainsOffenseInCombatGroup()
+    {
+        var off = Catalog.SkillColumns.Single(c =>
+            string.Equals(c.Key, "OFF", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("Offense", off.Name);
+        Assert.Equal("combat", off.Group);
+    }
 }

@@ -210,7 +210,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 ## Phase 6 — Catalog enrichment
 
 ### T-601 — Load skill-columns.json
-- **Status:** open
+- **Status:** done (PR #PENDING)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `Services/CommunityCatalog.cs`, `CommunityData/skill-columns.json`.
