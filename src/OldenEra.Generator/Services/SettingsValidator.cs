@@ -1,5 +1,6 @@
 using OldenEra.Generator.Models;
 using OldenEra.Generator.Models.Unfrozen;
+using OldenEra.Generator.Services.ZoneContent;
 
 namespace OldenEra.Generator.Services
 {
@@ -211,10 +212,126 @@ namespace OldenEra.Generator.Services
                 }
             }
 
+            // T-703: content-pool sanity warnings. Only fires when the user has
+            // populated at least one ContentList (presets stay warning-free).
+            InspectContentPools(settings, Warn);
+
             var blockers = issues.Where(i => i.Severity == Severity.Blocker).Select(i => i.Message).ToList();
             var warnings = issues.Where(i => i.Severity == Severity.Warning).Select(i => i.Message).ToList();
             return new Result(blockers, warnings, issues);
         }
+
+        // ── T-703: content-pool sanity warnings ────────────────────────────
+        // Sweep every populated ContentList (player + neutral global +
+        // per-tier + per-zone) and warn when the user's combined configuration
+        // omits a category the engine ordinarily relies on. Each rule fires at
+        // most once per Validate() call. The trigger gate is "user populated
+        // any ContentList" — when no list has items, we leave the
+        // generator's defaults in charge and emit nothing.
+        private static void InspectContentPools(
+            GeneratorSettings settings,
+            Action<string, string, string?> warn)
+        {
+            var allItems = CollectAllContentItems(settings).ToList();
+            if (allItems.Count == 0) return;
+
+            var sids = new HashSet<string>(
+                allItems.Select(i => i.Sid ?? string.Empty)
+                    .Where(s => !string.IsNullOrWhiteSpace(s)),
+                StringComparer.OrdinalIgnoreCase);
+            var includeListIds = new HashSet<string>(
+                allItems.SelectMany(i => i.IncludeListIds ?? new List<string>())
+                    .Where(s => !string.IsNullOrWhiteSpace(s)),
+                StringComparer.OrdinalIgnoreCase);
+
+            // Helpers: an includeListId "covers" a category if its ID contains
+            // the marker substring. Substring matches mirror how the shipped
+            // ContentListCatalog names IDs (e.g. "*units_banks*",
+            // "*resource_banks*", "*random_hires*tier_7*").
+            bool AnyIncludeListContains(params string[] markers) =>
+                includeListIds.Any(id => markers.All(m =>
+                    id.Contains(m, StringComparison.OrdinalIgnoreCase)));
+
+            bool AnySidInCategory(string category) =>
+                sids.Any(s => SidIsInCategory(s, category));
+
+            // 1. Tier-7 random hires. Reachable when (a) the raw tier-7 SID is
+            //    present, (b) a high-tier or tier-7 hire content-list is
+            //    enabled, or (c) a generic "all tiers" hire pool is enabled
+            //    (an includeList id mentioning "random_hires" but no
+            //    "tier_<n>" suffix — the catalog's open-ended pools).
+            bool hasGenericHirePool = includeListIds.Any(id =>
+                id.Contains("random_hires", StringComparison.OrdinalIgnoreCase)
+                && !id.Contains("tier_", StringComparison.OrdinalIgnoreCase)
+                && !id.Contains("low_tier", StringComparison.OrdinalIgnoreCase));
+            bool hasTier7Hire =
+                sids.Contains("random_hire_7")
+                || AnyIncludeListContains("random_hires", "tier_7")
+                || AnyIncludeListContains("random_hires_high_tier")
+                || hasGenericHirePool;
+            if (!hasTier7Hire)
+            {
+                warn(ValidationFieldKeys.ZoneContentPool,
+                    "⚠️ No tier-7 dwellings reachable from the configured content. Add a tier-7 random hire (e.g. \"random_hire_7\") or a hire pool that covers high tiers.",
+                    ValidationIssueCodes.ContentPoolNoTier7Dwellings);
+            }
+
+            // 2. Shrines.
+            bool hasShrine = AnySidInCategory(ZoneContentSidCatalog.CategoryShrines);
+            if (!hasShrine)
+            {
+                warn(ValidationFieldKeys.ZoneContentPool,
+                    "⚠️ No shrines reachable from the configured content. Add a shrine (e.g. \"sacrificial_shrine\", \"fickle_shrine\") to one of the populated content lists.",
+                    ValidationIssueCodes.ContentPoolNoShrines);
+            }
+
+            // 3. Creature banks.
+            bool hasCreatureBank =
+                AnySidInCategory(ZoneContentSidCatalog.CategoryBanks)
+                || AnyIncludeListContains("units_banks");
+            if (!hasCreatureBank)
+            {
+                warn(ValidationFieldKeys.ZoneContentPool,
+                    "⚠️ No creature banks reachable from the configured content. Add a bank SID (e.g. \"dragon_utopia\") or a units-banks content list.",
+                    ValidationIssueCodes.ContentPoolNoCreatureBanks);
+            }
+
+            // 4. Resource banks.
+            bool hasResourceBank = AnyIncludeListContains("resource_banks");
+            if (!hasResourceBank)
+            {
+                warn(ValidationFieldKeys.ZoneContentPool,
+                    "⚠️ No resource banks reachable from the configured content. Add a resource-banks content list (e.g. \"basic_content_list_building_guarded_resource_banks_tier_1\").",
+                    ValidationIssueCodes.ContentPoolNoResourceBanks);
+            }
+
+            // 5. Mines.
+            bool hasMine =
+                sids.Any(s => s.StartsWith("mine_", StringComparison.OrdinalIgnoreCase)
+                              || s.StartsWith("name_mine_", StringComparison.OrdinalIgnoreCase))
+                || AnyIncludeListContains("rare_mines");
+            if (!hasMine)
+            {
+                warn(ValidationFieldKeys.ZoneContentPool,
+                    "⚠️ No mines reachable from the configured content. Add a mine SID (e.g. \"mine_gold\") or a mines content list.",
+                    ValidationIssueCodes.ContentPoolNoMines);
+            }
+        }
+
+        private static IEnumerable<ZoneContentItem> CollectAllContentItems(GeneratorSettings s)
+        {
+            foreach (var i in s.PlayerZoneContent.Items) yield return i;
+            foreach (var i in s.NeutralZoneContent.Global.Items) yield return i;
+            foreach (var list in s.NeutralZoneContent.ByTier.Values)
+                foreach (var i in list.Items) yield return i;
+            foreach (var list in s.NeutralZoneContent.ByZoneLetter.Values)
+                foreach (var i in list.Items) yield return i;
+        }
+
+        private static bool SidIsInCategory(string sid, string category) =>
+            ZoneContentSidCatalog.All().Any(e =>
+                string.Equals(e.Sid, sid, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(e.Category, category, StringComparison.Ordinal));
 
         private static bool BonusRowIsEmpty(StartingBonusSettings b) =>
             b.Resources.Count == 0
@@ -259,6 +376,13 @@ namespace OldenEra.Generator.Services
         public const string HeroFixedStarting = "hero.fixedStarting";
 
         public const string BonusPerPlayerOverrides = "bonuses.perPlayerOverrides";
+
+        /// <summary>
+        /// T-703: anchor for content-pool sanity warnings. Hosts can bind this
+        /// to the Zone-Content editor card so the inline-validation surface
+        /// (T-303) renders the warning next to where it is fixed.
+        /// </summary>
+        public const string ZoneContentPool = "zoneContent.pool";
     }
 
     /// <summary>
@@ -272,6 +396,14 @@ namespace OldenEra.Generator.Services
     {
         /// <summary>City-Hold variant of the neutral-zone-count blocker.</summary>
         public const string NeutralZoneCountForCityHold = "neutral.count.cityHold";
+
+        // T-703 — content-pool sanity warning codes. Stable discriminators
+        // so UIs can pick a specific warning without matching on Message text.
+        public const string ContentPoolNoTier7Dwellings = "content.pool.noTier7";
+        public const string ContentPoolNoShrines        = "content.pool.noShrines";
+        public const string ContentPoolNoCreatureBanks  = "content.pool.noCreatureBanks";
+        public const string ContentPoolNoResourceBanks  = "content.pool.noResourceBanks";
+        public const string ContentPoolNoMines          = "content.pool.noMines";
     }
 
     /// <summary>
