@@ -34,6 +34,12 @@ namespace OldenEra.Generator.Models.Unfrozen
 
         [JsonPropertyName("winConditions")]
         public WinConditions? WinConditions { get; set; }
+
+        // T-505: Shipped hold-city templates set this top-level flag in addition
+        // to the per-MainObject `holdCityWinCon` flag. Nullable so that non-hold-city
+        // presets serialize byte-identically (omitted when null + WhenWritingNull).
+        [JsonPropertyName("holdCityWinCon")]
+        public bool? HoldCityWinCon { get; set; }
     }
 
     public class Bonus

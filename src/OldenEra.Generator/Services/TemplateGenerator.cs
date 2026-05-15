@@ -1038,27 +1038,36 @@ namespace OldenEra.Generator.Services
 
         // ── Game rules ───────────────────────────────────────────────────────────
 
-        private static GameRules BuildGameRules(GeneratorSettings settings, string effectiveVictoryCondition) => new()
+        private static GameRules BuildGameRules(GeneratorSettings settings, string effectiveVictoryCondition)
         {
-            HeroCountMin = settings.HeroSettings.HeroCountMin-settings.HeroSettings.HeroCountIncrement,
-            HeroCountMax = settings.HeroSettings.HeroCountMax,
-            HeroCountIncrement = settings.HeroSettings.HeroCountIncrement,
-            HeroHireBan = false,
-            EncounterHoles = settings.EncounterHoles.Enabled,
-            FactionLawsExpModifier = PercentToModifier(settings.FactionLawsExpPercent),
-            AstrologyExpModifier = PercentToModifier(settings.AstrologyExpPercent),
-            Bonuses =
-            [
-                new Bonus
-                {
-                    Sid = "add_bonus_hero_stat",
-                    ReceiverSide = -1,
-                    ReceiverFilter = "all_heroes",
-                    Parameters = ["movementBonus", "0"]
-                }
-            ],
-            WinConditions = BuildAdvancedWinConditions(settings, effectiveVictoryCondition)
-        };
+            // T-505: Shipped hold-city templates carry a top-level `gameRules.holdCityWinCon: true`
+            // flag in addition to the per-MainObject flag set by BuildHubZone / BuildNeutralZone.
+            // Mirror the same gate used to populate winConditions.cityHold so the two never diverge.
+            bool useCityHold = settings.GameEndConditions.CityHold || effectiveVictoryCondition == "win_condition_5";
+
+            return new GameRules
+            {
+                HeroCountMin = settings.HeroSettings.HeroCountMin-settings.HeroSettings.HeroCountIncrement,
+                HeroCountMax = settings.HeroSettings.HeroCountMax,
+                HeroCountIncrement = settings.HeroSettings.HeroCountIncrement,
+                HeroHireBan = false,
+                EncounterHoles = settings.EncounterHoles.Enabled,
+                FactionLawsExpModifier = PercentToModifier(settings.FactionLawsExpPercent),
+                AstrologyExpModifier = PercentToModifier(settings.AstrologyExpPercent),
+                Bonuses =
+                [
+                    new Bonus
+                    {
+                        Sid = "add_bonus_hero_stat",
+                        ReceiverSide = -1,
+                        ReceiverFilter = "all_heroes",
+                        Parameters = ["movementBonus", "0"]
+                    }
+                ],
+                WinConditions = BuildAdvancedWinConditions(settings, effectiveVictoryCondition),
+                HoldCityWinCon = useCityHold ? true : null
+            };
+        }
 
         private static double PercentToModifier(int percent) =>
             Math.Round(Math.Clamp(percent, 25, 200) / 100.0, 2, MidpointRounding.AwayFromZero);
