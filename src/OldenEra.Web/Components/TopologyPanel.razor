@@ -1,0 +1,80 @@
+@* T-705 — Topology graph stats.
+   Pure read over a generated RmgTemplate: shows nodes, edges, average degree,
+   diameter, component count, and articulation points (chokepoints). Hidden
+   until generation has run. Numbers come straight off Variant.Connections —
+   no recomputation of generator state. *@
+
+@using OldenEra.Generator.Models.Unfrozen
+@using OldenEra.Generator.Services
+
+@if (Template is not null)
+{
+    var report = TemplateAnalysis.ComputeTopology(Template);
+    if (report.HasData)
+    {
+        <details class="oe-topology" open>
+            <summary class="oe-topology-summary">
+                Topology graph stats
+            </summary>
+
+            @foreach (var v in report.Variants)
+            {
+                <div class="oe-topology-block" role="group" aria-label="@v.VariantLabel">
+                    @if (report.Variants.Count > 1)
+                    {
+                        <div class="oe-topology-label">@v.VariantLabel</div>
+                    }
+                    <div class="oe-topology-grid" role="table">
+                        <div class="oe-tg-row" role="row">
+                            <div role="cell" title="Number of zones in the graph">Nodes</div>
+                            <div role="cell">@v.NodeCount</div>
+                        </div>
+                        <div class="oe-tg-row" role="row">
+                            <div role="cell" title="Number of unique zone-to-zone connections (undirected, deduped)">Edges</div>
+                            <div role="cell">@v.EdgeCount</div>
+                        </div>
+                        <div class="oe-tg-row" role="row">
+                            <div role="cell" title="Mean number of connections per zone">Avg. degree</div>
+                            <div role="cell">@v.AverageDegree.ToString("0.00")</div>
+                        </div>
+                        <div class="oe-tg-row" role="row">
+                            <div role="cell" title="Longest shortest path in the largest connected component">Diameter</div>
+                            <div role="cell">@(v.Diameter?.ToString() ?? "—")</div>
+                        </div>
+                        <div class="oe-tg-row" role="row">
+                            <div role="cell" title="Number of disconnected sub-graphs (1 = fully connected)">Components</div>
+                            <div role="cell">@v.ComponentCount</div>
+                        </div>
+                        <div class="oe-tg-row" role="row">
+                            <div role="cell" title="Zones whose removal would split the graph (chokepoints)">Chokepoints</div>
+                            <div role="cell">
+                                @if (v.ArticulationPoints.Count == 0)
+                                {
+                                    <span>—</span>
+                                }
+                                else
+                                {
+                                    @string.Join(", ", v.ArticulationPoints)
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            <p class="oe-topology-hint">
+                Edges are undirected; parallel connections and self-loops are
+                deduped. Diameter is computed over the largest connected
+                component.
+            </p>
+        </details>
+    }
+}
+
+@code {
+    /// <summary>
+    /// Last generated template, or <c>null</c> before any generation. Panel
+    /// renders nothing while null — preserves the "hidden until generated"
+    /// acceptance bullet.
+    /// </summary>
+    [Parameter] public RmgTemplate? Template { get; set; }
+}

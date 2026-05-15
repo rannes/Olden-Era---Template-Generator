@@ -1,0 +1,53 @@
+/* T-705 — Topology graph stats panel. Scoped styles; mirrors the visual
+   language of ValueBudgetPanel for consistency. */
+
+.oe-topology {
+    margin-top: 8px;
+    border: 1px solid var(--oe-border);
+    border-radius: 6px;
+    background: var(--oe-surface-1);
+    padding: 6px 10px;
+}
+
+.oe-topology-summary {
+    cursor: pointer;
+    font-weight: 600;
+    user-select: none;
+}
+
+.oe-topology-block {
+    margin-top: 6px;
+}
+
+.oe-topology-label {
+    font-weight: 600;
+    color: var(--oe-text-dim);
+    margin-bottom: 2px;
+    font-size: 0.85rem;
+}
+
+.oe-topology-grid {
+    display: grid;
+    grid-template-columns: minmax(110px, 0.6fr) 1fr;
+    gap: 2px 12px;
+    font-size: 0.85rem;
+}
+
+.oe-tg-row {
+    display: contents;
+}
+
+.oe-tg-row > div:first-child {
+    color: var(--oe-text-dim);
+}
+
+.oe-tg-row > div {
+    padding: 2px 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.oe-topology-hint {
+    margin: 6px 0 0 0;
+    font-size: 0.75rem;
+    color: var(--oe-text-dim);
+}
