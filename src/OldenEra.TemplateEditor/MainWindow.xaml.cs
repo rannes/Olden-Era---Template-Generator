@@ -994,6 +994,9 @@ namespace OldenEra.TemplateEditor
             ZoneGuardedContentValuePerArea    = ParseNullableInt(PnlExperimental.TxtZoneGuardedContentValuePerArea.Text),
             ZoneUnguardedContentValue         = ParseNullableInt(PnlExperimental.TxtZoneUnguardedContentValue.Text),
             ZoneUnguardedContentValuePerArea  = ParseNullableInt(PnlExperimental.TxtZoneUnguardedContentValuePerArea.Text),
+            // T-508 — per-zone random-hire creature growth overrides.
+            ZoneRandomHireEnableWeeklyUnitIncrement = PnlExperimental.TxtZoneRandomHireEnableWeekly.Text?.Trim() ?? "",
+            ZoneRandomHireInitialUnitIncrement      = PnlExperimental.TxtZoneRandomHireInitial.Text?.Trim() ?? "",
             EncounterHolesEnabled            = PnlExperimental.ChkEncounterHolesEnabled.IsChecked == true,
             EncounterHolesAffectedEncounters = PnlExperimental.SldEncounterHolesAffected.Value / 100.0,
             EncounterHolesTwoHoleEncounters  = PnlExperimental.SldEncounterHolesTwoHole.Value / 100.0,
@@ -1388,6 +1391,9 @@ namespace OldenEra.TemplateEditor
                 s.ZoneUnguardedContentValue?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
             PnlExperimental.TxtZoneUnguardedContentValuePerArea.Text =
                 s.ZoneUnguardedContentValuePerArea?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+            // T-508 per-zone random-hire creature growth.
+            PnlExperimental.TxtZoneRandomHireEnableWeekly.Text = s.ZoneRandomHireEnableWeeklyUnitIncrement ?? "";
+            PnlExperimental.TxtZoneRandomHireInitial.Text      = s.ZoneRandomHireInitialUnitIncrement ?? "";
 
             // T-201 encounter holes
             PnlExperimental.ChkEncounterHolesEnabled.IsChecked = s.EncounterHolesEnabled;
@@ -1417,6 +1423,37 @@ namespace OldenEra.TemplateEditor
         // Trims tokens, drops empties, rejoins. Round-trips losslessly through
         // the share codec because the result is just a string.
         private static string NormalizeSidCsv(string? raw) => SidCsv.Normalize(raw);
+
+        // T-508 — CSV codecs for per-zone random-hire arrays. Mirrors
+        // SettingsMapper.ParseBoolListCsv / ParseIntListCsv: any malformed
+        // token discards the entire list (treated as "unset").
+        private static List<bool> ParseBoolListCsv(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return new();
+            var parts = raw.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            var result = new List<bool>(parts.Length);
+            foreach (var p in parts)
+            {
+                if (bool.TryParse(p.Trim(), out bool v)) result.Add(v);
+                else return new();
+            }
+            return result;
+        }
+
+        private static List<int> ParseIntListCsv(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return new();
+            var parts = raw.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            var result = new List<int>(parts.Length);
+            foreach (var p in parts)
+            {
+                if (int.TryParse(p.Trim(),
+                        System.Globalization.NumberStyles.Integer,
+                        System.Globalization.CultureInfo.InvariantCulture, out int v)) result.Add(v);
+                else return new();
+            }
+            return result;
+        }
 
         private static int? TagAsNullableInt(object? selectedItem)
         {
@@ -1883,6 +1920,9 @@ namespace OldenEra.TemplateEditor
                 GuardedContentValuePerArea    = ParseNullableInt(PnlExperimental.TxtZoneGuardedContentValuePerArea.Text),
                 UnguardedContentValue         = ParseNullableInt(PnlExperimental.TxtZoneUnguardedContentValue.Text),
                 UnguardedContentValuePerArea  = ParseNullableInt(PnlExperimental.TxtZoneUnguardedContentValuePerArea.Text),
+                // T-508 — per-zone random-hire creature growth overrides.
+                RandomHireEnableWeeklyUnitIncrement = ParseBoolListCsv(PnlExperimental.TxtZoneRandomHireEnableWeekly.Text),
+                RandomHireInitialUnitIncrement      = ParseIntListCsv(PnlExperimental.TxtZoneRandomHireInitial.Text),
             },
             EncounterHoles = new EncounterHolesOptions
             {

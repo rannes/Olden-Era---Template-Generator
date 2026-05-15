@@ -344,11 +344,15 @@ namespace OldenEra.Generator.Services
             bool hasGuardedContentValuePerArea  = o.GuardedContentValuePerArea.HasValue;
             bool hasUnguardedContentValue       = o.UnguardedContentValue.HasValue;
             bool hasUnguardedContentValuePerArea = o.UnguardedContentValuePerArea.HasValue;
+            // T-508 — per-zone random-hire creature growth overrides.
+            bool hasRandomHireEnable  = o.RandomHireEnableWeeklyUnitIncrement is { Count: > 0 };
+            bool hasRandomHireInitial = o.RandomHireInitialUnitIncrement is { Count: > 0 };
             if (!hasDip && !hasXr && !hasBiome && !hasMetaBiome && !hasCutoff && !hasGuarded && !hasUnguarded && !hasLimits
                 && !hasGuardMultiplier && !hasGuardRandomization
                 && !hasResourcesValue && !hasResourcesValuePerArea
                 && !hasGuardedContentValue && !hasGuardedContentValuePerArea
-                && !hasUnguardedContentValue && !hasUnguardedContentValuePerArea)
+                && !hasUnguardedContentValue && !hasUnguardedContentValuePerArea
+                && !hasRandomHireEnable && !hasRandomHireInitial)
                 return;
 
             BiomeSelector? biome = hasBiome ? BuildBiomeOverride(o.ContentBiomeType, o.ContentBiomeArg) : null;
@@ -399,6 +403,12 @@ namespace OldenEra.Generator.Services
                     if (hasGuardedContentValuePerArea)  zone.GuardedContentValuePerArea  = o.GuardedContentValuePerArea;
                     if (hasUnguardedContentValue)       zone.UnguardedContentValue       = o.UnguardedContentValue;
                     if (hasUnguardedContentValuePerArea) zone.UnguardedContentValuePerArea = o.UnguardedContentValuePerArea;
+                    // T-508: per-zone random-hire creature growth. Clone each
+                    // list per zone so a later mutation doesn't alias siblings.
+                    if (hasRandomHireEnable)
+                        zone.RandomHireEnableWeeklyUnitIncrement = new List<bool>(o.RandomHireEnableWeeklyUnitIncrement);
+                    if (hasRandomHireInitial)
+                        zone.RandomHireInitialUnitIncrement = new List<int>(o.RandomHireInitialUnitIncrement);
                 }
             }
         }

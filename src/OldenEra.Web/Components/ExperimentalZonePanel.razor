@@ -442,6 +442,37 @@
             generator default.
         </div>
     </div>
+    @* T-508: per-zone random-hire creature growth, per difficulty (7 entries: Beginner…Heroic). *@
+    <div class="oe-stacked">
+        <label class="oe-label">Random-hire weekly enabled (per difficulty)</label>
+        <div class="oe-row" style="grid-template-columns: 1fr auto;">
+            <input type="text"
+                   placeholder="e.g. false,false,false,false,false,false,false"
+                   value="@RandomHireEnableWeeklyText"
+                   @onchange="OnRandomHireEnableWeeklyChanged" />
+            <button type="button" class="oe-link-btn"
+                    @onclick="ClearRandomHireOverrides"
+                    disabled="@(Settings.ZoneOverrides.RandomHireEnableWeeklyUnitIncrement.Count == 0 && Settings.ZoneOverrides.RandomHireInitialUnitIncrement.Count == 0)">
+                Auto
+            </button>
+        </div>
+        <div class="oe-hint">
+            <code>randomHireEnableWeeklyUnitIncrement</code>: comma-separated
+            true/false per difficulty. Empty = field omitted. Used by Maze /
+            Massacre / Arcade / Junction / Universe / Infinity / All Around.
+        </div>
+    </div>
+    <div class="oe-stacked">
+        <label class="oe-label">Random-hire initial increment (per difficulty)</label>
+        <input type="text"
+               placeholder="e.g. 3,3,3,3,3,3,3"
+               value="@RandomHireInitialText"
+               @onchange="OnRandomHireInitialChanged" />
+        <div class="oe-hint">
+            <code>randomHireInitialUnitIncrement</code>: comma-separated ints
+            per difficulty. Empty = field omitted.
+        </div>
+    </div>
 </ExperimentalCard>
 
 <ExperimentalCard Key="encounter-holes" Title="Encounter holes (multi-stack battles)">
@@ -871,6 +902,69 @@
     {
         Settings.ZoneOverrides.UnguardedContentValue = null;
         Settings.ZoneOverrides.UnguardedContentValuePerArea = null;
+        await NotifyChanged();
+    }
+
+    // ── Per-zone random-hire creature growth overrides (T-508) ──────────────
+    // Two arrays per difficulty (7 entries: Beginner…Heroic) round-tripped as
+    // CSV. Empty list = field omitted from emitted JSON. Any malformed token
+    // discards the whole override (mirrors SettingsMapper's behavior).
+
+    private string RandomHireEnableWeeklyText =>
+        string.Join(",",
+            Settings.ZoneOverrides.RandomHireEnableWeeklyUnitIncrement
+                .ConvertAll(b => b ? "true" : "false"));
+
+    private string RandomHireInitialText =>
+        string.Join(",",
+            Settings.ZoneOverrides.RandomHireInitialUnitIncrement
+                .ConvertAll(i => i.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+
+    private static List<bool> ParseBoolListCsv(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return new();
+        var parts = raw.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var result = new List<bool>(parts.Length);
+        foreach (var p in parts)
+        {
+            if (bool.TryParse(p.Trim(), out bool v)) result.Add(v);
+            else return new();
+        }
+        return result;
+    }
+
+    private static List<int> ParseIntListCsv(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return new();
+        var parts = raw.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var result = new List<int>(parts.Length);
+        foreach (var p in parts)
+        {
+            if (int.TryParse(p.Trim(), System.Globalization.NumberStyles.Integer,
+                             System.Globalization.CultureInfo.InvariantCulture, out int v)) result.Add(v);
+            else return new();
+        }
+        return result;
+    }
+
+    private async Task OnRandomHireEnableWeeklyChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.RandomHireEnableWeeklyUnitIncrement =
+            ParseBoolListCsv(e.Value?.ToString());
+        await NotifyChanged();
+    }
+
+    private async Task OnRandomHireInitialChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.RandomHireInitialUnitIncrement =
+            ParseIntListCsv(e.Value?.ToString());
+        await NotifyChanged();
+    }
+
+    private async Task ClearRandomHireOverrides()
+    {
+        Settings.ZoneOverrides.RandomHireEnableWeeklyUnitIncrement = new();
+        Settings.ZoneOverrides.RandomHireInitialUnitIncrement = new();
         await NotifyChanged();
     }
 }

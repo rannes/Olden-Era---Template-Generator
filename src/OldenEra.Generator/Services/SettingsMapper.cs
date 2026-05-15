@@ -127,6 +127,9 @@ public static class SettingsMapper
                 GuardedContentValuePerArea    = s.ZoneGuardedContentValuePerArea,
                 UnguardedContentValue         = s.ZoneUnguardedContentValue,
                 UnguardedContentValuePerArea  = s.ZoneUnguardedContentValuePerArea,
+                // T-508 — per-zone random-hire creature growth overrides.
+                RandomHireEnableWeeklyUnitIncrement = ParseBoolListCsv(s.ZoneRandomHireEnableWeeklyUnitIncrement),
+                RandomHireInitialUnitIncrement      = ParseIntListCsv(s.ZoneRandomHireInitialUnitIncrement),
             },
             EncounterHoles = new EncounterHolesOptions
             {
@@ -432,6 +435,9 @@ public static class SettingsMapper
             ZoneGuardedContentValuePerArea    = g.ZoneOverrides.GuardedContentValuePerArea,
             ZoneUnguardedContentValue         = g.ZoneOverrides.UnguardedContentValue,
             ZoneUnguardedContentValuePerArea  = g.ZoneOverrides.UnguardedContentValuePerArea,
+            // T-508 — per-zone random-hire creature growth overrides.
+            ZoneRandomHireEnableWeeklyUnitIncrement = JoinBoolListCsv(g.ZoneOverrides.RandomHireEnableWeeklyUnitIncrement),
+            ZoneRandomHireInitialUnitIncrement      = JoinIntListCsv(g.ZoneOverrides.RandomHireInitialUnitIncrement),
             EncounterHolesEnabled            = g.EncounterHoles.Enabled,
             EncounterHolesAffectedEncounters = g.EncounterHoles.AffectedEncounters,
             EncounterHolesTwoHoleEncounters  = g.EncounterHoles.TwoHoleEncounters,
@@ -521,6 +527,47 @@ public static class SettingsMapper
         }
         return result;
     }
+
+    // T-508 — CSV codecs for per-zone random-hire arrays. Empty / whitespace
+    // / any malformed token → empty list (treated as "unset" by ApplyZoneOverrides).
+    private static List<bool> ParseBoolListCsv(string? csv)
+    {
+        if (string.IsNullOrWhiteSpace(csv)) return new();
+        var parts = csv.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var result = new List<bool>(parts.Length);
+        foreach (var p in parts)
+        {
+            if (bool.TryParse(p.Trim(), out bool v))
+                result.Add(v);
+            else
+                return new();
+        }
+        return result;
+    }
+
+    private static List<int> ParseIntListCsv(string? csv)
+    {
+        if (string.IsNullOrWhiteSpace(csv)) return new();
+        var parts = csv.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var result = new List<int>(parts.Length);
+        foreach (var p in parts)
+        {
+            if (int.TryParse(p.Trim(), System.Globalization.NumberStyles.Integer,
+                             System.Globalization.CultureInfo.InvariantCulture, out int v))
+                result.Add(v);
+            else
+                return new();
+        }
+        return result;
+    }
+
+    private static string JoinBoolListCsv(List<bool>? list) =>
+        list is { Count: > 0 } ? string.Join(",", list.ConvertAll(b => b ? "true" : "false")) : "";
+
+    private static string JoinIntListCsv(List<int>? list) =>
+        list is { Count: > 0 }
+            ? string.Join(",", list.ConvertAll(i => i.ToString(System.Globalization.CultureInfo.InvariantCulture)))
+            : "";
 
     private static TierOverrides TierFromFile(TierOverrideFile? f) =>
         f is null ? new TierOverrides() : new TierOverrides

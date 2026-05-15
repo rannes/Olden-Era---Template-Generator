@@ -88,6 +88,17 @@ namespace OldenEra.Generator.Models.Unfrozen
         [JsonPropertyName("metaObjectsBiome")]
         public BiomeSelector? MetaObjectsBiome { get; set; }
 
+        // T-508 — random-hire creature growth knobs. Both are arrays per
+        // difficulty (7 entries in shipped templates: Beginner … Heroic).
+        // null = field omitted from emitted JSON, matching the byte-identical
+        // default. When present they round-trip verbatim from shipped fixtures
+        // (Maze, Massacre, Arcade, Junction, Universe, Infinity, All Around).
+        [JsonPropertyName("randomHireEnableWeeklyUnitIncrement")]
+        public List<bool>? RandomHireEnableWeeklyUnitIncrement { get; set; }
+
+        [JsonPropertyName("randomHireInitialUnitIncrement")]
+        public List<int>? RandomHireInitialUnitIncrement { get; set; }
+
         [JsonPropertyName("crossroadsPosition")]
         public int? CrossroadsPosition { get; set; }
 

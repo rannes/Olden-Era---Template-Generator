@@ -449,6 +449,28 @@ namespace OldenEra.Generator.Models
 
         /// <summary>Override <c>unguardedContentValuePerArea</c> on every zone. <c>null</c> = generator default.</summary>
         public int? UnguardedContentValuePerArea { get; set; }
+
+        // ── T-508: per-template overrides for random-hire creature growth ──
+        // Both shipped as 7-entry arrays per difficulty (Beginner…Heroic).
+        // Empty list = unset; the field is omitted from emitted JSON. When
+        // non-empty, the override stamps verbatim onto every zone.
+
+        /// <summary>
+        /// Override <c>randomHireEnableWeeklyUnitIncrement</c> on every zone.
+        /// Empty list = generator default (field omitted). Round-trips through
+        /// <see cref="SettingsFile"/> as a CSV string of <c>true</c>/<c>false</c>
+        /// tokens to keep the share codec's value-equality "non-default" check
+        /// sound (see <see cref="SettingsShareCodec"/>).
+        /// </summary>
+        public List<bool> RandomHireEnableWeeklyUnitIncrement { get; set; } = new();
+
+        /// <summary>
+        /// Override <c>randomHireInitialUnitIncrement</c> on every zone.
+        /// Empty list = generator default (field omitted). CSV-of-ints in
+        /// <see cref="SettingsFile"/>, same rule as
+        /// <see cref="RandomHireEnableWeeklyUnitIncrement"/>.
+        /// </summary>
+        public List<int> RandomHireInitialUnitIncrement { get; set; } = new();
     }
 
     /// <summary>
