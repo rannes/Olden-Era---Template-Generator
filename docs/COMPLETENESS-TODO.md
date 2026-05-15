@@ -13,7 +13,7 @@ Phase 5–8 rescan summary:
 - Partially shipped (need narrowing rather than full build): **T-503**,
   **T-504**, **T-506**, **T-801**. Scope sections now spell out exactly what
   remains.
-- Genuinely open: T-501, T-505, T-508, T-509; all of Phase 6 (T-601 → T-606);
+- Genuinely open: T-508, T-509; all of Phase 6 (T-601 → T-606);
   all of Phase 7 (T-701 → T-705); T-802 → T-808.
 
 ---
@@ -125,7 +125,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   current auto-generated output (default snapshot byte-identical).
 
 ### T-505 — GameRules.holdCityWinCon (top-level)
-- **Status:** open
+- **Status:** done (PR TBD)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `Models/Unfrozen/GameRules.cs`, `TemplateGenerator.cs`.
