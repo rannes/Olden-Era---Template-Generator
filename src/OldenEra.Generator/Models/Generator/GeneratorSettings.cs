@@ -387,6 +387,27 @@ namespace OldenEra.Generator.Models
         /// definitions on the template root rather than referencing existing ones.
         /// </summary>
         public List<string> ContentCountLimitRefs { get; set; } = new();
+
+        // ── T-502: per-template overrides for the per-zone guard scalars ──
+
+        /// <summary>
+        /// Override <c>guardMultiplier</c> on every zone. <c>null</c> = generator
+        /// default (the tier-/role-derived value chosen by <c>BuildSpawnZone</c> /
+        /// <c>BuildNeutralZone</c> / <c>BuildHubZone</c>, then scaled by the
+        /// neutral-stack-strength tuning). When set, the override stamps verbatim
+        /// onto every emitted zone — no tuning scaling — matching the way the
+        /// other <see cref="ZoneOverridesSettings"/> fields replace the
+        /// generator's choice.
+        /// </summary>
+        public double? GuardMultiplier { get; set; }
+
+        /// <summary>
+        /// Override <c>guardRandomization</c> on every zone. <c>null</c> = generator
+        /// default (the global <c>Settings.ZoneCfg.Advanced.GuardRandomization</c>
+        /// slider value, falling back to 0.05 when Advanced mode is off). 0.0 is a
+        /// meaningful "no randomization" value distinct from <c>null</c>/unset.
+        /// </summary>
+        public double? GuardRandomization { get; set; }
     }
 
     /// <summary>

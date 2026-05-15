@@ -478,6 +478,10 @@
                                 <RowDefinition Height="Auto"/>  <!-- 14 Unguarded pool label/box -->
                                 <RowDefinition Height="6"/>     <!-- 15 spacer -->
                                 <RowDefinition Height="Auto"/>  <!-- 16 Content count limits label/box -->
+                                <RowDefinition Height="6"/>     <!-- 17 spacer -->
+                                <RowDefinition Height="Auto"/>  <!-- 18 Guard multiplier label/box (T-502) -->
+                                <RowDefinition Height="6"/>     <!-- 19 spacer -->
+                                <RowDefinition Height="Auto"/>  <!-- 20 Guard randomization label/box (T-502) -->
                             </Grid.RowDefinitions>
                             <Label   Grid.Row="0" Grid.Column="0" Content="Diplomacy modifier" Padding="5,2"/>
                             <TextBox Grid.Row="0" Grid.Column="1" x:Name="TxtZoneDiplomacy" ToolTip="Empty = generator default (-0.5). Range -1.0 … 1.0."/>
@@ -523,6 +527,13 @@
                             <Label   Grid.Row="16" Grid.Column="0" Content="Content count limits" Padding="5,2"/>
                             <TextBox Grid.Row="16" Grid.Column="1" x:Name="TxtZoneContentCountLimits"
                                      ToolTip="Comma-separated SIDs (e.g. content_limits_spawn). References named limits the generator emits at the template root."/>
+                            <!-- T-502: per-template overrides for the per-zone guard scalars. -->
+                            <Label   Grid.Row="18" Grid.Column="0" Content="Guard multiplier" Padding="5,2"/>
+                            <TextBox Grid.Row="18" Grid.Column="1" x:Name="TxtZoneGuardMultiplier"
+                                     ToolTip="Empty = generator default (tier-derived, then scaled). When set, stamps verbatim onto every zone — no tuning scaling."/>
+                            <Label   Grid.Row="20" Grid.Column="0" Content="Guard randomization" Padding="5,2"/>
+                            <TextBox Grid.Row="20" Grid.Column="1" x:Name="TxtZoneGuardRandomization"
+                                     ToolTip="Empty = use the global Advanced slider (default 0.05). When set, stamps onto every zone (0.0 = no randomization)."/>
                         </Grid>
                     </StackPanel>
                 </Expander>

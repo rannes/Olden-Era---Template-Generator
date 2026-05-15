@@ -115,6 +115,8 @@ public static class SettingsMapper
                 GuardedContentPool = SidCsv.Parse(s.ZoneGuardedContentPool),
                 UnguardedContentPool = SidCsv.Parse(s.ZoneUnguardedContentPool),
                 ContentCountLimitRefs = SidCsv.Parse(s.ZoneContentCountLimits),
+                GuardMultiplier = s.ZoneGuardMultiplier,
+                GuardRandomization = s.ZoneGuardRandomization,
             },
             EncounterHoles = new EncounterHolesOptions
             {
@@ -402,6 +404,8 @@ public static class SettingsMapper
             ZoneGuardedContentPool = SidCsv.Join(g.ZoneOverrides.GuardedContentPool),
             ZoneUnguardedContentPool = SidCsv.Join(g.ZoneOverrides.UnguardedContentPool),
             ZoneContentCountLimits = SidCsv.Join(g.ZoneOverrides.ContentCountLimitRefs),
+            ZoneGuardMultiplier    = g.ZoneOverrides.GuardMultiplier,
+            ZoneGuardRandomization = g.ZoneOverrides.GuardRandomization,
             EncounterHolesEnabled            = g.EncounterHoles.Enabled,
             EncounterHolesAffectedEncounters = g.EncounterHoles.AffectedEncounters,
             EncounterHolesTwoHoleEncounters  = g.EncounterHoles.TwoHoleEncounters,

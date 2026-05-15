@@ -970,6 +970,8 @@ namespace OldenEra.TemplateEditor
             ZoneGuardedContentPool = NormalizeSidCsv(PnlExperimental.TxtZoneGuardedPool.Text),
             ZoneUnguardedContentPool = NormalizeSidCsv(PnlExperimental.TxtZoneUnguardedPool.Text),
             ZoneContentCountLimits = NormalizeSidCsv(PnlExperimental.TxtZoneContentCountLimits.Text),
+            ZoneGuardMultiplier    = ParseNullableDouble(PnlExperimental.TxtZoneGuardMultiplier.Text),
+            ZoneGuardRandomization = ParseNullableDouble(PnlExperimental.TxtZoneGuardRandomization.Text),
             EncounterHolesEnabled            = PnlExperimental.ChkEncounterHolesEnabled.IsChecked == true,
             EncounterHolesAffectedEncounters = PnlExperimental.SldEncounterHolesAffected.Value / 100.0,
             EncounterHolesTwoHoleEncounters  = PnlExperimental.SldEncounterHolesTwoHole.Value / 100.0,
@@ -1341,6 +1343,11 @@ namespace OldenEra.TemplateEditor
             PnlExperimental.TxtZoneGuardedPool.Text = s.ZoneGuardedContentPool ?? "";
             PnlExperimental.TxtZoneUnguardedPool.Text = s.ZoneUnguardedContentPool ?? "";
             PnlExperimental.TxtZoneContentCountLimits.Text = s.ZoneContentCountLimits ?? "";
+            // T-502 per-template overrides for the per-zone guard scalars.
+            PnlExperimental.TxtZoneGuardMultiplier.Text =
+                s.ZoneGuardMultiplier?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+            PnlExperimental.TxtZoneGuardRandomization.Text =
+                s.ZoneGuardRandomization?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
 
             // T-201 encounter holes
             PnlExperimental.ChkEncounterHolesEnabled.IsChecked = s.EncounterHolesEnabled;
@@ -1822,6 +1829,8 @@ namespace OldenEra.TemplateEditor
                 GuardedContentPool = ParseSidList(PnlExperimental.TxtZoneGuardedPool.Text),
                 UnguardedContentPool = ParseSidList(PnlExperimental.TxtZoneUnguardedPool.Text),
                 ContentCountLimitRefs = ParseSidList(PnlExperimental.TxtZoneContentCountLimits.Text),
+                GuardMultiplier = ParseNullableDouble(PnlExperimental.TxtZoneGuardMultiplier.Text),
+                GuardRandomization = ParseNullableDouble(PnlExperimental.TxtZoneGuardRandomization.Text),
             },
             EncounterHoles = new EncounterHolesOptions
             {

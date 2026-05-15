@@ -10,7 +10,7 @@ for the prior phases (T-001 → T-304).
 Phase 5–8 rescan summary:
 - Confirmed already shipped (closed before any work): **T-507** border noise
   + variant orientation jitter; **T-510** spell bans by school.
-- Partially shipped (need narrowing rather than full build): **T-502**, **T-503**,
+- Partially shipped (need narrowing rather than full build): **T-503**,
   **T-504**, **T-506**, **T-801**. Scope sections now spell out exactly what
   remains.
 - Genuinely open: T-501, T-505, T-508, T-509; all of Phase 6 (T-601 → T-606);
@@ -82,7 +82,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   null → field omitted.
 
 ### T-502 — Zone.guardMultiplier and guardRandomization per-zone overrides
-- **Status:** open (partial — global slider only)
+- **Status:** done (PR TBD)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `Zone.cs` (already modeled), `TemplateGenerator.cs:1150-1158,

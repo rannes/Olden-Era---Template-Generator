@@ -336,6 +336,44 @@
             generator emits at the template root. Empty = leave defaults.
         </div>
     </div>
+    @* T-502: per-template overrides for the per-zone guard scalars. *@
+    <div class="oe-stacked">
+        <label class="oe-label">Guard multiplier</label>
+        <div class="oe-row" style="grid-template-columns: 1fr auto;">
+            <input type="number" step="0.05" min="0" max="10"
+                   placeholder="Auto (per-tier default)"
+                   value="@GuardMultiplierText"
+                   @onchange="OnGuardMultiplierChanged" />
+            <button type="button" class="oe-link-btn"
+                    @onclick="ClearGuardMultiplier"
+                    disabled="@(!Settings.ZoneOverrides.GuardMultiplier.HasValue)">
+                Auto
+            </button>
+        </div>
+        <div class="oe-hint">
+            Empty = generator default (tier-/role-derived, then scaled). When set,
+            stamps verbatim onto every zone — neutral-stack-strength scaling is
+            bypassed.
+        </div>
+    </div>
+    <div class="oe-stacked">
+        <label class="oe-label">Guard randomization</label>
+        <div class="oe-row" style="grid-template-columns: 1fr auto;">
+            <input type="number" step="0.05" min="0" max="1"
+                   placeholder="Auto (uses global slider, default 0.05)"
+                   value="@GuardRandomizationText"
+                   @onchange="OnGuardRandomizationChanged" />
+            <button type="button" class="oe-link-btn"
+                    @onclick="ClearGuardRandomization"
+                    disabled="@(!Settings.ZoneOverrides.GuardRandomization.HasValue)">
+                Auto
+            </button>
+        </div>
+        <div class="oe-hint">
+            Empty = use the global slider (Advanced → Guard randomization). When
+            set, stamps onto every zone (0.0 means "no randomization").
+        </div>
+    </div>
 </ExperimentalCard>
 
 <ExperimentalCard Key="encounter-holes" Title="Encounter holes (multi-stack battles)">
@@ -629,4 +667,54 @@
     }
 
     private static List<string> ParseSidList(string? raw) => SidCsv.Parse(raw);
+
+    // ── Per-zone guard scalars (T-502) ─────────────────────────────────────
+
+    private string GuardMultiplierText =>
+        Settings.ZoneOverrides.GuardMultiplier?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+
+    private string GuardRandomizationText =>
+        Settings.ZoneOverrides.GuardRandomization?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+
+    private async Task OnGuardMultiplierChanged(ChangeEventArgs e)
+    {
+        string raw = e.Value?.ToString() ?? "";
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            Settings.ZoneOverrides.GuardMultiplier = null;
+        }
+        else if (double.TryParse(raw, System.Globalization.NumberStyles.Float,
+                                  System.Globalization.CultureInfo.InvariantCulture, out double v))
+        {
+            Settings.ZoneOverrides.GuardMultiplier = Math.Clamp(v, 0.0, 10.0);
+        }
+        await NotifyChanged();
+    }
+
+    private async Task ClearGuardMultiplier()
+    {
+        Settings.ZoneOverrides.GuardMultiplier = null;
+        await NotifyChanged();
+    }
+
+    private async Task OnGuardRandomizationChanged(ChangeEventArgs e)
+    {
+        string raw = e.Value?.ToString() ?? "";
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            Settings.ZoneOverrides.GuardRandomization = null;
+        }
+        else if (double.TryParse(raw, System.Globalization.NumberStyles.Float,
+                                  System.Globalization.CultureInfo.InvariantCulture, out double v))
+        {
+            Settings.ZoneOverrides.GuardRandomization = Math.Clamp(v, 0.0, 1.0);
+        }
+        await NotifyChanged();
+    }
+
+    private async Task ClearGuardRandomization()
+    {
+        Settings.ZoneOverrides.GuardRandomization = null;
+        await NotifyChanged();
+    }
 }
