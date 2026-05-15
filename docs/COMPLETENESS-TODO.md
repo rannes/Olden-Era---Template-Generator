@@ -13,8 +13,8 @@ Phase 5–8 rescan summary:
 - Partially shipped (need narrowing rather than full build): **T-503**,
   **T-504**, **T-506**, **T-801**. Scope sections now spell out exactly what
   remains.
-- Genuinely open: T-509; all of Phase 6 (T-601 → T-606);
-  all of Phase 7 (T-701 → T-705); T-802 → T-808.
+- **Phase 5 complete (2026-05-15):** T-501 → T-510 all done. Remaining open:
+  Phase 6 (T-601 → T-606); Phase 7 (T-701 → T-705); T-802 → T-808.
 
 ---
 
@@ -182,19 +182,17 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   in the catalog; mapper + share-codec round-trip; malformed CSV → empty.
 
 ### T-509 — MainObject schema completion (owner, isKeyObject, unit-increment, factions list)
-- **Status:** open
+- **Status:** done (PR TBD)
 - **Owner:** —
 - **Effort:** M
-- **Files:** `MainObject.cs` (add `Owner`, `IsKeyObject`,
-  `EnableWeeklyUnitIncrement`, `InitialUnitIncrement`, `Factions` list
-  alongside singular `Faction`), `TemplateGenerator.cs`, UI hosts.
-- **Scope:** Round-trip-only for now: load shipped templates without dropping
-  these fields, and emit them when the city-hold game mode/per-tier hire
-  pools need them. Don't build a full mainObject authoring UI — that's
-  scenario authoring (see non-goals).
-- **Acceptance:** Round-trip on a hold-city shipped template preserves
-  `mainObject.owner` / `isKeyObject`. Generated templates without these set
-  remain unchanged.
+- **Resolution:** Added five nullable round-trip fields to `MainObject`
+  (`Owner`, `IsKeyObject`, `EnableWeeklyUnitIncrement`, `InitialUnitIncrement`,
+  `Factions`) so shipped templates (Harmony, Shamrock, Hallway, Christmas
+  Tree, Symphony, …) survive load → save without losing data. Generator
+  never emits these under default settings, keeping every preset
+  byte-identical. No new authoring UI — scenario-authoring stays a non-goal.
+  See `tests/OldenEra.Generator.Tests/MainObjectSchemaCompletionTests.cs`
+  for round-trip + byte-identical sweep coverage.
 
 ### T-510 — Spell bans by school (globalBans.magics)
 - **Status:** done (verified 2026-05-15)
