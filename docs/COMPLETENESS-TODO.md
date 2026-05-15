@@ -426,7 +426,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 - **Acceptance:** Search input filters the open picker; works on Web and WPF.
 
 ### T-805 — Settings-vs-preset diff view
-- **Status:** done — PR pending
+- **Status:** done — https://github.com/rannes/olden-era-templates/pull/75
 - **Owner:** —
 - **Effort:** M
 - **Files:** New `Components/PresetDiffPanel.razor`, WPF parity,
