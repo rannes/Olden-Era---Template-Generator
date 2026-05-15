@@ -278,7 +278,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   the references intact.
 
 ### T-606 — Code-gen formulaic SID catalog entries
-- **Status:** open
+- **Status:** done (PR #59)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `ZoneContentSidCatalog.cs`.

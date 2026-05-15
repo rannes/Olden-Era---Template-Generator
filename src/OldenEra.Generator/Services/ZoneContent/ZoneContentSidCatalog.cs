@@ -79,143 +79,143 @@ namespace OldenEra.Generator.Services.ZoneContent
             CategoryMisc,
         };
 
-        // Catalog entries. Sourced exclusively from ExampleTemplates/*.rmg.json
-        // (`name` mandatory-anchors, `sid` placeable objects).
-        // Any change here must keep CatalogCoversExampleTemplates_unit_test green.
-        private static readonly ZoneContentSidEntry[] _seed =
+        // (resource-suffix, friendly-mine-name) pairs driving both the
+        // raw `mine_<resource>` SIDs and the `name_mine_<resource>` anchor
+        // SIDs. Order is load-bearing — preserved in catalog enumeration.
+        private static readonly (string Resource, string Friendly)[] _mineResources =
+        {
+            ("gold",      "Gold Mine"),
+            ("wood",      "Sawmill"),
+            ("ore",       "Ore Pit"),
+            ("crystals",  "Crystal Cavern"),
+            ("gemstones", "Gem Mine"),
+            ("mercury",   "Mercury Lab"),
+        };
+
+        private static IEnumerable<ZoneContentSidEntry> BuildSeed()
         {
             // ---- Mandatory anchors (name_* — referenced by mandatory_content
             //      rows in shipped GameData/GeneratorData and example templates) ----
-            new("name_mana_well",            "Mana Well (anchor)",                  CategoryMandatory),
-            new("name_pandora_box_army",     "Pandora's Box - Army (anchor)",       CategoryMandatory),
-            new("name_pandora_box_resources","Pandora's Box - Resources (anchor)",  CategoryMandatory),
-            new("name_pandora_box_xp",       "Pandora's Box - XP (anchor)",         CategoryMandatory),
-            new("name_alchemy_lab",          "Alchemy Lab (anchor)",                CategoryMandatory),
-            new("name_town_gate",            "Town Gate (anchor)",                  CategoryMandatory),
+            yield return new("name_mana_well",            "Mana Well (anchor)",                  CategoryMandatory);
+            yield return new("name_pandora_box_army",     "Pandora's Box - Army (anchor)",       CategoryMandatory);
+            yield return new("name_pandora_box_resources","Pandora's Box - Resources (anchor)",  CategoryMandatory);
+            yield return new("name_pandora_box_xp",       "Pandora's Box - XP (anchor)",         CategoryMandatory);
+            yield return new("name_alchemy_lab",          "Alchemy Lab (anchor)",                CategoryMandatory);
+            yield return new("name_town_gate",            "Town Gate (anchor)",                  CategoryMandatory);
 
             // ---- Mines (name_* anchors — used by templates as mandatory mines) ----
-            new("name_mine_gold",            "Gold Mine (anchor)",          CategoryMines),
-            new("name_mine_gold_1",          "Gold Mine #1 (anchor)",       CategoryMines),
-            new("name_mine_gold_2",          "Gold Mine #2 (anchor)",       CategoryMines),
-            new("name_mine_gold_3",          "Gold Mine #3 (anchor)",       CategoryMines),
-            new("name_mine_gold_4",          "Gold Mine #4 (anchor)",       CategoryMines),
-            new("name_mine_wood",            "Sawmill (anchor)",            CategoryMines),
-            new("name_mine_ore",             "Ore Pit (anchor)",            CategoryMines),
-            new("name_mine_crystals",        "Crystal Cavern (anchor)",     CategoryMines),
-            new("name_mine_gemstones",       "Gem Mine (anchor)",           CategoryMines),
-            new("name_mine_mercury",         "Mercury Lab (anchor)",        CategoryMines),
-            new("name_mine_by_biome",        "Biome-Themed Mine (anchor)",  CategoryMines),
-            new("name_mine_by_biome_1",      "Biome Mine #1 (anchor)",      CategoryMines),
-            new("name_mine_by_biome_2",      "Biome Mine #2 (anchor)",      CategoryMines),
-            new("name_mine_by_biome_3",      "Biome Mine #3 (anchor)",      CategoryMines),
+            // Gold has a base anchor plus 4 numbered duplicates (templates that
+            // place multiple gold mines at fixed map positions).
+            yield return new("name_mine_gold", "Gold Mine (anchor)", CategoryMines);
+            foreach (var n in Enumerable.Range(1, 4))
+                yield return new($"name_mine_gold_{n}", $"Gold Mine #{n} (anchor)", CategoryMines);
+
+            // Single-anchor mines for the remaining resources.
+            foreach (var (resource, friendly) in _mineResources.Skip(1))
+                yield return new($"name_mine_{resource}", $"{friendly} (anchor)", CategoryMines);
+
+            // Biome-themed mine: base anchor plus 3 numbered duplicates.
+            yield return new("name_mine_by_biome", "Biome-Themed Mine (anchor)", CategoryMines);
+            foreach (var n in Enumerable.Range(1, 3))
+                yield return new($"name_mine_by_biome_{n}", $"Biome Mine #{n} (anchor)", CategoryMines);
 
             // ---- Mines (raw object SIDs — placeable directly via row.Sid) ----
-            new("mine_gold",                 "Gold Mine",                   CategoryMines),
-            new("mine_wood",                 "Sawmill",                     CategoryMines),
-            new("mine_ore",                  "Ore Pit",                     CategoryMines),
-            new("mine_crystals",             "Crystal Cavern",              CategoryMines),
-            new("mine_gemstones",            "Gem Mine",                    CategoryMines),
-            new("mine_mercury",              "Mercury Lab",                 CategoryMines),
+            foreach (var (resource, friendly) in _mineResources)
+                yield return new($"mine_{resource}", friendly, CategoryMines);
 
             // ---- Learning structures (skill / spell / stat trainers) ----
-            new("university",                "University",                  CategoryLearning),
-            new("college_of_wonder",         "College of Wonder",           CategoryLearning),
-            new("pile_of_books",             "Pile of Books",               CategoryLearning),
-            new("wise_owl",                  "Wise Owl",                    CategoryLearning),
-            new("research_laboratory",       "Research Laboratory",         CategoryLearning),
-            new("chimerologist",             "Chimerologist",               CategoryLearning),
-            new("mystical_tower",            "Mystical Tower",              CategoryLearning),
-            new("orb_observatory",           "Orb Observatory",             CategoryLearning),
-            new("petrified_memorial",        "Petrified Memorial",          CategoryLearning),
+            yield return new("university",                "University",                  CategoryLearning);
+            yield return new("college_of_wonder",         "College of Wonder",           CategoryLearning);
+            yield return new("pile_of_books",             "Pile of Books",               CategoryLearning);
+            yield return new("wise_owl",                  "Wise Owl",                    CategoryLearning);
+            yield return new("research_laboratory",       "Research Laboratory",         CategoryLearning);
+            yield return new("chimerologist",             "Chimerologist",               CategoryLearning);
+            yield return new("mystical_tower",            "Mystical Tower",              CategoryLearning);
+            yield return new("orb_observatory",           "Orb Observatory",             CategoryLearning);
+            yield return new("petrified_memorial",        "Petrified Memorial",          CategoryLearning);
 
             // ---- Artifact spots (random-tier rolls + special scroll caches) ----
-            new("random_item_common",        "Random Artifact - Common",    CategoryArtifacts),
-            new("random_item_rare",          "Random Artifact - Rare",      CategoryArtifacts),
-            new("random_item_epic",          "Random Artifact - Epic",      CategoryArtifacts),
-            new("random_item_legendary",     "Random Artifact - Legendary", CategoryArtifacts),
-            new("mythic_scroll_box",         "Mythic Scroll Box",           CategoryArtifacts),
+            yield return new("random_item_common",        "Random Artifact - Common",    CategoryArtifacts);
+            yield return new("random_item_rare",          "Random Artifact - Rare",      CategoryArtifacts);
+            yield return new("random_item_epic",          "Random Artifact - Epic",      CategoryArtifacts);
+            yield return new("random_item_legendary",     "Random Artifact - Legendary", CategoryArtifacts);
+            yield return new("mythic_scroll_box",         "Mythic Scroll Box",           CategoryArtifacts);
 
             // ---- Banks & utopias (creature banks / treasure caches) ----
-            new("dragon_utopia",             "Dragon Utopia",               CategoryBanks),
-            new("eternal_dragon",            "Eternal Dragon",              CategoryBanks),
-            new("monty_hall",                "Monty Hall",                  CategoryBanks),
-            new("the_gorge",                 "The Gorge",                   CategoryBanks),
-            new("crystal_trail",             "Crystal Trail",               CategoryBanks),
-            new("infernal_cirque",           "Infernal Cirque",             CategoryBanks),
-            new("twilight_bloom",            "Twilight Bloom",              CategoryBanks),
-            new("boreal_call",               "Boreal Call",                 CategoryBanks),
-            new("insaras_eye",               "Insara's Eye",                CategoryBanks),
-            new("quixs_path",                "Quix's Path",                 CategoryBanks),
-            new("unstable_ruins",            "Unstable Ruins",              CategoryBanks),
-            new("troglodyte_throne",         "Troglodyte Throne",           CategoryBanks),
+            yield return new("dragon_utopia",             "Dragon Utopia",               CategoryBanks);
+            yield return new("eternal_dragon",            "Eternal Dragon",              CategoryBanks);
+            yield return new("monty_hall",                "Monty Hall",                  CategoryBanks);
+            yield return new("the_gorge",                 "The Gorge",                   CategoryBanks);
+            yield return new("crystal_trail",             "Crystal Trail",               CategoryBanks);
+            yield return new("infernal_cirque",           "Infernal Cirque",             CategoryBanks);
+            yield return new("twilight_bloom",            "Twilight Bloom",              CategoryBanks);
+            yield return new("boreal_call",               "Boreal Call",                 CategoryBanks);
+            yield return new("insaras_eye",               "Insara's Eye",                CategoryBanks);
+            yield return new("quixs_path",                "Quix's Path",                 CategoryBanks);
+            yield return new("unstable_ruins",            "Unstable Ruins",              CategoryBanks);
+            yield return new("troglodyte_throne",         "Troglodyte Throne",           CategoryBanks);
 
             // ---- Pandora & encounters ----
-            new("pandora_box",               "Pandora's Box",               CategoryPandora),
-            new("prison",                    "Prison",                      CategoryPandora),
-            new("mysterious_stone",          "Mysterious Stone",            CategoryPandora),
-            new("unforgotten_grave",         "Unforgotten Grave",           CategoryPandora),
+            yield return new("pandora_box",               "Pandora's Box",               CategoryPandora);
+            yield return new("prison",                    "Prison",                      CategoryPandora);
+            yield return new("mysterious_stone",          "Mysterious Stone",            CategoryPandora);
+            yield return new("unforgotten_grave",         "Unforgotten Grave",           CategoryPandora);
 
             // ---- Shrines & conflux (alignment / faction / mana shrines) ----
-            new("sacrificial_shrine",        "Sacrificial Shrine",          CategoryShrines),
-            new("fickle_shrine",             "Fickle Shrine",               CategoryShrines),
-            new("ritual_pyre",               "Ritual Pyre",                 CategoryShrines),
-            new("celestial_sphere",          "Celestial Sphere",            CategoryShrines),
-            new("point_of_balance",          "Point of Balance",            CategoryShrines),
-            new("tear_of_truth",             "Tear of Truth",               CategoryShrines),
-            new("flattering_mirror",         "Flattering Mirror",           CategoryShrines),
-            new("tree_of_abundance",         "Tree of Abundance",           CategoryShrines),
-            new("mana_well",                 "Mana Well",                   CategoryShrines),
+            yield return new("sacrificial_shrine",        "Sacrificial Shrine",          CategoryShrines);
+            yield return new("fickle_shrine",             "Fickle Shrine",               CategoryShrines);
+            yield return new("ritual_pyre",               "Ritual Pyre",                 CategoryShrines);
+            yield return new("celestial_sphere",          "Celestial Sphere",            CategoryShrines);
+            yield return new("point_of_balance",          "Point of Balance",            CategoryShrines);
+            yield return new("tear_of_truth",             "Tear of Truth",               CategoryShrines);
+            yield return new("flattering_mirror",         "Flattering Mirror",           CategoryShrines);
+            yield return new("tree_of_abundance",         "Tree of Abundance",           CategoryShrines);
+            yield return new("mana_well",                 "Mana Well",                   CategoryShrines);
 
             // ---- Bonus structures (stat / morale / luck / movement) ----
-            new("arena",                     "Arena",                       CategoryBonus),
-            new("fountain",                  "Fountain of Fortune",         CategoryBonus),
-            new("fountain_2",                "Fountain (Variant)",          CategoryBonus),
-            new("beer_fountain",             "Beer Fountain",               CategoryBonus),
-            new("circus",                    "Circus",                      CategoryBonus),
-            new("mirage",                    "Mirage",                      CategoryBonus),
-            new("watchtower",                "Watchtower",                  CategoryBonus),
-            new("wind_rose",                 "Wind Rose",                   CategoryBonus),
-            new("stables",                   "Stables",                     CategoryBonus),
-            new("jousting_range",            "Jousting Range",              CategoryBonus),
-            new("huntsmans_camp",            "Huntsman's Camp",             CategoryBonus),
+            yield return new("arena",                     "Arena",                       CategoryBonus);
+            yield return new("fountain",                  "Fountain of Fortune",         CategoryBonus);
+            yield return new("fountain_2",                "Fountain (Variant)",          CategoryBonus);
+            yield return new("beer_fountain",             "Beer Fountain",               CategoryBonus);
+            yield return new("circus",                    "Circus",                      CategoryBonus);
+            yield return new("mirage",                    "Mirage",                      CategoryBonus);
+            yield return new("watchtower",                "Watchtower",                  CategoryBonus);
+            yield return new("wind_rose",                 "Wind Rose",                   CategoryBonus);
+            yield return new("stables",                   "Stables",                     CategoryBonus);
+            yield return new("jousting_range",            "Jousting Range",              CategoryBonus);
+            yield return new("huntsmans_camp",            "Huntsman's Camp",             CategoryBonus);
 
             // ---- Hire & recruitment (army-replenish / hero hire) ----
-            new("tavern",                    "Tavern",                      CategoryHire),
-            new("shady_den",                 "Shady Den",                   CategoryHire),
-            new("random_hire_1",             "Random Hire (Tier 1)",        CategoryHire),
-            new("random_hire_2",             "Random Hire (Tier 2)",        CategoryHire),
-            new("random_hire_3",             "Random Hire (Tier 3)",        CategoryHire),
-            new("random_hire_4",             "Random Hire (Tier 4)",        CategoryHire),
-            new("random_hire_5",             "Random Hire (Tier 5)",        CategoryHire),
-            new("random_hire_6",             "Random Hire (Tier 6)",        CategoryHire),
-            new("random_hire_7",             "Random Hire (Tier 7)",        CategoryHire),
+            yield return new("tavern",                    "Tavern",                      CategoryHire);
+            yield return new("shady_den",                 "Shady Den",                   CategoryHire);
+            // random_hire_1..7 — one slot per creature tier.
+            foreach (var tier in Enumerable.Range(1, 7))
+                yield return new($"random_hire_{tier}", $"Random Hire (Tier {tier})", CategoryHire);
 
             // ---- Structures (utility buildings on the map) ----
-            new("alchemy_lab",               "Alchemy Lab",                 CategoryStructures),
-            new("town_gate",                 "Town Gate",                   CategoryStructures),
-            new("market",                    "Market",                      CategoryStructures),
-            new("forge",                     "Forge",                       CategoryStructures),
-            new("fort",                      "Fort",                        CategoryStructures),
+            yield return new("alchemy_lab",               "Alchemy Lab",                 CategoryStructures);
+            yield return new("town_gate",                 "Town Gate",                   CategoryStructures);
+            yield return new("market",                    "Market",                      CategoryStructures);
+            yield return new("forge",                     "Forge",                       CategoryStructures);
+            yield return new("fort",                      "Fort",                        CategoryStructures);
 
             // ---- Portals (zone connectors) ----
-            new("name_portal_gate_center",   "Portal Gate (Center)",        CategoryPortals),
-            new("name_portal_gate_side",     "Portal Gate (Side)",          CategoryPortals),
-            new("name_portal_gate_spawn",    "Portal Gate (Spawn)",         CategoryPortals),
+            yield return new("name_portal_gate_center",   "Portal Gate (Center)",        CategoryPortals);
+            yield return new("name_portal_gate_side",     "Portal Gate (Side)",          CategoryPortals);
+            yield return new("name_portal_gate_spawn",    "Portal Gate (Spawn)",         CategoryPortals);
 
             // ---- Footholds (template-specific anchors for remote zones) ----
-            new("name_remote_foothold",      "Remote Foothold",             CategoryFootholds),
-            new("name_remote_foothold_1",    "Remote Foothold #1",          CategoryFootholds),
-            new("name_remote_foothold_2",    "Remote Foothold #2",          CategoryFootholds),
-            new("name_remote_foothold_3",    "Remote Foothold #3",          CategoryFootholds),
-            new("name_remote_foothold_4",    "Remote Foothold #4",          CategoryFootholds),
+            yield return new("name_remote_foothold", "Remote Foothold", CategoryFootholds);
+            foreach (var n in Enumerable.Range(1, 4))
+                yield return new($"name_remote_foothold_{n}", $"Remote Foothold #{n}", CategoryFootholds);
             // Doubled-suffix footholds appear in stacked / mirrored templates
             // (e.g. Symmetry, Trinity) where the second instance is suffixed.
-            new("name_remote_foothold_11",   "Remote Foothold #1 (mirror)", CategoryFootholds),
-            new("name_remote_foothold_22",   "Remote Foothold #2 (mirror)", CategoryFootholds),
-            new("name_remote_foothold_33",   "Remote Foothold #3 (mirror)", CategoryFootholds),
-            new("name_remote_foothold_44",   "Remote Foothold #4 (mirror)", CategoryFootholds),
-            new("remote_foothold",           "Remote Foothold (raw SID)",   CategoryFootholds),
-        };
+            foreach (var n in Enumerable.Range(1, 4))
+                yield return new($"name_remote_foothold_{n}{n}", $"Remote Foothold #{n} (mirror)", CategoryFootholds);
+            yield return new("remote_foothold", "Remote Foothold (raw SID)", CategoryFootholds);
+        }
+
+        private static readonly ZoneContentSidEntry[] _seed = BuildSeed().ToArray();
 
         /// <summary>
         /// Flat, source-ordered list of every catalog entry. Stable enumeration
