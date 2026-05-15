@@ -93,6 +93,7 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
         Scopes = new[] { _player, _neutralGlobal, _poor, _normal, _rich };
         Presets = ZoneContentPresets.All();
         SidCatalog = ZoneContentSidCatalog.All();
+        ContentListCatalog = OldenEra.Generator.Services.ZoneContent.ContentListCatalog.All();
         PoolValues = (ZoneContentPool[])Enum.GetValues(typeof(ZoneContentPool));
 
         RebuildScopeItems();
@@ -222,6 +223,14 @@ public sealed class ZoneContentPanelViewModel : INotifyPropertyChanged
     public IReadOnlyList<ZoneContentPreset> Presets { get; }
 
     public IReadOnlyList<ZoneContentSidEntry> SidCatalog { get; }
+
+    /// <summary>
+    /// Curated <c>includeLists</c> ID catalog (T-605) surfaced to the per-row
+    /// content-list picker. Source-ordered, grouped client-side via the
+    /// CollectionViewSource <c>GroupedContentListCatalog</c> in
+    /// <c>ZoneContentPanel.xaml</c>.
+    /// </summary>
+    public IReadOnlyList<OldenEra.Generator.Services.ZoneContent.ContentListEntry> ContentListCatalog { get; }
 
     public IReadOnlyList<ZoneContentPool> PoolValues { get; }
 

@@ -17,6 +17,17 @@ namespace OldenEra.Generator.Models
         public List<string> BiomeFilter { get; set; } = new();
 
         /// <summary>
+        /// Catalog-curated <c>ContentItem.includeLists</c> IDs (T-605). Empty
+        /// list = no <c>includeLists</c> array emitted. Non-empty entries are
+        /// merged with the legacy <see cref="IsGroup"/>-derived single-element
+        /// list at emit time, preserving every shipped <c>includeLists</c>
+        /// shape (multi-element arrays included). Picker UIs only allow
+        /// values from <see cref="ZoneContent.ContentListCatalog"/>; raw-JSON
+        /// uploads round-trip any IDs verbatim.
+        /// </summary>
+        public List<string> IncludeListIds { get; set; } = new();
+
+        /// <summary>
         /// Explicit <c>ContentItem.rules</c> entries (T-202). The convenience
         /// flags <see cref="NearCastle"/> and <see cref="RoadDistance"/> still
         /// auto-emit their own rules; entries here are appended afterwards so

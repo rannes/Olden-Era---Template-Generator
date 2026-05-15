@@ -41,6 +41,44 @@ public partial class ZoneContentPanel : UserControl
         {
             sidView.CustomSort = new SidCatalogOrdinalComparer();
         }
+
+        // T-605: order the includeLists catalog by category-index, then by
+        // seed-order within a category — same convention as the Sid catalog,
+        // matching the Web optgroup iteration order.
+        if (Resources["GroupedContentListCatalog"] is CollectionViewSource clCvs &&
+            clCvs.View is ListCollectionView clView &&
+            clView.CustomSort is null)
+        {
+            clView.CustomSort = new ContentListCatalogOrdinalComparer();
+        }
+    }
+
+    /// <summary>
+    /// T-605: appends the catalog Id selected in the per-row content-list
+    /// ComboBox to the row's <see cref="ZoneContentItemViewModel.IncludeListIdsCsv"/>.
+    /// De-duplicates against existing entries; resets the ComboBox selection
+    /// to <c>null</c> so the user can re-pick. The ComboBox's <c>Tag</c>
+    /// carries the target item-VM (set in XAML via <c>Tag="{Binding}"</c>
+    /// while DataContext is the row item-VM).
+    /// </summary>
+    private void ContentListCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ComboBox cb) return;
+        if (cb.SelectedItem is not ContentListEntry entry) return;
+        if (cb.Tag is not ZoneContentItemViewModel item) return;
+
+        var current = (item.IncludeListIdsCsv ?? string.Empty).Trim();
+        var existing = current.Length == 0
+            ? new System.Collections.Generic.List<string>()
+            : new System.Collections.Generic.List<string>(
+                current.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        if (!existing.Contains(entry.Id, StringComparer.Ordinal))
+        {
+            existing.Add(entry.Id);
+            item.IncludeListIdsCsv = string.Join(", ", existing);
+        }
+
+        cb.SelectedItem = null;
     }
 
     /// <summary>
@@ -134,6 +172,47 @@ public partial class ZoneContentPanel : UserControl
             if (c != 0) return c;
             int asi = SeedIndex.TryGetValue(a.Sid, out var asv) ? asv : int.MaxValue;
             int bsi = SeedIndex.TryGetValue(b.Sid, out var bsv) ? bsv : int.MaxValue;
+            return asi.CompareTo(bsi);
+        }
+    }
+
+    /// <summary>
+    /// T-605: orders <see cref="ContentListEntry"/> rows by category-index in
+    /// <see cref="ContentListCatalog.OrderedCategories"/>, then by seed-order
+    /// within a category — same convention as the SID catalog above.
+    /// </summary>
+    private sealed class ContentListCatalogOrdinalComparer : IComparer
+    {
+        private static readonly System.Collections.Generic.Dictionary<string, int> CategoryIndex =
+            BuildCategoryIndex();
+        private static readonly System.Collections.Generic.Dictionary<string, int> SeedIndex =
+            BuildSeedIndex();
+
+        private static System.Collections.Generic.Dictionary<string, int> BuildCategoryIndex()
+        {
+            var dict = new System.Collections.Generic.Dictionary<string, int>(StringComparer.Ordinal);
+            int i = 0;
+            foreach (var c in ContentListCatalog.OrderedCategories) dict[c] = i++;
+            return dict;
+        }
+
+        private static System.Collections.Generic.Dictionary<string, int> BuildSeedIndex()
+        {
+            var dict = new System.Collections.Generic.Dictionary<string, int>(StringComparer.Ordinal);
+            int i = 0;
+            foreach (var entry in ContentListCatalog.All()) dict[entry.Id] = i++;
+            return dict;
+        }
+
+        public int Compare(object? x, object? y)
+        {
+            if (x is not ContentListEntry a || y is not ContentListEntry b) return 0;
+            int ai = CategoryIndex.TryGetValue(a.Category, out var avi) ? avi : int.MaxValue;
+            int bi = CategoryIndex.TryGetValue(b.Category, out var bvi) ? bvi : int.MaxValue;
+            int c = ai.CompareTo(bi);
+            if (c != 0) return c;
+            int asi = SeedIndex.TryGetValue(a.Id, out var asv) ? asv : int.MaxValue;
+            int bsi = SeedIndex.TryGetValue(b.Id, out var bsv) ? bsv : int.MaxValue;
             return asi.CompareTo(bsi);
         }
     }
