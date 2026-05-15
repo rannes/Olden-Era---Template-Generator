@@ -15,11 +15,19 @@ namespace OldenEra.Generator.Tests;
 /// "whichever shipped templates are available"); Showdown / Sprint cover
 /// the includeLists shapes Anarchy doesn't exercise.
 ///
-/// We round-trip via <see cref="JsonNode"/> rather than the strongly-typed
-/// <see cref="RmgTemplate"/> model because shipped templates use richer
-/// shapes for some fields (e.g. <c>contentCountLimits</c> as object arrays
-/// vs. <c>List&lt;string&gt;</c> in the schema) that the schema doesn't
-/// fully cover yet — orthogonal to T-605.
+/// NOTE: this is a parser-passthrough sanity check, not a schema round-trip.
+/// <see cref="JsonNode"/> preserves any shape the JSON parser accepts, so this
+/// test verifies that simple text-level reserialization keeps every
+/// <c>includeLists</c> array byte-stable — but it does NOT verify that
+/// <see cref="RmgTemplate"/> + <see cref="ContentItem"/> can deserialize and
+/// re-emit those arrays. For the schema-level guarantee see
+/// <see cref="IncludeListsSchemaRoundTripTests"/>.
+///
+/// We deliberately keep this passthrough check alongside the schema test
+/// because it covers fixtures (Showdown / AnarchySmall) where richer shapes
+/// for sibling fields (e.g. <c>contentCountLimits</c> as object arrays vs.
+/// <c>List&lt;string&gt;</c> in the current schema) prevent strongly-typed
+/// deserialization — orthogonal to T-605.
 /// </summary>
 public class IncludeListsRoundTripTests
 {
