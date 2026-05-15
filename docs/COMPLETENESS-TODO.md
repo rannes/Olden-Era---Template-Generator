@@ -326,8 +326,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   data with identical hover tooltips.
 
 ### T-703 — Content-pool sanity warnings (validator extension)
-- **Status:** open
-- **Owner:** —
+- **Status:** done (#68)
+- **Owner:** Claude
 - **Effort:** S
 - **Files:** `Services/SettingsValidator.cs`, validator UI surface.
 - **Scope:** Sweep enabled `ContentLists` and warn when expectations
@@ -338,8 +338,8 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   expected warning; presets stay warning-free.
 
 ### T-704 — Per-player fairness audit
-- **Status:** open
-- **Owner:** —
+- **Status:** done (PR pending)
+- **Owner:** Claude
 - **Effort:** M
 - **Files:** `TemplateAnalysis.cs`, fairness panel in both hosts.
 - **Scope:** For each player zone compute neighbor count, starting-castle
