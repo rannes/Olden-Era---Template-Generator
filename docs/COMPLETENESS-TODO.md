@@ -294,7 +294,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 ## Phase 7 — Analysis features
 
 ### T-701 — Zone value budget summary
-- **Status:** done (PR TBD)
+- **Status:** done (PR #64)
 - **Owner:** Claude
 - **Effort:** M
 - **Files:** New `Components/ValueBudgetPanel.razor`, WPF parity,
