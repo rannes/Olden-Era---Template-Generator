@@ -168,6 +168,50 @@ public class CommunityCatalogTests
         Assert.Equal(ids.Count, ids.Distinct(StringComparer.Ordinal).Count());
     }
 
+    // ── T-602 ───────────────────────────────────────────────────────────────
+    // UnitEntry now exposes combat stats + passives/abilities so the unit-ban
+    // pickers can render tooltips. Pin a known entry's stats so a catalog
+    // refresh that drops or renames any of these fields fails loudly.
+    [Fact]
+    public void Units_LoadCombatStats_FromKnownEntry()
+    {
+        var u = Catalog.Units.Single(x => x.Id == "esquire_upg");
+        Assert.Equal("Guard Captain", u.Name);
+        Assert.Equal("temple", u.Faction);
+        Assert.Equal(1, u.Tier);
+        Assert.Equal("upg", u.Variant);
+        Assert.Equal("Melee", u.Attack);
+        Assert.Equal(12, u.Hp);
+        Assert.Equal(6, u.Off);
+        Assert.Equal(5, u.Def);
+        Assert.Equal(2, u.DmgMin);
+        Assert.Equal(3, u.DmgMax);
+        Assert.Equal(6, u.Init);
+        Assert.Equal(4, u.Speed);
+        Assert.Equal(87, u.SquadValue);
+        Assert.Equal(110, u.Cost);
+        Assert.Equal("melee_type", u.Ai);
+        Assert.NotNull(u.Tags);
+        Assert.Contains("human", u.Tags!);
+        Assert.NotNull(u.Passives);
+        Assert.Contains(u.Passives!, p => p.Name == "Double Strike");
+    }
+
+    [Fact]
+    public void Units_TooltipText_IncludesCoreStatsLine()
+    {
+        var u = Catalog.Units.Single(x => x.Id == "esquire_upg");
+        var tip = u.TooltipText();
+        Assert.Contains("T1", tip);
+        Assert.Contains("Guard Captain", tip);
+        Assert.Contains("HP 12", tip);
+        Assert.Contains("Off 6", tip);
+        Assert.Contains("Def 5", tip);
+        Assert.Contains("Dmg 2-3", tip);
+        Assert.Contains("Init 6", tip);
+        Assert.Contains("Speed 4", tip);
+    }
+
     [Fact]
     public void Specializations_ContainsKnownEntry()
     {
