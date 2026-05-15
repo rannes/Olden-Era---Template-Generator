@@ -482,6 +482,15 @@
                                 <RowDefinition Height="Auto"/>  <!-- 18 Guard multiplier label/box (T-502) -->
                                 <RowDefinition Height="6"/>     <!-- 19 spacer -->
                                 <RowDefinition Height="Auto"/>  <!-- 20 Guard randomization label/box (T-502) -->
+                                <RowDefinition Height="6"/>     <!-- 21 spacer -->
+                                <RowDefinition Height="Auto"/>  <!-- 22 Resources value (scalar) label/box (T-503) -->
+                                <RowDefinition Height="Auto"/>  <!-- 23 Resources value perArea label/box (T-503) -->
+                                <RowDefinition Height="6"/>     <!-- 24 spacer -->
+                                <RowDefinition Height="Auto"/>  <!-- 25 Guarded content value (scalar) label/box (T-503) -->
+                                <RowDefinition Height="Auto"/>  <!-- 26 Guarded content value perArea label/box (T-503) -->
+                                <RowDefinition Height="6"/>     <!-- 27 spacer -->
+                                <RowDefinition Height="Auto"/>  <!-- 28 Unguarded content value (scalar) label/box (T-503) -->
+                                <RowDefinition Height="Auto"/>  <!-- 29 Unguarded content value perArea label/box (T-503) -->
                             </Grid.RowDefinitions>
                             <Label   Grid.Row="0" Grid.Column="0" Content="Diplomacy modifier" Padding="5,2"/>
                             <TextBox Grid.Row="0" Grid.Column="1" x:Name="TxtZoneDiplomacy" ToolTip="Empty = generator default (-0.5). Range -1.0 … 1.0."/>
@@ -534,6 +543,25 @@
                             <Label   Grid.Row="20" Grid.Column="0" Content="Guard randomization" Padding="5,2"/>
                             <TextBox Grid.Row="20" Grid.Column="1" x:Name="TxtZoneGuardRandomization"
                                      ToolTip="Empty = use the global Advanced slider (default 0.05). When set, stamps onto every zone (0.0 = no randomization)."/>
+                            <!-- T-503: per-template overrides for the per-zone content/resource values. -->
+                            <Label   Grid.Row="22" Grid.Column="0" Content="Resources value" Padding="5,2"/>
+                            <TextBox Grid.Row="22" Grid.Column="1" x:Name="TxtZoneResourcesValue"
+                                     ToolTip="Override resourcesValue (scalar). Empty = generator default (tier-/role-derived, ResourceScale-tuned). When set, stamps verbatim onto every zone."/>
+                            <Label   Grid.Row="23" Grid.Column="0" Content="Resources value / area" Padding="5,2"/>
+                            <TextBox Grid.Row="23" Grid.Column="1" x:Name="TxtZoneResourcesValuePerArea"
+                                     ToolTip="Override resourcesValuePerArea. Empty = generator default."/>
+                            <Label   Grid.Row="25" Grid.Column="0" Content="Guarded content value" Padding="5,2"/>
+                            <TextBox Grid.Row="25" Grid.Column="1" x:Name="TxtZoneGuardedContentValue"
+                                     ToolTip="Override guardedContentValue (scalar). Empty = generator default (tier-/role-derived, ContentScale-tuned)."/>
+                            <Label   Grid.Row="26" Grid.Column="0" Content="Guarded content value / area" Padding="5,2"/>
+                            <TextBox Grid.Row="26" Grid.Column="1" x:Name="TxtZoneGuardedContentValuePerArea"
+                                     ToolTip="Override guardedContentValuePerArea. Empty = generator default."/>
+                            <Label   Grid.Row="28" Grid.Column="0" Content="Unguarded content value" Padding="5,2"/>
+                            <TextBox Grid.Row="28" Grid.Column="1" x:Name="TxtZoneUnguardedContentValue"
+                                     ToolTip="Override unguardedContentValue (scalar). Empty = generator default."/>
+                            <Label   Grid.Row="29" Grid.Column="0" Content="Unguarded content value / area" Padding="5,2"/>
+                            <TextBox Grid.Row="29" Grid.Column="1" x:Name="TxtZoneUnguardedContentValuePerArea"
+                                     ToolTip="Override unguardedContentValuePerArea. Empty = generator default."/>
                         </Grid>
                     </StackPanel>
                 </Expander>

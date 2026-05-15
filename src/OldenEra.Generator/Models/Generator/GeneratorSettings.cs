@@ -408,6 +408,32 @@ namespace OldenEra.Generator.Models
         /// meaningful "no randomization" value distinct from <c>null</c>/unset.
         /// </summary>
         public double? GuardRandomization { get; set; }
+
+        // ── T-503: per-template overrides for the per-zone content/resource values ──
+        // Both scalar and per-area variants of guardedContentValue, unguardedContentValue
+        // and resourcesValue ship side-by-side from hardcoded tuning profiles. These six
+        // nullable knobs let the user replace any individual number without changing the
+        // others. null = generator default (tier-/role-derived, then scaled by ContentScale
+        // or ResourceScale). When set, the override stamps verbatim onto every emitted
+        // zone — no tuning scaling — matching the T-502 pattern.
+
+        /// <summary>Override <c>resourcesValue</c> on every zone. <c>null</c> = generator default.</summary>
+        public int? ResourcesValue { get; set; }
+
+        /// <summary>Override <c>resourcesValuePerArea</c> on every zone. <c>null</c> = generator default.</summary>
+        public int? ResourcesValuePerArea { get; set; }
+
+        /// <summary>Override <c>guardedContentValue</c> on every zone. <c>null</c> = generator default.</summary>
+        public int? GuardedContentValue { get; set; }
+
+        /// <summary>Override <c>guardedContentValuePerArea</c> on every zone. <c>null</c> = generator default.</summary>
+        public int? GuardedContentValuePerArea { get; set; }
+
+        /// <summary>Override <c>unguardedContentValue</c> on every zone. <c>null</c> = generator default.</summary>
+        public int? UnguardedContentValue { get; set; }
+
+        /// <summary>Override <c>unguardedContentValuePerArea</c> on every zone. <c>null</c> = generator default.</summary>
+        public int? UnguardedContentValuePerArea { get; set; }
     }
 
     /// <summary>

@@ -972,6 +972,13 @@ namespace OldenEra.TemplateEditor
             ZoneContentCountLimits = NormalizeSidCsv(PnlExperimental.TxtZoneContentCountLimits.Text),
             ZoneGuardMultiplier    = ParseNullableDouble(PnlExperimental.TxtZoneGuardMultiplier.Text),
             ZoneGuardRandomization = ParseNullableDouble(PnlExperimental.TxtZoneGuardRandomization.Text),
+            // T-503 — per-zone content/resource value overrides.
+            ZoneResourcesValue                = ParseNullableInt(PnlExperimental.TxtZoneResourcesValue.Text),
+            ZoneResourcesValuePerArea         = ParseNullableInt(PnlExperimental.TxtZoneResourcesValuePerArea.Text),
+            ZoneGuardedContentValue           = ParseNullableInt(PnlExperimental.TxtZoneGuardedContentValue.Text),
+            ZoneGuardedContentValuePerArea    = ParseNullableInt(PnlExperimental.TxtZoneGuardedContentValuePerArea.Text),
+            ZoneUnguardedContentValue         = ParseNullableInt(PnlExperimental.TxtZoneUnguardedContentValue.Text),
+            ZoneUnguardedContentValuePerArea  = ParseNullableInt(PnlExperimental.TxtZoneUnguardedContentValuePerArea.Text),
             EncounterHolesEnabled            = PnlExperimental.ChkEncounterHolesEnabled.IsChecked == true,
             EncounterHolesAffectedEncounters = PnlExperimental.SldEncounterHolesAffected.Value / 100.0,
             EncounterHolesTwoHoleEncounters  = PnlExperimental.SldEncounterHolesTwoHole.Value / 100.0,
@@ -1348,6 +1355,19 @@ namespace OldenEra.TemplateEditor
                 s.ZoneGuardMultiplier?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
             PnlExperimental.TxtZoneGuardRandomization.Text =
                 s.ZoneGuardRandomization?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+            // T-503 per-zone content/resource value overrides.
+            PnlExperimental.TxtZoneResourcesValue.Text =
+                s.ZoneResourcesValue?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+            PnlExperimental.TxtZoneResourcesValuePerArea.Text =
+                s.ZoneResourcesValuePerArea?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+            PnlExperimental.TxtZoneGuardedContentValue.Text =
+                s.ZoneGuardedContentValue?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+            PnlExperimental.TxtZoneGuardedContentValuePerArea.Text =
+                s.ZoneGuardedContentValuePerArea?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+            PnlExperimental.TxtZoneUnguardedContentValue.Text =
+                s.ZoneUnguardedContentValue?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+            PnlExperimental.TxtZoneUnguardedContentValuePerArea.Text =
+                s.ZoneUnguardedContentValuePerArea?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
 
             // T-201 encounter holes
             PnlExperimental.ChkEncounterHolesEnabled.IsChecked = s.EncounterHolesEnabled;
@@ -1831,6 +1851,13 @@ namespace OldenEra.TemplateEditor
                 ContentCountLimitRefs = ParseSidList(PnlExperimental.TxtZoneContentCountLimits.Text),
                 GuardMultiplier = ParseNullableDouble(PnlExperimental.TxtZoneGuardMultiplier.Text),
                 GuardRandomization = ParseNullableDouble(PnlExperimental.TxtZoneGuardRandomization.Text),
+                // T-503 — per-zone content/resource value overrides.
+                ResourcesValue                = ParseNullableInt(PnlExperimental.TxtZoneResourcesValue.Text),
+                ResourcesValuePerArea         = ParseNullableInt(PnlExperimental.TxtZoneResourcesValuePerArea.Text),
+                GuardedContentValue           = ParseNullableInt(PnlExperimental.TxtZoneGuardedContentValue.Text),
+                GuardedContentValuePerArea    = ParseNullableInt(PnlExperimental.TxtZoneGuardedContentValuePerArea.Text),
+                UnguardedContentValue         = ParseNullableInt(PnlExperimental.TxtZoneUnguardedContentValue.Text),
+                UnguardedContentValuePerArea  = ParseNullableInt(PnlExperimental.TxtZoneUnguardedContentValuePerArea.Text),
             },
             EncounterHoles = new EncounterHolesOptions
             {

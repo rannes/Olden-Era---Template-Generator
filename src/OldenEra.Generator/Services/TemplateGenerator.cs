@@ -332,8 +332,18 @@ namespace OldenEra.Generator.Services
             bool hasLimits = o.ContentCountLimitRefs is { Count: > 0 };
             bool hasGuardMultiplier = o.GuardMultiplier.HasValue;
             bool hasGuardRandomization = o.GuardRandomization.HasValue;
+            // T-503 — per-zone content/resource value overrides.
+            bool hasResourcesValue              = o.ResourcesValue.HasValue;
+            bool hasResourcesValuePerArea       = o.ResourcesValuePerArea.HasValue;
+            bool hasGuardedContentValue         = o.GuardedContentValue.HasValue;
+            bool hasGuardedContentValuePerArea  = o.GuardedContentValuePerArea.HasValue;
+            bool hasUnguardedContentValue       = o.UnguardedContentValue.HasValue;
+            bool hasUnguardedContentValuePerArea = o.UnguardedContentValuePerArea.HasValue;
             if (!hasDip && !hasXr && !hasBiome && !hasMetaBiome && !hasCutoff && !hasGuarded && !hasUnguarded && !hasLimits
-                && !hasGuardMultiplier && !hasGuardRandomization)
+                && !hasGuardMultiplier && !hasGuardRandomization
+                && !hasResourcesValue && !hasResourcesValuePerArea
+                && !hasGuardedContentValue && !hasGuardedContentValuePerArea
+                && !hasUnguardedContentValue && !hasUnguardedContentValuePerArea)
                 return;
 
             BiomeSelector? biome = hasBiome ? BuildBiomeOverride(o.ContentBiomeType, o.ContentBiomeArg) : null;
@@ -375,6 +385,15 @@ namespace OldenEra.Generator.Services
                     // computed (tier/profile + tuning-scale) value.
                     if (hasGuardMultiplier) zone.GuardMultiplier = o.GuardMultiplier;
                     if (hasGuardRandomization) zone.GuardRandomization = o.GuardRandomization;
+                    // T-503: per-template overrides for the per-zone content/resource
+                    // values. Stamp verbatim — the override replaces the generator's
+                    // tuning-scaled (ContentScale / ResourceScale) value.
+                    if (hasResourcesValue)              zone.ResourcesValue              = o.ResourcesValue;
+                    if (hasResourcesValuePerArea)       zone.ResourcesValuePerArea       = o.ResourcesValuePerArea;
+                    if (hasGuardedContentValue)         zone.GuardedContentValue         = o.GuardedContentValue;
+                    if (hasGuardedContentValuePerArea)  zone.GuardedContentValuePerArea  = o.GuardedContentValuePerArea;
+                    if (hasUnguardedContentValue)       zone.UnguardedContentValue       = o.UnguardedContentValue;
+                    if (hasUnguardedContentValuePerArea) zone.UnguardedContentValuePerArea = o.UnguardedContentValuePerArea;
                 }
             }
         }

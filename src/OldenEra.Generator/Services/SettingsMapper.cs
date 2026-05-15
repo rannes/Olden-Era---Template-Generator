@@ -117,6 +117,13 @@ public static class SettingsMapper
                 ContentCountLimitRefs = SidCsv.Parse(s.ZoneContentCountLimits),
                 GuardMultiplier = s.ZoneGuardMultiplier,
                 GuardRandomization = s.ZoneGuardRandomization,
+                // T-503 — per-zone content/resource value overrides.
+                ResourcesValue                = s.ZoneResourcesValue,
+                ResourcesValuePerArea         = s.ZoneResourcesValuePerArea,
+                GuardedContentValue           = s.ZoneGuardedContentValue,
+                GuardedContentValuePerArea    = s.ZoneGuardedContentValuePerArea,
+                UnguardedContentValue         = s.ZoneUnguardedContentValue,
+                UnguardedContentValuePerArea  = s.ZoneUnguardedContentValuePerArea,
             },
             EncounterHoles = new EncounterHolesOptions
             {
@@ -406,6 +413,13 @@ public static class SettingsMapper
             ZoneContentCountLimits = SidCsv.Join(g.ZoneOverrides.ContentCountLimitRefs),
             ZoneGuardMultiplier    = g.ZoneOverrides.GuardMultiplier,
             ZoneGuardRandomization = g.ZoneOverrides.GuardRandomization,
+            // T-503 — per-zone content/resource value overrides.
+            ZoneResourcesValue                = g.ZoneOverrides.ResourcesValue,
+            ZoneResourcesValuePerArea         = g.ZoneOverrides.ResourcesValuePerArea,
+            ZoneGuardedContentValue           = g.ZoneOverrides.GuardedContentValue,
+            ZoneGuardedContentValuePerArea    = g.ZoneOverrides.GuardedContentValuePerArea,
+            ZoneUnguardedContentValue         = g.ZoneOverrides.UnguardedContentValue,
+            ZoneUnguardedContentValuePerArea  = g.ZoneOverrides.UnguardedContentValuePerArea,
             EncounterHolesEnabled            = g.EncounterHoles.Enabled,
             EncounterHolesAffectedEncounters = g.EncounterHoles.AffectedEncounters,
             EncounterHolesTwoHoleEncounters  = g.EncounterHoles.TwoHoleEncounters,

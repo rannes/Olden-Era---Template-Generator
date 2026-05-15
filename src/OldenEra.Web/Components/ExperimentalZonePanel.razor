@@ -374,6 +374,74 @@
             set, stamps onto every zone (0.0 means "no randomization").
         </div>
     </div>
+    @* T-503: per-template overrides for the per-zone content/resource values. *@
+    <div class="oe-stacked">
+        <label class="oe-label">Resources value (per zone)</label>
+        <div class="oe-row" style="grid-template-columns: 1fr 90px auto;">
+            <input type="number" step="1000" min="0"
+                   placeholder="Auto (scalar)"
+                   value="@ResourcesValueText"
+                   @onchange="OnResourcesValueChanged" />
+            <input type="number" step="50" min="0"
+                   placeholder="Auto (perArea)"
+                   value="@ResourcesValuePerAreaText"
+                   @onchange="OnResourcesValuePerAreaChanged" />
+            <button type="button" class="oe-link-btn"
+                    @onclick="ClearResourcesValueOverrides"
+                    disabled="@(!Settings.ZoneOverrides.ResourcesValue.HasValue && !Settings.ZoneOverrides.ResourcesValuePerArea.HasValue)">
+                Auto
+            </button>
+        </div>
+        <div class="oe-hint">
+            Scalar + per-area variants of <code>resourcesValue</code>. Empty = generator
+            default (tuning-scaled). When set, stamps verbatim onto every zone — no
+            <code>ResourceScale</code> tuning applied.
+        </div>
+    </div>
+    <div class="oe-stacked">
+        <label class="oe-label">Guarded content value (per zone)</label>
+        <div class="oe-row" style="grid-template-columns: 1fr 90px auto;">
+            <input type="number" step="1000" min="0"
+                   placeholder="Auto (scalar)"
+                   value="@GuardedContentValueText"
+                   @onchange="OnGuardedContentValueChanged" />
+            <input type="number" step="50" min="0"
+                   placeholder="Auto (perArea)"
+                   value="@GuardedContentValuePerAreaText"
+                   @onchange="OnGuardedContentValuePerAreaChanged" />
+            <button type="button" class="oe-link-btn"
+                    @onclick="ClearGuardedContentValueOverrides"
+                    disabled="@(!Settings.ZoneOverrides.GuardedContentValue.HasValue && !Settings.ZoneOverrides.GuardedContentValuePerArea.HasValue)">
+                Auto
+            </button>
+        </div>
+        <div class="oe-hint">
+            Scalar + per-area variants of <code>guardedContentValue</code>. Empty =
+            generator default (tier-derived, then <code>ContentScale</code>-scaled).
+        </div>
+    </div>
+    <div class="oe-stacked">
+        <label class="oe-label">Unguarded content value (per zone)</label>
+        <div class="oe-row" style="grid-template-columns: 1fr 90px auto;">
+            <input type="number" step="1000" min="0"
+                   placeholder="Auto (scalar)"
+                   value="@UnguardedContentValueText"
+                   @onchange="OnUnguardedContentValueChanged" />
+            <input type="number" step="50" min="0"
+                   placeholder="Auto (perArea)"
+                   value="@UnguardedContentValuePerAreaText"
+                   @onchange="OnUnguardedContentValuePerAreaChanged" />
+            <button type="button" class="oe-link-btn"
+                    @onclick="ClearUnguardedContentValueOverrides"
+                    disabled="@(!Settings.ZoneOverrides.UnguardedContentValue.HasValue && !Settings.ZoneOverrides.UnguardedContentValuePerArea.HasValue)">
+                Auto
+            </button>
+        </div>
+        <div class="oe-hint">
+            Scalar + per-area variants of <code>unguardedContentValue</code>. Empty =
+            generator default.
+        </div>
+    </div>
 </ExperimentalCard>
 
 <ExperimentalCard Key="encounter-holes" Title="Encounter holes (multi-stack battles)">
@@ -715,6 +783,94 @@
     private async Task ClearGuardRandomization()
     {
         Settings.ZoneOverrides.GuardRandomization = null;
+        await NotifyChanged();
+    }
+
+    // ── Per-zone content/resource value overrides (T-503) ────────────────────
+
+    private string ResourcesValueText =>
+        Settings.ZoneOverrides.ResourcesValue?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+
+    private string ResourcesValuePerAreaText =>
+        Settings.ZoneOverrides.ResourcesValuePerArea?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+
+    private string GuardedContentValueText =>
+        Settings.ZoneOverrides.GuardedContentValue?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+
+    private string GuardedContentValuePerAreaText =>
+        Settings.ZoneOverrides.GuardedContentValuePerArea?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+
+    private string UnguardedContentValueText =>
+        Settings.ZoneOverrides.UnguardedContentValue?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+
+    private string UnguardedContentValuePerAreaText =>
+        Settings.ZoneOverrides.UnguardedContentValuePerArea?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+
+    // 0 is a meaningful "no value" override distinct from null/unset, so we accept
+    // any non-negative integer and treat empty/whitespace as "clear the override".
+    private static int? ParseNullableNonNegativeInt(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        return int.TryParse(raw, System.Globalization.NumberStyles.Integer,
+                            System.Globalization.CultureInfo.InvariantCulture, out int v) && v >= 0
+            ? v
+            : null;
+    }
+
+    private async Task OnResourcesValueChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.ResourcesValue = ParseNullableNonNegativeInt(e.Value?.ToString());
+        await NotifyChanged();
+    }
+
+    private async Task OnResourcesValuePerAreaChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.ResourcesValuePerArea = ParseNullableNonNegativeInt(e.Value?.ToString());
+        await NotifyChanged();
+    }
+
+    private async Task OnGuardedContentValueChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.GuardedContentValue = ParseNullableNonNegativeInt(e.Value?.ToString());
+        await NotifyChanged();
+    }
+
+    private async Task OnGuardedContentValuePerAreaChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.GuardedContentValuePerArea = ParseNullableNonNegativeInt(e.Value?.ToString());
+        await NotifyChanged();
+    }
+
+    private async Task OnUnguardedContentValueChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.UnguardedContentValue = ParseNullableNonNegativeInt(e.Value?.ToString());
+        await NotifyChanged();
+    }
+
+    private async Task OnUnguardedContentValuePerAreaChanged(ChangeEventArgs e)
+    {
+        Settings.ZoneOverrides.UnguardedContentValuePerArea = ParseNullableNonNegativeInt(e.Value?.ToString());
+        await NotifyChanged();
+    }
+
+    private async Task ClearResourcesValueOverrides()
+    {
+        Settings.ZoneOverrides.ResourcesValue = null;
+        Settings.ZoneOverrides.ResourcesValuePerArea = null;
+        await NotifyChanged();
+    }
+
+    private async Task ClearGuardedContentValueOverrides()
+    {
+        Settings.ZoneOverrides.GuardedContentValue = null;
+        Settings.ZoneOverrides.GuardedContentValuePerArea = null;
+        await NotifyChanged();
+    }
+
+    private async Task ClearUnguardedContentValueOverrides()
+    {
+        Settings.ZoneOverrides.UnguardedContentValue = null;
+        Settings.ZoneOverrides.UnguardedContentValuePerArea = null;
         await NotifyChanged();
     }
 }
