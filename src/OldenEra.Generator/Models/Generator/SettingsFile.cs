@@ -53,6 +53,12 @@ namespace OldenEra.Generator.Models
     public sealed class SettingsFile
     {
         [JsonPropertyName("templateName")]      public string  TemplateName           { get; set; } = "Custom Template";
+        // T-504 — user-editable overrides for the auto-generated template fields.
+        // Empty string = generator default (BuildTemplateDescription / effective
+        // VictoryCondition id). Round-trip through SettingsShareCodec works
+        // because both fields are plain strings.
+        [JsonPropertyName("descriptionOverride")]         public string DescriptionOverride         { get; set; } = "";
+        [JsonPropertyName("displayWinConditionOverride")] public string DisplayWinConditionOverride { get; set; } = "";
         [JsonPropertyName("seed")]              public int?    Seed                   { get; set; } = null;
         [JsonPropertyName("mapSize")]           public int     MapSize                { get; set; } = 160;
         [JsonPropertyName("playerCount")]       public int     PlayerCount            { get; set; } = 2;

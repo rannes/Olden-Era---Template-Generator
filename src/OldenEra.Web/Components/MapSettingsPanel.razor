@@ -21,6 +21,18 @@
     </div>
 
     <div class="oe-stacked">
+        <label class="oe-label" for="tpldescription">Description (optional)</label>
+        <textarea id="tpldescription" rows="3"
+                  value="@Settings.Description"
+                  placeholder="Leave blank for auto-generated text"
+                  @oninput="OnDescriptionInput"></textarea>
+        <div class="oe-hint">
+            Overrides the auto-generated <code>description</code> field. Empty
+            falls back to the generator's summary (topology, zone counts, etc.).
+        </div>
+    </div>
+
+    <div class="oe-stacked">
         <label class="oe-label" for="mapsize">Map Size</label>
         <div class="oe-mapsize-row">
             <div class="oe-field @MapSizeClass">
@@ -123,6 +135,12 @@
     private async Task OnTemplateNameInput(ChangeEventArgs e)
     {
         Settings.TemplateName = e.Value?.ToString() ?? "";
+        await OnChanged.InvokeAsync();
+    }
+
+    private async Task OnDescriptionInput(ChangeEventArgs e)
+    {
+        Settings.Description = e.Value?.ToString() ?? "";
         await OnChanged.InvokeAsync();
     }
 

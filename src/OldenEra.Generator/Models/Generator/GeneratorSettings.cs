@@ -494,6 +494,23 @@ namespace OldenEra.Generator.Models
         public int MapSize { get; set; } = 160;
 
         /// <summary>
+        /// Optional user override for <c>RmgTemplate.description</c>. Empty / null
+        /// = generator default (auto-built from settings via
+        /// <c>BuildTemplateDescription</c>). When non-empty, the value is emitted
+        /// verbatim — no auto-formatting, no trimming. Multi-line strings are
+        /// preserved exactly as authored. T-504.
+        /// </summary>
+        public string Description { get; set; } = "";
+
+        /// <summary>
+        /// Optional user override for <c>RmgTemplate.displayWinCondition</c>.
+        /// Empty / null = generator default (the effective <c>VictoryCondition</c>
+        /// id, e.g. <c>"win_condition_1"</c>). When non-empty, the value is
+        /// emitted verbatim. Single-line. T-504.
+        /// </summary>
+        public string DisplayWinCondition { get; set; } = "";
+
+        /// <summary>
         /// Optional deterministic seed. Null = non-deterministic (system random).
         /// </summary>
         public int? Seed { get; set; } = null;

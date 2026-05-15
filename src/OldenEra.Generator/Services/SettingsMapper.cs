@@ -84,6 +84,9 @@ public static class SettingsMapper
         var settings = new GeneratorSettings
         {
             TemplateName = string.IsNullOrEmpty(s.TemplateName) ? "Custom Template" : s.TemplateName,
+            // T-504 — user overrides; "" = auto-generated. Pass through verbatim.
+            Description = s.DescriptionOverride ?? "",
+            DisplayWinCondition = s.DisplayWinConditionOverride ?? "",
             GameMode = string.IsNullOrEmpty(s.GameMode) ? "Classic" : s.GameMode,
             MapSize = s.MapSize,
             PlayerCount = s.PlayerCount,
@@ -326,6 +329,9 @@ public static class SettingsMapper
         var file = new SettingsFile
         {
             TemplateName = g.TemplateName,
+            // T-504 — user overrides; "" = auto-generated.
+            DescriptionOverride         = g.Description ?? "",
+            DisplayWinConditionOverride = g.DisplayWinCondition ?? "",
             MapSize = g.MapSize,
             PlayerCount = g.PlayerCount,
             NeutralZoneCount = g.ZoneCfg.NeutralZoneCount,

@@ -181,6 +181,9 @@ namespace OldenEra.TemplateEditor
 
             PnlMap.TxtTemplateName.TextChanged += (_, _) => { MarkDirtyNameOnly(); Validate(); };
             PnlMap.TxtSeed.TextChanged += (_, _) => { MarkDirty(); Validate(); };
+            // T-504 — overrides for the auto-generated description / displayWinCondition.
+            PnlMap.TxtTemplateDescription.TextChanged += (_, _) => MarkDirty();
+            PnlGameRules.TxtDisplayWinCondition.TextChanged += (_, _) => MarkDirty();
             UpdateTitle();
             TxtWindowTitle.Text = Title;
         }
@@ -880,6 +883,10 @@ namespace OldenEra.TemplateEditor
             return new SettingsFile
         {
             TemplateName          = PnlMap.TxtTemplateName.Text.Trim(),
+            // T-504 — overrides preserved verbatim (no trim) so multi-line and
+            // surrounding whitespace round-trip exactly.
+            DescriptionOverride         = PnlMap.TxtTemplateDescription.Text ?? "",
+            DisplayWinConditionOverride = PnlGameRules.TxtDisplayWinCondition.Text ?? "",
             Seed                  = int.TryParse(PnlMap.TxtSeed.Text, out var gatheredSeed) ? gatheredSeed : (int?)null,
             MapSize               = SelectedMapSize(),
             PlayerCount           = (int)PnlMap.SldPlayers.Value,
@@ -1179,6 +1186,9 @@ namespace OldenEra.TemplateEditor
         private void ApplySettings(SettingsFile s)
         {
             PnlMap.TxtTemplateName.Text    = s.TemplateName;
+            // T-504 — load overrides verbatim.
+            PnlMap.TxtTemplateDescription.Text     = s.DescriptionOverride ?? "";
+            PnlGameRules.TxtDisplayWinCondition.Text = s.DisplayWinConditionOverride ?? "";
             PnlMap.TxtSeed.Text            = s.Seed?.ToString() ?? "";
             bool hasCustomZoneSizes = Math.Abs(s.PlayerZoneSize - 1.0) > 0.0001 || Math.Abs(s.NeutralZoneSize - 1.0) > 0.0001;
             bool needsExperimentalMapSizes = s.ExperimentalMapSizes || KnownValues.IsExperimentalMapSize(s.MapSize);
@@ -1743,6 +1753,9 @@ namespace OldenEra.TemplateEditor
             return new GeneratorSettings
         {
             TemplateName = PnlMap.TxtTemplateName.Text.Trim(),
+            // T-504 — leave verbatim. Empty string falls back to auto-generation.
+            Description = PnlMap.TxtTemplateDescription.Text ?? "",
+            DisplayWinCondition = PnlGameRules.TxtDisplayWinCondition.Text ?? "",
             Seed = int.TryParse(PnlMap.TxtSeed.Text, out var builtSeed) ? builtSeed : (int?)null,
             GameMode = CmbGameMode.SelectedItem as string ?? "Classic",
             PlayerCount = (int)PnlMap.SldPlayers.Value,
