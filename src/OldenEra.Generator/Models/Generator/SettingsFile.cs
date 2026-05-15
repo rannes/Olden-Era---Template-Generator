@@ -180,6 +180,12 @@ namespace OldenEra.Generator.Models
         [JsonPropertyName("zoneGuardedContentValuePerArea")]  public int? ZoneGuardedContentValuePerArea  { get; set; }
         [JsonPropertyName("zoneUnguardedContentValue")]       public int? ZoneUnguardedContentValue       { get; set; }
         [JsonPropertyName("zoneUnguardedContentValuePerArea")] public int? ZoneUnguardedContentValuePerArea { get; set; }
+        // T-508 — per-template overrides for random-hire creature growth.
+        // CSV-encoded so SettingsShareCodec's value-equality non-default check
+        // keeps working (List<> would silently break per-field recovery).
+        // Bool list: comma-separated "true"/"false" tokens. Int list: ints.
+        [JsonPropertyName("zoneRandomHireEnableWeeklyUnitIncrement")] public string ZoneRandomHireEnableWeeklyUnitIncrement { get; set; } = "";
+        [JsonPropertyName("zoneRandomHireInitialUnitIncrement")]      public string ZoneRandomHireInitialUnitIncrement      { get; set; } = "";
 
         // T-201 — encounter-holes (multi-stack battles). Disabled by default;
         // existing snapshots stay byte-identical. When enabled, GameRules.encounterHoles

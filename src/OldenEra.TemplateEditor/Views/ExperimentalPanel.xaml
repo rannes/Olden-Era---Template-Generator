@@ -491,6 +491,9 @@
                                 <RowDefinition Height="6"/>     <!-- 27 spacer -->
                                 <RowDefinition Height="Auto"/>  <!-- 28 Unguarded content value (scalar) label/box (T-503) -->
                                 <RowDefinition Height="Auto"/>  <!-- 29 Unguarded content value perArea label/box (T-503) -->
+                                <RowDefinition Height="6"/>     <!-- 30 spacer -->
+                                <RowDefinition Height="Auto"/>  <!-- 31 Random-hire enable weekly increment (T-508) -->
+                                <RowDefinition Height="Auto"/>  <!-- 32 Random-hire initial unit increment (T-508) -->
                             </Grid.RowDefinitions>
                             <Label   Grid.Row="0" Grid.Column="0" Content="Diplomacy modifier" Padding="5,2"/>
                             <TextBox Grid.Row="0" Grid.Column="1" x:Name="TxtZoneDiplomacy" ToolTip="Empty = generator default (-0.5). Range -1.0 … 1.0."/>
@@ -562,6 +565,13 @@
                             <Label   Grid.Row="29" Grid.Column="0" Content="Unguarded content value / area" Padding="5,2"/>
                             <TextBox Grid.Row="29" Grid.Column="1" x:Name="TxtZoneUnguardedContentValuePerArea"
                                      ToolTip="Override unguardedContentValuePerArea. Empty = generator default."/>
+                            <!-- T-508: per-zone random-hire creature growth. CSV per difficulty (7 entries: Beginner…Heroic). -->
+                            <Label   Grid.Row="31" Grid.Column="0" Content="Random-hire weekly enabled" Padding="5,2"/>
+                            <TextBox Grid.Row="31" Grid.Column="1" x:Name="TxtZoneRandomHireEnableWeekly"
+                                     ToolTip="randomHireEnableWeeklyUnitIncrement per difficulty. Comma-separated true/false (typically 7 entries: Beginner…Heroic). Empty = field omitted."/>
+                            <Label   Grid.Row="32" Grid.Column="0" Content="Random-hire initial increment" Padding="5,2"/>
+                            <TextBox Grid.Row="32" Grid.Column="1" x:Name="TxtZoneRandomHireInitial"
+                                     ToolTip="randomHireInitialUnitIncrement per difficulty. Comma-separated ints (typically 7 entries). Empty = field omitted."/>
                         </Grid>
                     </StackPanel>
                 </Expander>

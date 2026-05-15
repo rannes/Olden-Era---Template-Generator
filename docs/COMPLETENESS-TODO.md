@@ -13,7 +13,7 @@ Phase 5–8 rescan summary:
 - Partially shipped (need narrowing rather than full build): **T-503**,
   **T-504**, **T-506**, **T-801**. Scope sections now spell out exactly what
   remains.
-- Genuinely open: T-508, T-509; all of Phase 6 (T-601 → T-606);
+- Genuinely open: T-509; all of Phase 6 (T-601 → T-606);
   all of Phase 7 (T-701 → T-705); T-802 → T-808.
 
 ---
@@ -160,16 +160,26 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   (`TemplateGenerator.cs:2808-2811`). No work needed.
 
 ### T-508 — Zone randomHire weekly/initial unit increment
-- **Status:** open
-- **Owner:** —
+- **Status:** done (PR TBA)
+- **Owner:** Claude
 - **Effort:** S
-- **Files:** `Zone.cs` (add fields), `TemplateGenerator.cs`,
-  `GeneratorSettings.cs`, UI hosts.
-- **Scope:** Templates in the Maze/Massacre family use
-  `randomHireEnableWeeklyUnitIncrement` + `randomHireInitialUnitIncrement` to
-  tune random-hire creature growth. Add the fields, surface them where the
-  per-zone hire pool is configured.
-- **Acceptance:** Round-trip on a template that uses them. Default omits.
+- **Files:** `Zone.cs` (added `RandomHireEnableWeeklyUnitIncrement` /
+  `RandomHireInitialUnitIncrement`, both `List<bool/int>?` per-difficulty
+  arrays, JsonIgnore-when-null); `GeneratorSettings.cs` →
+  `ZoneOverridesSettings` (empty list = unset, mirroring T-006/T-503
+  list-overrides); `SettingsFile.cs` (CSV strings for share-codec safety);
+  `SettingsMapper.cs` (CSV codecs both directions, malformed → empty);
+  `TemplateGenerator.ApplyZoneOverrides` (clone-per-zone stamp); WPF
+  `ExperimentalPanel.xaml` + `MainWindow.xaml.cs`; Web
+  `ExperimentalZonePanel.razor` (text inputs + Auto clear).
+- **Scope:** Templates in the Arcade/Junction/Universe/All Around/Infinity
+  family use `randomHireEnableWeeklyUnitIncrement` (bool[7]) +
+  `randomHireInitialUnitIncrement` (int[7]) per Zone to tune random-hire
+  creature growth.
+- **Acceptance:** Verified by `ZoneRandomHireOverridesTests`: round-trip
+  parses Arcade.rmg.json with both 7-entry arrays preserved exactly; default
+  emission omits both fields and stays byte-identical across every preset
+  in the catalog; mapper + share-codec round-trip; malformed CSV → empty.
 
 ### T-509 — MainObject schema completion (owner, isKeyObject, unit-increment, factions list)
 - **Status:** open
