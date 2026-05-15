@@ -334,6 +334,8 @@
                             <RowDefinition Height="Auto"/>   <!-- T-705 topology stats -->
                             <RowDefinition Height="8"/>
                             <RowDefinition Height="Auto"/>   <!-- T-704 fairness audit -->
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>   <!-- T-805 preset diff -->
                         </Grid.RowDefinitions>
 
                         <Button Grid.Row="0"
@@ -496,6 +498,9 @@
 
                         <views:FairnessPanel Grid.Row="18"
                                              x:Name="PnlFairness"/>
+
+                        <views:PresetDiffPanel Grid.Row="20"
+                                               x:Name="PnlPresetDiff"/>
                     </Grid>
                 </Grid>
 

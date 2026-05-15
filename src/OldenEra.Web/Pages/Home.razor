@@ -166,6 +166,11 @@
             <TopologyPanel Template="GeneratedTemplate" />
             <FairnessPanel Template="GeneratedTemplate" />
 
+            @* T-805 — hidden until the user has loaded a preset this session. *@
+            <PresetDiffPanel PresetSnapshot="LoadedPresetSnapshot"
+                             PresetName="@LoadedPresetName"
+                             Current="GetCurrentSettingsForPreset()" />
+
             @if (GeneratedTemplate is not null)
             {
                 <div class="oe-hint oe-seed-used">
@@ -540,6 +545,13 @@
 
     private bool IsPresetPickerOpen;
 
+    // T-805 — snapshot of the last preset loaded in this session, plus its
+    // display name. Both null until the user picks a preset; PresetDiffPanel
+    // hides itself when null. Cleared by Open... and share-link load paths so
+    // the diff doesn't claim a comparison the user can't see in the picker.
+    private SettingsFile? LoadedPresetSnapshot;
+    private string LoadedPresetName = "";
+
     private void OpenPresetPicker() => IsPresetPickerOpen = true;
 
     private async Task OnPresetPicked(string id)
@@ -547,6 +559,12 @@
         try
         {
             var s = PresetCatalog.Load(id);
+            // Take the snapshot BEFORE Apply so it captures pristine preset
+            // values, even if ApplyLoadedSettingsAsync round-trips through
+            // SettingsMapper.ToFile (which can normalize some fields).
+            var entry = PresetCatalog.Entries.FirstOrDefault(e => e.Id == id);
+            LoadedPresetSnapshot = PresetCatalog.Load(id); // fresh deserialization
+            LoadedPresetName = entry?.Name ?? id;
             await ApplyLoadedSettingsAsync(s);
         }
         catch (Exception ex)
@@ -565,6 +583,10 @@
                 await FlashToast($"User preset '{name}' is empty or missing.");
                 return;
             }
+            // T-805 — user presets count as "loaded preset" for the diff too.
+            // Reload to get an independent snapshot.
+            LoadedPresetSnapshot = await UserPresetStore.LoadAsync(name);
+            LoadedPresetName = name;
             await ApplyLoadedSettingsAsync(s);
         }
         catch (Exception ex)
