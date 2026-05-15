@@ -315,6 +315,28 @@ public class ExperimentalSettingsTests
     }
 
     [Fact]
+    public void SettingsMapper_FixedStartingHeroByFaction_RoundTrips()
+    {
+        // T-808: pinned starting hero per faction is now editable in both
+        // hosts. Regression-lock the round-trip end-to-end so the dictionary
+        // survives ToFile → FromFile → JSON → FromFile without mutation.
+        var g = new GeneratorSettings();
+        g.HeroSettings.FixedStartingHeroByFaction["temple"] = "hero_artur";
+        g.HeroSettings.FixedStartingHeroByFaction["necropolis"] = "hero_isadora";
+        // null entries (clear-pin sentinel) must serialize but FromFile may
+        // collapse them out — only assert the populated keys round-trip.
+        g.HeroSettings.FixedStartingHeroByFaction["dungeon"] = null;
+
+        var file = SettingsMapper.ToFile(g, advancedMode: false, experimentalMapSizes: false);
+        string json = JsonSerializer.Serialize(file);
+        var deserialized = JsonSerializer.Deserialize<SettingsFile>(json)!;
+        var (back, _, _, _) = SettingsMapper.FromFile(deserialized);
+
+        Assert.Equal("hero_artur", back.HeroSettings.FixedStartingHeroByFaction["temple"]);
+        Assert.Equal("hero_isadora", back.HeroSettings.FixedStartingHeroByFaction["necropolis"]);
+    }
+
+    [Fact]
     public void SettingsMapper_BordersRoads_RoundTrips()
     {
         var original = new GeneratorSettings
