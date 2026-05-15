@@ -1,5 +1,7 @@
 @* Experimental zone-level capabilities, each in its own collapsible card. *@
 
+@using OldenEra.Generator.Services
+
 <ExperimentalCard Key="terrain" Title="Terrain density">
     <div class="oe-hint">
         0% = generator default. Obstacles add chokepoints; lakes add water cover.
@@ -123,10 +125,11 @@
     </div>
     @* T-501: per-template default for Connection.guardRandomization. *@
     <div class="oe-stacked">
-        <label class="oe-label">Guard randomization</label>
+        <label class="oe-label" title="@Help.For(FieldHelpKeys.ConnectionDefaultsGuardRandomization)">Guard randomization</label>
         <div class="oe-row" style="grid-template-columns: 1fr auto;">
             <input type="number" step="0.05" min="0" max="1"
                    placeholder="Auto (unset)"
+                   title="@Help.For(FieldHelpKeys.ConnectionDefaultsGuardRandomization)"
                    value="@ConnectionGuardRandomizationText"
                    @onchange="OnConnectionGuardRandomizationChanged" />
             <button type="button" class="oe-link-btn"
@@ -357,10 +360,11 @@
         </div>
     </div>
     <div class="oe-stacked">
-        <label class="oe-label">Guard randomization</label>
+        <label class="oe-label" title="@Help.For(FieldHelpKeys.ZoneOverridesGuardRandomization)">Guard randomization</label>
         <div class="oe-row" style="grid-template-columns: 1fr auto;">
             <input type="number" step="0.05" min="0" max="1"
                    placeholder="Auto (uses global slider, default 0.05)"
+                   title="@Help.For(FieldHelpKeys.ZoneOverridesGuardRandomization)"
                    value="@GuardRandomizationText"
                    @onchange="OnGuardRandomizationChanged" />
             <button type="button" class="oe-link-btn"
@@ -484,9 +488,10 @@
         Per-zone overrides ship the same numbers uniformly today; per-zone tuning
         is deferred (T-201 follow-up).
     </div>
-    <label class="oe-checkbox">
+    <label class="oe-checkbox" title="@Help.For(FieldHelpKeys.EncounterHolesEnabled)">
         <input type="checkbox"
                checked="@Settings.EncounterHoles.Enabled"
+               title="@Help.For(FieldHelpKeys.EncounterHolesEnabled)"
                @onchange="@(e => { Settings.EncounterHoles.Enabled = (bool)(e.Value ?? false); NotifyChanged(); })" />
         Enable encounter holes
     </label>
@@ -494,10 +499,12 @@
     {
         <SliderRow Label="Affected encounters" WideLabel="true"
                    Min="0" Max="100" Step="1" Suffix="%"
+                   Tooltip="@Help.For(FieldHelpKeys.EncounterHolesAffectedEncounters)"
                    Value="(int)Math.Round(Settings.EncounterHoles.AffectedEncounters * 100)"
                    ValueChanged="@(v => { Settings.EncounterHoles.AffectedEncounters = v / 100.0; NotifyChanged(); })" />
         <SliderRow Label="Two-hole encounters" WideLabel="true"
                    Min="0" Max="100" Step="1" Suffix="%"
+                   Tooltip="@Help.For(FieldHelpKeys.EncounterHolesTwoHoleEncounters)"
                    Value="(int)Math.Round(Settings.EncounterHoles.TwoHoleEncounters * 100)"
                    ValueChanged="@(v => { Settings.EncounterHoles.TwoHoleEncounters = v / 100.0; NotifyChanged(); })" />
     }
@@ -521,6 +528,9 @@
     [Parameter] public EventCallback<bool> ZoneContentCompareDefaultsChanged { get; set; }
 
     private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    // T-803: shared field-help catalog for inline tooltips.
+    private static readonly FieldHelpCatalog Help = FieldHelpCatalog.Default;
 
     private async Task AddLimit()
     {

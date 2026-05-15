@@ -1,0 +1,74 @@
+# Inline field help (T-803).
+#
+# Format: simple `<key>: <one-line help>` lines. No nesting, no quotes, no
+# multi-line strings. The YAML is read at startup by both UI hosts (via
+# `OldenEra.Generator.Services.FieldHelpCatalog`) and surfaced as a `title=`
+# attribute on the matching Web input/label and as a WPF `ToolTip` on the
+# equivalent control.
+#
+# Keys mirror `ValidationFieldKeys` ids where one already exists; new
+# documentation-only keys are added under `FieldHelpKeys` and follow the same
+# `category.subcategory.field` dotted shape. Keep messages short — one
+# sentence, plain English, no emoji. Lines starting with `#` are comments;
+# blank lines are ignored.
+#
+# When this file is missing, malformed, or a key is absent, the catalog falls
+# back to null and the host renders no tooltip — default behavior is
+# unchanged.
+
+# ── Map basics ────────────────────────────────────────────────────────────
+template.name: The display name embedded in the .rmg.json. Saved as `name`; appears in the in-game template picker.
+map.size: Edge length of the square map in cells. Stock templates ship 96–240; values above 240 are flagged experimental and may freeze the engine.
+map.players: Number of human/AI player slots. Each slot gets its own player zone; total zones (players + neutral) cannot exceed the engine cap of 32.
+topology: Connection layout used to wire zones together. Balanced spreads zones evenly; Hub-and-Spoke adds a central hub zone; Linear/Cyclic place zones in a chain or ring.
+seed: Optional integer seed. Same seed plus same settings produce the same map; leave blank for a non-deterministic generation.
+
+# ── Zones (basic) ─────────────────────────────────────────────────────────
+zones.neutral.count: Number of unowned zones placed between players. More neutrals add exploration time and buffer player conflict.
+zones.total: Total zone count (players + neutrals, plus the hub zone in Hub-and-Spoke topology). Capped at 32 by the engine.
+zones.player.castles: Castles placed in each player's starting zone. Stock templates use 1; values above 1 with >10 total zones can freeze the engine while loading.
+zones.minSeparation: Minimum number of neutral zones the layout must place between any two player zones. Honored only when the topology, neutral count, and portal settings make it geometrically possible.
+zones.player.size: Size multiplier applied to player zones in advanced mode. 1.0x is the engine default; lower values shrink the home zone, higher values widen it.
+zones.neutral.size: Size multiplier applied to neutral zones in advanced mode. 1.0x is the engine default.
+
+# ── Guards ────────────────────────────────────────────────────────────────
+guards.randomization: How much each guard's strength varies from its zone target. 0% means every guard hits the target exactly; 50% allows up to half-strength swing in either direction.
+guards.multiplier: Multiplier applied to the zone's base guard target. 1.0x is the engine default; raise to make a zone tougher than its tier.
+connection.guardRandomization: Per-connection override for guard randomization on monoliths/portals between zones. Leave blank to inherit the template default.
+connection.defaults.guardRandomization: Template-wide default for connection guard randomization. Each connection inherits this unless it sets its own value.
+
+# ── Heroes ────────────────────────────────────────────────────────────────
+hero.minMax: Minimum and maximum number of heroes the engine may place per player. Min cannot exceed Max.
+hero.bans: Heroes excluded from random selection. Banning every hero of a faction can leave that faction without a starting hero.
+hero.fixedStarting: Pin a specific hero as the starting hero for a faction. The pinned hero cannot also be in the ban list.
+hero.lighting: Whether each hero illuminates terrain at night. Off matches the original Heroes 3 black-fog behavior; on matches modern Olden Era defaults.
+hero.lightingDay: Whether heroes also illuminate terrain during the day. Most templates leave this on.
+
+# ── Win conditions / game rules ───────────────────────────────────────────
+gameRules.cityHold: Hold-city victory condition. Requires at least one neutral zone (or the Hub topology) so the engine has a place to put the hold city.
+gameRules.victoryCondition: Engine win-condition id. `win_condition_5` is City Hold; `win_condition_6` is Tournament (exactly 2 players).
+
+# ── Bonuses ───────────────────────────────────────────────────────────────
+bonuses.perPlayerOverrides: Per-slot starting bonus overrides. Out-of-range slots, duplicates, and empty rows are ignored at emit time.
+
+# ── Zone content ──────────────────────────────────────────────────────────
+zoneContent.pool: Combined SID and content-list pool reachable from this template. The validator warns when categories the engine usually relies on (mines, shrines, banks, tier-7 dwellings) cannot be reached.
+zoneContent.includeLists: Pre-built content lists that pull bundles of objects (e.g. `units_banks`, `random_hires_tier_7`) into the zone. Leave empty to use only explicit SIDs.
+zoneContent.density: Multiplier on the zone's content budget. 1.0x is the engine default; lower values declutter the zone, higher values pack more objects in.
+
+# ── Borders & roads ───────────────────────────────────────────────────────
+borders.water: Width of the water border around the map. 0 disables the water frame entirely.
+borders.noise: Amount of jitter applied to border edges. Higher values produce craggier coastlines.
+roads.style: Engine road preset (cobblestone, dirt, gravel). Affects movement cost and visual style.
+roads.density: How aggressively the generator runs roads between zones. 0 disables roads; higher values link more zones.
+
+# ── Experimental ──────────────────────────────────────────────────────────
+encounterHoles.enabled: When on, the generator pokes occasional gaps into encounter formations so guards drop fewer items than their value suggests. Experimental.
+encounterHoles.affectedEncounters: Fraction of encounters that receive a hole. 0.0 keeps every encounter intact; 1.0 punches a hole in every encounter.
+encounterHoles.twoHoleEncounters: Fraction of holed encounters that receive a second hole. Stacks on top of the per-encounter rate.
+zoneOverrides.guardRandomization: Per-zone override for guard randomization. Leave blank to inherit the global advanced-mode value.
+zoneOverrides.guardMultiplier: Per-zone override for guard strength multiplier. Leave blank to inherit the zone's tier default.
+
+# ── Catalog / preview ─────────────────────────────────────────────────────
+preview.zoom: Zoom level for the on-screen preview. Does not affect the generated .rmg.json.
+preset.load: Replace current settings with a built-in template preset. Local edits are discarded.

@@ -1,13 +1,16 @@
 @* Template name, map size, experimental sizes toggle, player count. *@
 
+@using OldenEra.Generator.Services
+
 <div class="oe-section">
     <div class="oe-section-header">Template</div>
 
     <div class="oe-stacked">
-        <label class="oe-label" for="tplname">Template Name</label>
+        <label class="oe-label" for="tplname" title="@Help.For(ValidationFieldKeys.TemplateName)">Template Name</label>
         <div class="oe-field @TplNameClass">
             <input id="tplname" type="text"
                    @ref="_tplNameInput"
+                   title="@Help.For(ValidationFieldKeys.TemplateName)"
                    value="@Settings.TemplateName"
                    aria-invalid="@(HasBlocker(ValidationFieldKeys.TemplateName) ? "true" : "false")"
                    aria-describedby="@(HasIssue(ValidationFieldKeys.TemplateName) ? "tplname-msg" : null)"
@@ -33,10 +36,11 @@
     </div>
 
     <div class="oe-stacked">
-        <label class="oe-label" for="mapsize">Map Size</label>
+        <label class="oe-label" for="mapsize" title="@Help.For(ValidationFieldKeys.MapSize)">Map Size</label>
         <div class="oe-mapsize-row">
             <div class="oe-field @MapSizeClass">
                 <select id="mapsize" @bind="MapSize" @bind:after="NotifyChanged"
+                        title="@Help.For(ValidationFieldKeys.MapSize)"
                         aria-invalid="@(HasBlocker(ValidationFieldKeys.MapSize) ? "true" : "false")"
                         aria-describedby="@(HasIssue(ValidationFieldKeys.MapSize) ? "mapsize-msg" : null)">
                     @foreach (int size in AvailableMapSizes)
@@ -91,6 +95,7 @@
     <div class="oe-field @PlayersClass">
         <SliderRow Label="Players"
                    Min="2" Max="8" Step="1"
+                   Tooltip="@Help.For(ValidationFieldKeys.PlayerCount)"
                    Value="Settings.PlayerCount"
                    ValueChanged="@(v => { Settings.PlayerCount = (int)v; OnChanged.InvokeAsync(); })" />
     </div>
@@ -167,6 +172,9 @@
     }
 
     private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    // T-803: shared field-help catalog for inline tooltips.
+    private static readonly FieldHelpCatalog Help = FieldHelpCatalog.Default;
 
     // T-303 follow-up: after a one-click fix, move focus back to the now-fixed
     // control so screen-reader users aren't dropped on <body>.

@@ -38,6 +38,7 @@ public partial class ExperimentalPanel : UserControl
     public ExperimentalPanel()
     {
         InitializeComponent();
+        AttachFieldHelp();
         PopulateBanUnitPicker();
 
         // Populate building-preset combos. Index 0 = "(default)".
@@ -125,6 +126,24 @@ public partial class ExperimentalPanel : UserControl
         SldLowTierLakes.ValueChanged    += (_, _) => TxtLowTierLakes.Text    = ((int)SldLowTierLakes.Value).ToString();
         SldMediumTierLakes.ValueChanged += (_, _) => TxtMediumTierLakes.Text = ((int)SldMediumTierLakes.Value).ToString();
         SldHighTierLakes.ValueChanged   += (_, _) => TxtHighTierLakes.Text   = ((int)SldHighTierLakes.Value).ToString();
+    }
+
+    // T-803: pull tooltips from docs/field-help.yaml so the WPF host shows
+    // the same inline help as the Web build for the obscure flags called out
+    // in the task scope (encounter holes, per-zone/per-connection guard
+    // randomization).
+    private void AttachFieldHelp()
+    {
+        OldenEra.TemplateEditor.Services.FieldHelpAttacher.Attach(
+            ChkEncounterHolesEnabled, FieldHelpKeys.EncounterHolesEnabled);
+        OldenEra.TemplateEditor.Services.FieldHelpAttacher.Attach(
+            SldEncounterHolesAffected, FieldHelpKeys.EncounterHolesAffectedEncounters);
+        OldenEra.TemplateEditor.Services.FieldHelpAttacher.Attach(
+            SldEncounterHolesTwoHole, FieldHelpKeys.EncounterHolesTwoHoleEncounters);
+        OldenEra.TemplateEditor.Services.FieldHelpAttacher.Attach(
+            TxtConnectionGuardRandomization, FieldHelpKeys.ConnectionDefaultsGuardRandomization);
+        OldenEra.TemplateEditor.Services.FieldHelpAttacher.Attach(
+            TxtZoneGuardRandomization, FieldHelpKeys.ZoneOverridesGuardRandomization);
     }
 
     /// <summary>
