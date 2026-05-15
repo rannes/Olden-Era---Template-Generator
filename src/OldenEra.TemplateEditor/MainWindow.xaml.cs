@@ -1708,6 +1708,7 @@ namespace OldenEra.TemplateEditor
             PnlValueBudget.Update(_generatedTemplate); // T-701
             PnlGuardChart.Update(_generatedTemplate); // T-702
             PnlTopologyStats.Update(_generatedTemplate); // T-705
+            PnlFairness.Update(_generatedTemplate); // T-704
             PnlMap.TxtSeedUsed.Text = settings.Seed.HasValue
                 ? $"Seed used: {settings.Seed.Value}"
                 : "Seed used: (random — set a seed to reproduce)";
