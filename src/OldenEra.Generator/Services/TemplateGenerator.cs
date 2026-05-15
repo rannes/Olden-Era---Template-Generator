@@ -330,7 +330,10 @@ namespace OldenEra.Generator.Services
             bool hasGuarded = o.GuardedContentPool is { Count: > 0 };
             bool hasUnguarded = o.UnguardedContentPool is { Count: > 0 };
             bool hasLimits = o.ContentCountLimitRefs is { Count: > 0 };
-            if (!hasDip && !hasXr && !hasBiome && !hasMetaBiome && !hasCutoff && !hasGuarded && !hasUnguarded && !hasLimits)
+            bool hasGuardMultiplier = o.GuardMultiplier.HasValue;
+            bool hasGuardRandomization = o.GuardRandomization.HasValue;
+            if (!hasDip && !hasXr && !hasBiome && !hasMetaBiome && !hasCutoff && !hasGuarded && !hasUnguarded && !hasLimits
+                && !hasGuardMultiplier && !hasGuardRandomization)
                 return;
 
             BiomeSelector? biome = hasBiome ? BuildBiomeOverride(o.ContentBiomeType, o.ContentBiomeArg) : null;
@@ -367,6 +370,11 @@ namespace OldenEra.Generator.Services
                     if (hasGuarded) zone.GuardedContentPool = new List<string>(o.GuardedContentPool);
                     if (hasUnguarded) zone.UnguardedContentPool = new List<string>(o.UnguardedContentPool);
                     if (hasLimits) zone.ContentCountLimits = new List<string>(o.ContentCountLimitRefs);
+                    // T-502: per-template overrides for the per-zone guard scalars.
+                    // Stamp verbatim — the override replaces the generator's
+                    // computed (tier/profile + tuning-scale) value.
+                    if (hasGuardMultiplier) zone.GuardMultiplier = o.GuardMultiplier;
+                    if (hasGuardRandomization) zone.GuardRandomization = o.GuardRandomization;
                 }
             }
         }
