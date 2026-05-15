@@ -319,7 +319,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   unit tests.
 
 ### T-703 — Content-pool sanity warnings (validator extension)
-- **Status:** done (PR TBD)
+- **Status:** done (#68)
 - **Owner:** Claude
 - **Effort:** S
 - **Files:** `Services/SettingsValidator.cs`, validator UI surface.
