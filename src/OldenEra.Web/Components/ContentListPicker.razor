@@ -20,12 +20,24 @@
     <div class="oe-cl-grid">
         <div class="oe-cl-catalog">
             <label class="oe-label">Add from catalog</label>
+            @* T-804: substring filter for the catalog list. *@
+            <input type="search"
+                   class="oe-picker-search"
+                   placeholder="Search content lists…"
+                   aria-label="Search content lists"
+                   disabled="@ReadOnly"
+                   value="@Filter"
+                   @oninput="@(e => Filter = e.Value?.ToString() ?? string.Empty)" />
             <select size="8" disabled="@ReadOnly" @onchange="OnAdd">
                 <option value="">— pick to add —</option>
                 @foreach (var group in ContentListCatalog.Grouped())
                 {
+                    var matches = group
+                        .Where(e => PickerFilter.Matches(Filter, e.Display, e.Id))
+                        .ToList();
+                    if (matches.Count == 0) continue;
                     <optgroup label="@group.Key">
-                        @foreach (var entry in group)
+                        @foreach (var entry in matches)
                         {
                             <option value="@entry.Id" disabled="@(Selected.Contains(entry.Id))">@entry.Display</option>
                         }
@@ -69,6 +81,9 @@
     [Parameter, EditorRequired] public List<string> Selected { get; set; } = new();
     [Parameter] public EventCallback OnChanged { get; set; }
     [Parameter] public bool ReadOnly { get; set; }
+
+    // T-804: substring filter for the catalog. Empty = unfiltered (prior behavior).
+    private string Filter { get; set; } = string.Empty;
 
     private async Task OnAdd(ChangeEventArgs e)
     {
