@@ -402,7 +402,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   in-memory clone.
 
 ### T-803 — Inline field help (tooltips driven by docs YAML)
-- **Status:** done (PR TBD)
+- **Status:** done — https://github.com/rannes/olden-era-templates/pull/71
 - **Owner:** —
 - **Effort:** M
 - **Files:** New `docs/field-help.yaml`, tooltip components in both hosts.
