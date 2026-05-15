@@ -139,13 +139,73 @@ namespace OldenEra.Generator.Services
         [property: JsonPropertyName("might")] string MightClass,
         [property: JsonPropertyName("magic")] string MagicClass);
 
+    /// <summary>
+    /// Catalog entry for a hero. The first six members
+    /// (<see cref="Id"/>, <see cref="Faction"/>, <see cref="Kind"/>,
+    /// <see cref="Name"/>, <see cref="Specialty"/>,
+    /// <see cref="SpecialtyDescription"/>) are positional and MUST NOT be
+    /// reordered — existing pickers and tests depend on positional
+    /// construction. Stat/army/skill payload (T-603) is appended.
+    /// </summary>
     public sealed record HeroEntry(
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("faction")] string Faction,
         [property: JsonPropertyName("kind")] string Kind,
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("specialty")] string? Specialty,
-        [property: JsonPropertyName("specDesc")] string? SpecialtyDescription);
+        [property: JsonPropertyName("specDesc")] string? SpecialtyDescription,
+        // ── T-603: starter loadout from heroes.json ─────────────────────────
+        [property: JsonPropertyName("specId")] string? SpecId = null,
+        [property: JsonPropertyName("armyScore")] int ArmyScore = 0,
+        [property: JsonPropertyName("stats")] HeroStats? Stats = null,
+        [property: JsonPropertyName("skills")] IReadOnlyList<string>? Skills = null,
+        [property: JsonPropertyName("army")] string? Army = null)
+    {
+        /// <summary>
+        /// Compact picker tooltip. Lists specialty (existing behaviour),
+        /// the A/D/P/K stat line, the starter army-score, and the starter
+        /// skill loadout. T-803 will replace this with a richer tooltip
+        /// system later.
+        /// </summary>
+        public string TooltipText()
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.Append(Name);
+            if (!string.IsNullOrWhiteSpace(Specialty))
+                sb.Append(" — ").Append(Specialty);
+            if (Stats is not null)
+            {
+                sb.AppendLine();
+                sb.Append("A ").Append(Stats.A)
+                  .Append(" / D ").Append(Stats.D)
+                  .Append(" / P ").Append(Stats.P)
+                  .Append(" / K ").Append(Stats.K);
+            }
+            if (ArmyScore > 0)
+            {
+                sb.AppendLine();
+                sb.Append("Army score ").Append(ArmyScore);
+            }
+            if (Skills is { Count: > 0 })
+            {
+                sb.AppendLine();
+                sb.Append("Skills: ").Append(string.Join(", ", Skills));
+            }
+            if (!string.IsNullOrWhiteSpace(SpecialtyDescription))
+            {
+                sb.AppendLine();
+                sb.Append(SpecialtyDescription);
+            }
+            return sb.ToString();
+        }
+    }
+
+    /// <summary>Hero starter stats (Attack / Defense / Power / Knowledge).</summary>
+    public sealed record HeroStats(
+        [property: JsonPropertyName("A")] int A,
+        [property: JsonPropertyName("D")] int D,
+        [property: JsonPropertyName("P")] int P,
+        [property: JsonPropertyName("K")] int K);
 
     /// <summary>
     /// Catalog entry for a creature. The first five members
@@ -217,20 +277,155 @@ namespace OldenEra.Generator.Services
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("desc")] string? Description);
 
+    /// <summary>
+    /// Catalog entry for a spell. The first six members
+    /// (<see cref="Id"/>, <see cref="Name"/>, <see cref="School"/>,
+    /// <see cref="Tier"/>, <see cref="Scope"/>, <see cref="Description"/>)
+    /// are positional and MUST NOT be reordered. Cost/icon/magic-type
+    /// payload (T-603) is appended.
+    /// </summary>
     public sealed record SpellEntry(
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("school")] string School,
         [property: JsonPropertyName("tier")] int Tier,
         [property: JsonPropertyName("scope")] string Scope,
-        [property: JsonPropertyName("desc")] string? Description);
+        [property: JsonPropertyName("desc")] string? Description,
+        // ── T-603: cost / icon / magic-type from spells.json ────────────────
+        [property: JsonPropertyName("manaCost")] IReadOnlyList<int>? ManaCost = null,
+        [property: JsonPropertyName("cooldown")] int Cooldown = 0,
+        [property: JsonPropertyName("learnCost")] IReadOnlyList<SpellResourceCost>? LearnCost = null,
+        [property: JsonPropertyName("icon")] string? Icon = null,
+        [property: JsonPropertyName("magicType")] string? MagicType = null)
+    {
+        /// <summary>
+        /// Compact picker tooltip. Tier + name first, then mana cost
+        /// (showing the per-skill-level array when it varies), cooldown,
+        /// magic type, and finally the description. T-803 will replace
+        /// this later with a richer tooltip system.
+        /// </summary>
+        public string TooltipText()
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.Append('T').Append(Tier).Append(' ').Append(Name);
+            if (!string.IsNullOrWhiteSpace(MagicType))
+                sb.Append(" · ").Append(MagicType);
+            if (ManaCost is { Count: > 0 })
+            {
+                sb.AppendLine();
+                sb.Append("Mana ");
+                bool uniform = ManaCost.Distinct().Count() == 1;
+                sb.Append(uniform ? ManaCost[0].ToString() : string.Join("/", ManaCost));
+                if (Cooldown > 0)
+                    sb.Append(" · CD ").Append(Cooldown);
+            }
+            else if (Cooldown > 0)
+            {
+                sb.AppendLine();
+                sb.Append("CD ").Append(Cooldown);
+            }
+            if (!string.IsNullOrWhiteSpace(Description))
+            {
+                sb.AppendLine();
+                sb.Append(Description);
+            }
+            return sb.ToString();
+        }
+    }
 
+    /// <summary>
+    /// Resource cost line in <c>spells.json</c> learnCost arrays
+    /// (e.g. {"name":"crystals","cost":2}).
+    /// </summary>
+    public sealed record SpellResourceCost(
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("cost")] int Cost);
+
+    /// <summary>
+    /// Catalog entry for a hero skill. The first five members
+    /// (<see cref="Id"/>, <see cref="Name"/>, <see cref="Group"/>,
+    /// <see cref="SkillType"/>, <see cref="FactionId"/>) are positional
+    /// and MUST NOT be reordered. Description/level/subclass/starter
+    /// payload (T-603) is appended.
+    /// </summary>
     public sealed record SkillEntry(
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("group")] string Group,
         [property: JsonPropertyName("skillType")] string SkillType,
-        [property: JsonPropertyName("factionId")] string? FactionId);
+        [property: JsonPropertyName("factionId")] string? FactionId,
+        // ── T-603: descriptions / progression / cross-refs ──────────────────
+        [property: JsonPropertyName("baseDesc")] string? BaseDesc = null,
+        [property: JsonPropertyName("levels")] IReadOnlyList<SkillLevelEntry>? Levels = null,
+        [property: JsonPropertyName("subclasses")] IReadOnlyList<SkillSubclassRef>? Subclasses = null,
+        [property: JsonPropertyName("starters")] IReadOnlyList<SkillStarterRef>? Starters = null)
+    {
+        /// <summary>
+        /// Compact picker tooltip. Name + base description first, then
+        /// the count of trained subclasses / starter heroes so picker
+        /// callers can hint at the cross-references without dumping the
+        /// full list.
+        /// </summary>
+        public string TooltipText()
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.Append(Name);
+            if (!string.IsNullOrWhiteSpace(BaseDesc))
+            {
+                sb.AppendLine();
+                sb.Append(BaseDesc);
+            }
+            int levels = Levels?.Count ?? 0;
+            int subs = Subclasses?.Count ?? 0;
+            int starters = Starters?.Count ?? 0;
+            if (levels + subs + starters > 0)
+            {
+                sb.AppendLine();
+                sb.Append(levels).Append(" tier(s) · ")
+                  .Append(subs).Append(" subclass(es) · ")
+                  .Append(starters).Append(" starter(s)");
+            }
+            return sb.ToString();
+        }
+    }
+
+    /// <summary>
+    /// One tier of a skill (Basic / Advanced / Expert / Mastery).
+    /// Sub-skills picked at this tier live under <see cref="Subskills"/>.
+    /// </summary>
+    public sealed record SkillLevelEntry(
+        [property: JsonPropertyName("level")] int Level,
+        [property: JsonPropertyName("icon")] string? Icon,
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("desc")] string? Description,
+        [property: JsonPropertyName("bonuses")] IReadOnlyList<string>? Bonuses,
+        [property: JsonPropertyName("subskills")] IReadOnlyList<SkillSubskillEntry>? Subskills);
+
+    public sealed record SkillSubskillEntry(
+        [property: JsonPropertyName("id")] string Id,
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("desc")] string? Description);
+
+    /// <summary>
+    /// Subclass cross-reference: which subclass trains in this skill.
+    /// Mirrors the <c>{name, class, faction, kind}</c> shape in skills.json.
+    /// </summary>
+    public sealed record SkillSubclassRef(
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("class")] string? Class,
+        [property: JsonPropertyName("faction")] string? Faction,
+        [property: JsonPropertyName("kind")] string? Kind);
+
+    /// <summary>
+    /// Starter cross-reference: heroes that begin with this skill.
+    /// Mirrors the <c>{id, name, faction, kind, level}</c> shape in skills.json.
+    /// </summary>
+    public sealed record SkillStarterRef(
+        [property: JsonPropertyName("id")] string Id,
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("faction")] string? Faction,
+        [property: JsonPropertyName("kind")] string? Kind,
+        [property: JsonPropertyName("level")] int Level);
 
     /// <summary>
     /// Skill-tree column metadata (e.g. OFF/Offense/combat). Sourced from
