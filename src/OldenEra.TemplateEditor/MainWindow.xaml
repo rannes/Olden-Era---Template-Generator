@@ -328,6 +328,8 @@
                             <RowDefinition Height="Auto"/>   <!-- save button -->
                             <RowDefinition Height="8"/>
                             <RowDefinition Height="Auto"/>   <!-- T-701 value budget -->
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>   <!-- T-702 guard chart -->
                         </Grid.RowDefinitions>
 
                         <Button Grid.Row="0"
@@ -481,6 +483,9 @@
 
                         <views:ValueBudgetPanel Grid.Row="12"
                                                 x:Name="PnlValueBudget"/>
+
+                        <views:GuardValueChartPanel Grid.Row="14"
+                                                    x:Name="PnlGuardChart"/>
                     </Grid>
                 </Grid>
 
