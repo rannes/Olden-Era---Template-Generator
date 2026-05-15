@@ -143,6 +143,7 @@ public static class SettingsMapper
                 GatePlacement = s.ConnectionGatePlacement ?? "",
                 GuardEscape = s.ConnectionGuardEscape,
                 SimTurnSquad = s.ConnectionSimTurnSquad,
+                GuardRandomization = s.ConnectionGuardRandomization,
             },
             NeutralCities = new NeutralCitySettings
             {
@@ -418,6 +419,7 @@ public static class SettingsMapper
             ConnectionGatePlacement = g.ConnectionDefaults.GatePlacement ?? "",
             ConnectionGuardEscape = g.ConnectionDefaults.GuardEscape,
             ConnectionSimTurnSquad = g.ConnectionDefaults.SimTurnSquad,
+            ConnectionGuardRandomization = g.ConnectionDefaults.GuardRandomization,
             NeutralCityGuardChance = g.NeutralCities.GuardChance,
             NeutralCityGuardValuePercent = g.NeutralCities.GuardValuePercent,
             NeutralCityRemoveGuardIfHasOwner = g.NeutralCities.RemoveGuardIfHasOwner,

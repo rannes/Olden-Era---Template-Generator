@@ -69,7 +69,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 ## Phase 5 — Schema gap closure
 
 ### T-501 — Connection.guardRandomization (model + emit)
-- **Status:** open
+- **Status:** done (PR TBD)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `src/OldenEra.Generator/Models/Unfrozen/Connection.cs`,

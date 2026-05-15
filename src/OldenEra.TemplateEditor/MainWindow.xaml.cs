@@ -983,6 +983,7 @@ namespace OldenEra.TemplateEditor
             ConnectionGatePlacement = ConnectionStringFromCombo(PnlExperimental.CmbConnectionGatePlacement),
             ConnectionGuardEscape   = ConnectionTriBoolFromCombo(PnlExperimental.CmbConnectionGuardEscape),
             ConnectionSimTurnSquad  = ConnectionTriBoolFromCombo(PnlExperimental.CmbConnectionSimTurnSquad),
+            ConnectionGuardRandomization = ParseNullableDouble(PnlExperimental.TxtConnectionGuardRandomization.Text),
             NeutralCityGuardChance = PnlExperimental.SldNeutralGuardChance.Value / 100.0,
             NeutralCityGuardValuePercent = (int)PnlExperimental.SldNeutralGuardValue.Value,
             NeutralCityRemoveGuardIfHasOwner = PnlExperimental.ChkNeutralRemoveGuardIfHasOwner.IsChecked == true,
@@ -1278,6 +1279,8 @@ namespace OldenEra.TemplateEditor
             SetConnectionStringCombo(PnlExperimental.CmbConnectionGatePlacement, s.ConnectionGatePlacement);
             SetConnectionTriBoolCombo(PnlExperimental.CmbConnectionGuardEscape,  s.ConnectionGuardEscape);
             SetConnectionTriBoolCombo(PnlExperimental.CmbConnectionSimTurnSquad, s.ConnectionSimTurnSquad);
+            PnlExperimental.TxtConnectionGuardRandomization.Text =
+                s.ConnectionGuardRandomization?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
             PnlExperimental.SldNeutralGuardChance.Value = Math.Clamp(s.NeutralCityGuardChance * 100.0, 0, 100);
             PnlExperimental.SldNeutralGuardValue.Value = Math.Clamp(s.NeutralCityGuardValuePercent <= 0 ? 100 : s.NeutralCityGuardValuePercent, 25, 300);
             PnlExperimental.ChkNeutralRemoveGuardIfHasOwner.IsChecked = s.NeutralCityRemoveGuardIfHasOwner;
@@ -1843,6 +1846,7 @@ namespace OldenEra.TemplateEditor
                 GatePlacement = ConnectionStringFromCombo(PnlExperimental.CmbConnectionGatePlacement),
                 GuardEscape   = ConnectionTriBoolFromCombo(PnlExperimental.CmbConnectionGuardEscape),
                 SimTurnSquad  = ConnectionTriBoolFromCombo(PnlExperimental.CmbConnectionSimTurnSquad),
+                GuardRandomization = ParseNullableDouble(PnlExperimental.TxtConnectionGuardRandomization.Text),
             },
             NeutralCities = new NeutralCitySettings
             {

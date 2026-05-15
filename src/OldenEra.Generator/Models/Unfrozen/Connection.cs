@@ -31,6 +31,9 @@ namespace OldenEra.Generator.Models.Unfrozen
         [JsonPropertyName("guardWeeklyIncrement")]
         public double? GuardWeeklyIncrement { get; set; }
 
+        [JsonPropertyName("guardRandomization")]
+        public double? GuardRandomization { get; set; }
+
         [JsonPropertyName("guardMatchGroup")]
         public string? GuardMatchGroup { get; set; }
 

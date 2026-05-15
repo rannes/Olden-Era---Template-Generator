@@ -197,6 +197,8 @@ namespace OldenEra.Generator.Models
         [JsonPropertyName("connectionGatePlacement")] public string ConnectionGatePlacement { get; set; } = "";
         [JsonPropertyName("connectionGuardEscape")]   public bool?  ConnectionGuardEscape   { get; set; }
         [JsonPropertyName("connectionSimTurnSquad")]  public bool?  ConnectionSimTurnSquad  { get; set; }
+        // T-501 — per-template default for Connection.guardRandomization. null = unset.
+        [JsonPropertyName("connectionGuardRandomization")] public double? ConnectionGuardRandomization { get; set; }
 
         [JsonPropertyName("neutralCityGuardChance")]        public double NeutralCityGuardChance        { get; set; } = 0.0;
         [JsonPropertyName("neutralCityGuardValuePercent")]  public int    NeutralCityGuardValuePercent  { get; set; } = 100;

@@ -244,7 +244,8 @@ namespace OldenEra.Generator.Services
                         bool anySet = cd.Length > 0
                                       || !string.IsNullOrEmpty(cd.GatePlacement)
                                       || cd.GuardEscape.HasValue
-                                      || cd.SimTurnSquad.HasValue;
+                                      || cd.SimTurnSquad.HasValue
+                                      || cd.GuardRandomization.HasValue;
                         if (anySet)
                         {
                             foreach (var c in variant.Connections)
@@ -253,6 +254,7 @@ namespace OldenEra.Generator.Services
                                 if (!string.IsNullOrEmpty(cd.GatePlacement)) c.GatePlacement = cd.GatePlacement;
                                 if (cd.GuardEscape.HasValue) c.GuardEscape = cd.GuardEscape;
                                 if (cd.SimTurnSquad.HasValue) c.SimTurnSquad = cd.SimTurnSquad;
+                                if (cd.GuardRandomization.HasValue) c.GuardRandomization = cd.GuardRandomization;
                             }
                         }
                     }
