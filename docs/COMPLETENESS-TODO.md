@@ -307,16 +307,23 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   emitted JSON. Hidden when generation has not run.
 
 ### T-702 — Guard-power vs. zone-value chart
-- **Status:** open
-- **Owner:** —
+- **Status:** done (PR pending)
+- **Owner:** Claude
 - **Effort:** M
-- **Files:** `TemplateAnalysis.cs`, new chart component, both UI hosts.
+- **Files:** `Services/TemplateAnalysis.GuardChart.cs` (new sibling partial),
+  `Components/GuardValueChartPanel.razor` (+ `.razor.css`), WPF
+  `Views/GuardValueChartPanel.xaml` (+ `.xaml.cs`), wired into `Home.razor`
+  and `MainWindow.xaml`/`.xaml.cs` next to the T-701 panel.
 - **Scope:** The most common balance bug is "rich zone with weak guards".
-  Plot guard-tier-scaled `BorderGuardStrengthPercent` against `ResourcesValue`
-  per zone; flag outliers in red. Catches misconfiguration before users open
-  the game.
-- **Acceptance:** Chart renders for any generated template. Outlier rule has
-  unit tests.
+  Plot per-zone effective `Zone.GuardMultiplier` (already scaled by
+  `BorderGuardStrengthPercent` at emission time) against
+  `Zone.ResourcesValue`; flag outliers in red. Inline SVG (Web) / WPF
+  Canvas with simple shapes — no chart library.
+- **Resolution:** Outlier rule (zone in top quartile of value AND bottom
+  quartile of guard, refusing to flag with fewer than 4 plottable points)
+  is unit-tested in `TemplateAnalysisGuardChartTests`. Panel hidden until
+  generation has run (matches T-701 pattern). Both hosts render the same
+  data with identical hover tooltips.
 
 ### T-703 — Content-pool sanity warnings (validator extension)
 - **Status:** open
