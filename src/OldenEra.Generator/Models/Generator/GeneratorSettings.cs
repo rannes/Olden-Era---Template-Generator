@@ -284,6 +284,13 @@ namespace OldenEra.Generator.Models
         public bool? GuardEscape { get; set; }
         /// <summary>null = leave whatever the topology builder chose. Otherwise force this value on every connection.</summary>
         public bool? SimTurnSquad { get; set; }
+        /// <summary>
+        /// null = unset (field omitted from emitted JSON). Otherwise stamps a per-template
+        /// default onto every connection's <c>guardRandomization</c>. Shipped templates
+        /// use values like 0.10–0.15 (e.g. <c>All Around.rmg.json</c>); 0.0 is a valid
+        /// "no randomization" override distinct from "unset".
+        /// </summary>
+        public double? GuardRandomization { get; set; }
     }
 
     /// <summary>

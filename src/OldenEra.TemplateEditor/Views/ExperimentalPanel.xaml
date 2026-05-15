@@ -385,6 +385,7 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <Label   Grid.Row="0" Grid.Column="0" Content="Length (%)" Padding="5,2"/>
                             <Slider  Grid.Row="0" Grid.Column="1" x:Name="SldConnectionLength" Minimum="0" Maximum="500" Value="0" TickFrequency="5" IsSnapToTickEnabled="True"/>
@@ -395,6 +396,9 @@
                             <ComboBox Grid.Row="2" Grid.Column="1" x:Name="CmbConnectionGuardEscape"/>
                             <Label    Grid.Row="3" Grid.Column="0" Content="Sim-turn squad" Padding="5,2"/>
                             <ComboBox Grid.Row="3" Grid.Column="1" x:Name="CmbConnectionSimTurnSquad"/>
+                            <Label   Grid.Row="4" Grid.Column="0" Content="Guard randomization" Padding="5,2"/>
+                            <TextBox Grid.Row="4" Grid.Column="1" x:Name="TxtConnectionGuardRandomization"
+                                     ToolTip="Empty = generator default. Shipped templates use 0.10–0.15."/>
                         </Grid>
                     </StackPanel>
                 </Expander>
