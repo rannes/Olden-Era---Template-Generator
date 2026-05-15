@@ -24,6 +24,10 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="8"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="4"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Label Grid.Row="0" Grid.Column="0" Content="Template Name"/>
                     <TextBox Grid.Row="0" Grid.Column="1" x:Name="TxtTemplateName" Text="Custom Template"/>
@@ -75,6 +79,19 @@
                     <Slider Grid.Row="12" Grid.Column="1" x:Name="SldPlayers"
                             Minimum="2" Maximum="8" Value="2"
                             TickFrequency="1" IsSnapToTickEnabled="True"/>
+                    <Label Grid.Row="14" Grid.Column="0" Content="Description"
+                           VerticalAlignment="Top"/>
+                    <TextBox Grid.Row="14" Grid.Column="1" x:Name="TxtTemplateDescription"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             MinHeight="60"
+                             ToolTip="Optional override for the auto-generated description. Leave blank for the generator default."/>
+                    <TextBlock Grid.Row="16" Grid.Column="0" Grid.ColumnSpan="2"
+                               Foreground="{StaticResource OeTextDimBrush}"
+                               FontSize="11"
+                               TextWrapping="Wrap"
+                               Text="Overrides the auto-generated description field. Empty falls back to the generator's summary (topology, zone counts, etc.)."/>
                 </Grid>
             </StackPanel>
         </ScrollViewer>

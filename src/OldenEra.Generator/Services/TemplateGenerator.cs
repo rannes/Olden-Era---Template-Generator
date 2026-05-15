@@ -67,8 +67,13 @@ namespace OldenEra.Generator.Services
             {
                 Name = settings.TemplateName,
                 GameMode = settings.GameMode,
-                Description = BuildTemplateDescription(settings, neutralCount),
-                DisplayWinCondition = effectiveVictoryCondition,
+                // T-504 — user override wins; empty falls back to auto-build.
+                Description = string.IsNullOrEmpty(settings.Description)
+                    ? BuildTemplateDescription(settings, neutralCount)
+                    : settings.Description,
+                DisplayWinCondition = string.IsNullOrEmpty(settings.DisplayWinCondition)
+                    ? effectiveVictoryCondition
+                    : settings.DisplayWinCondition,
                 SizeX = settings.MapSize,
                 SizeZ = settings.MapSize,
                 GameRules = BuildGameRules(settings, effectiveVictoryCondition),

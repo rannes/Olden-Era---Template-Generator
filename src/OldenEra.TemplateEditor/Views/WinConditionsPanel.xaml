@@ -48,8 +48,24 @@
                             <ColumnDefinition Width="185"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" Content="Primary win condition"/>
-                        <ComboBox Grid.Column="1" x:Name="CmbVictory"/>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="6"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Label Grid.Row="0" Grid.Column="0" Content="Primary win condition"/>
+                        <ComboBox Grid.Row="0" Grid.Column="1" x:Name="CmbVictory"/>
+                        <Label Grid.Row="2" Grid.Column="0" Content="Display win condition"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" x:Name="TxtDisplayWinCondition"
+                                 ToolTip="Optional override for the displayWinCondition field. Leave blank to use the selected win-condition id."/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+                                   Foreground="#888"
+                                   FontStyle="Italic"
+                                   FontSize="11"
+                                   TextWrapping="Wrap"
+                                   Margin="0,4,0,0"
+                                   Text="Overrides the displayWinCondition field. Empty falls back to the selected win-condition id."/>
                     </Grid>
 
                     <StackPanel Margin="0,4,0,0">

@@ -111,7 +111,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   defaults unchanged.
 
 ### T-504 — User-editable RmgTemplate.description / displayWinCondition
-- **Status:** open (partial — auto-generated, not user-editable)
+- **Status:** done (PR TBD)
 - **Owner:** —
 - **Effort:** S
 - **Files:** `RmgTemplate.cs:14-18`, `TemplateGenerator.cs:70-71` +

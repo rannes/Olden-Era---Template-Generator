@@ -32,6 +32,19 @@
         <span></span>
     </div>
 
+    <div class="oe-row wide-label">
+        <label class="oe-label" for="dispwincond">Display win condition (optional)</label>
+        <input id="dispwincond" type="text"
+               value="@Settings.DisplayWinCondition"
+               placeholder="Leave blank to use the selected id"
+               @oninput="OnDisplayWinConditionInput" />
+        <span></span>
+    </div>
+    <div class="oe-hint">
+        Overrides the <code>displayWinCondition</code> field emitted to the
+        template. Empty falls back to the selected primary win-condition id.
+    </div>
+
     @{
         bool isTournament = Settings.GameEndConditions.VictoryCondition == "win_condition_6";
         bool isLostCityWin = Settings.GameEndConditions.VictoryCondition == "win_condition_3";
@@ -192,4 +205,10 @@
     }
 
     private Task NotifyChanged() => OnChanged.InvokeAsync();
+
+    private async Task OnDisplayWinConditionInput(ChangeEventArgs e)
+    {
+        Settings.DisplayWinCondition = e.Value?.ToString() ?? "";
+        await OnChanged.InvokeAsync();
+    }
 }
