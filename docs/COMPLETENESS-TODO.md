@@ -461,7 +461,7 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
   identical settings.
 
 ### T-808 — Web ↔ WPF parity gaps
-- **Status:** done (PR pending)
+- **Status:** done — PR #73 (https://github.com/rannes/olden-era-templates/pull/73)
 - **Owner:** rannes
 - **Effort:** M
 - **Files:** Various components in both hosts.
