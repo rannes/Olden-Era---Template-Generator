@@ -7,8 +7,8 @@ namespace OldenEra.Generator.Services;
 
 /// <summary>
 /// T-704 — Per-player fairness audit. Sibling partial of
-/// <see cref="TemplateAnalysis"/> so this task can land without touching the
-/// base file (T-701/702/703/705 each pick their own sibling partial).
+/// <see cref="TemplateAnalysis"/> so each analysis task can land in its
+/// own file without touching siblings.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -67,8 +67,7 @@ public static partial class TemplateAnalysis
     /// <summary>
     /// Result of <see cref="ComputeFairness"/>. Empty <see cref="Players"/>
     /// means there were no Spawn-bearing zones (or no template) — the panel
-    /// hides itself in that case, matching the T-701 hidden-when-empty
-    /// pattern.
+    /// hides itself in that case (the panel's hidden-when-empty pattern).
     /// </summary>
     public sealed record FairnessReport(
         IReadOnlyList<PlayerFairnessRow> Players,
