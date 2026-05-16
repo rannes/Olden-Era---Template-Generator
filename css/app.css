@@ -1,0 +1,1312 @@
+/* ============================================================
+   Olden Era - Template Generator (Web)
+   Modern dark theme — see :root tokens below.
+   Restyle in progress: tokens + typography landed; component
+   styles still being modernized (see docs/plans/).
+   ============================================================ */
+
+:root {
+    --oe-bg:            #0B0D10;
+    --oe-surface-1:     #14171C;
+    --oe-surface-2:     #1B1F26;
+    --oe-surface-3:     #232831;
+    --oe-border:        #2A2F39;
+    --oe-border-strong: #3A4150;
+    --oe-text:          #E6E8EB;
+    --oe-text-dim:      #9098A3;
+    --oe-text-mute:     #5F6671;
+    --oe-accent:        #F59E0B;
+    --oe-accent-hi:     #FBBF24;
+    --oe-accent-dim:    #B45309;
+    --oe-error:         #EF4444;
+    --oe-warn-bg:       #2A1F0A;
+    /* Ink color used on amber surfaces (primary button text, checkbox tick). */
+    --oe-on-accent:     #0B0D10;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--oe-bg);
+    color: var(--oe-text);
+    font-family: Inter, "Segoe UI Variable", system-ui, -apple-system, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: 0;
+    min-height: 100vh;
+}
+
+a, .btn-link {
+    color: var(--oe-accent);
+}
+a:hover { color: var(--oe-text); }
+
+h1, h2, h3, h4, h5 {
+    color: var(--oe-text);
+    font-weight: 600;
+    letter-spacing: 0;
+    margin: 0 0 0.5rem 0;
+}
+h1 { font-size: 20px; }
+h2 { font-size: 15px; }
+h3 { font-size: 13px; }
+
+h1:focus { outline: none; }
+
+code { color: var(--oe-accent); background: var(--oe-surface-2); padding: 0 4px; border-radius: 3px; }
+
+/* ── Layout helpers ─────────────────────────────────────── */
+.oe-app {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 16px 20px 40px;
+}
+
+.oe-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid var(--oe-border);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+}
+
+.oe-header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.oe-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.oe-header h1 {
+    margin: 0;
+}
+
+.oe-version-badge {
+    font-size: 0.85rem;
+    color: var(--oe-text-dim);
+}
+
+.oe-warning {
+    background: var(--oe-warn-bg);
+    color: var(--oe-text);
+    border: none;
+    border-left: 3px solid var(--oe-accent);
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin: 0 0 12px 0;
+}
+
+.oe-error {
+    background: color-mix(in srgb, var(--oe-error) 8%, transparent);
+    color: var(--oe-text);
+    border: none;
+    border-left: 3px solid var(--oe-error);
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin: 8px 0;
+}
+
+/* Inline validation anchors. A wrapping element that hosts a control gets
+   `.oe-field` plus optionally `.has-error` or `.has-warning`. The popover
+   `.oe-field-msg` renders directly below the control. T-303. */
+.oe-field {
+    position: relative;
+    border-radius: 4px;
+}
+.oe-field.has-error {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--oe-error) 70%, transparent);
+    background: color-mix(in srgb, var(--oe-error) 5%, transparent);
+}
+.oe-field.has-warning {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--oe-accent) 60%, transparent);
+}
+.oe-field-msg {
+    margin-top: 4px;
+    padding: 6px 10px;
+    font-size: 12px;
+    line-height: 1.35;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--oe-error) 10%, transparent);
+    color: var(--oe-text);
+    border-left: 3px solid var(--oe-error);
+}
+.oe-field-msg.warning {
+    background: var(--oe-warn-bg);
+    border-left-color: var(--oe-accent);
+}
+.oe-field-fix {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    font-size: 12px;
+    border: 1px solid var(--oe-error);
+    background: transparent;
+    color: var(--oe-text);
+    border-radius: 3px;
+    cursor: pointer;
+}
+.oe-field-fix:hover { background: color-mix(in srgb, var(--oe-error) 20%, transparent); }
+
+.oe-shell {
+    display: grid;
+    grid-template-columns: 220px 1fr 360px;
+    gap: 24px;
+    align-items: start;
+}
+
+.oe-nav {
+    position: sticky;
+    top: 16px;
+    align-self: start;
+}
+
+.oe-nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.oe-nav-item {
+    appearance: none;
+    background: transparent;
+    border: none;
+    border-left: 3px solid transparent;
+    color: var(--oe-text-dim);
+    padding: 8px 12px;
+    text-align: left;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 0 4px 4px 0;
+    transition: background-color 80ms ease, color 80ms ease, border-color 80ms ease;
+}
+
+.oe-nav-item:hover {
+    background: var(--oe-surface-2);
+    color: var(--oe-text);
+}
+
+.oe-nav-item.active {
+    color: var(--oe-text);
+    border-left-color: var(--oe-accent);
+    background: var(--oe-surface-2);
+}
+
+.oe-nav-item:focus-visible {
+    outline: 2px solid var(--oe-accent);
+    outline-offset: -2px;
+}
+
+.oe-nav-footer {
+    margin-top: 12px;
+    padding: 8px 12px;
+    color: var(--oe-text-dim);
+    font-size: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    line-height: 1.4;
+}
+
+.oe-nav-issue-dot {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--oe-error);
+    margin-top: 5px;
+}
+
+.oe-nav-select {
+    display: none;
+}
+
+.oe-content {
+    min-width: 0; /* let grid item shrink so children can wrap */
+}
+
+/* ── Experimental badge ─────────────────────────────────── */
+.oe-exp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 7px 2px;
+    border-radius: 9px;
+    background: linear-gradient(180deg, #c47e2c 0%, #9a5e1c 100%);
+    color: #1c1208;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1.4;
+    border: 1px solid #6b3f10;
+    box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.35);
+    cursor: help;
+    user-select: none;
+    vertical-align: middle;
+}
+.oe-exp-badge-glyph {
+    font-size: 11px;
+    line-height: 1;
+}
+
+/* ── Experimental card ──────────────────────────────────── */
+.oe-exp-card {
+    border: 1px solid var(--oe-border);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    background: rgba(0, 0, 0, 0.12);
+}
+.oe-exp-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: transparent;
+    border: 0;
+    padding: 8px 12px;
+    color: var(--oe-text);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+.oe-exp-card-header:hover { background: rgba(255,255,255,0.04); }
+.oe-exp-card.open .oe-exp-card-header { border-bottom: 1px solid var(--oe-border); }
+.oe-exp-card-chevron {
+    color: var(--oe-text-dim);
+    font-size: 11px;
+    width: 12px;
+}
+.oe-exp-card-title { flex: 1; }
+.oe-exp-card-body { padding: 10px 14px 12px; }
+
+/* ── Tier tabs ──────────────────────────────────────────── */
+.oe-tier-tabs {
+    display: flex;
+    gap: 4px;
+    margin: 6px 0 10px;
+}
+.oe-tier-tab {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--oe-border);
+    color: var(--oe-text-dim);
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.oe-tier-tab:hover { color: var(--oe-text); }
+.oe-tier-tab.active {
+    background: rgba(196, 126, 44, 0.18);
+    border-color: #c47e2c;
+    color: var(--oe-text);
+}
+
+/* ── Ban chips ──────────────────────────────────────────── */
+.oe-ban-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+.oe-ban-chip {
+    background: transparent;
+    color: var(--oe-text-dim);
+    border: 1px solid var(--oe-border);
+    border-radius: 12px;
+    padding: 2px 9px;
+    font-size: 11px;
+    cursor: pointer;
+    line-height: 1.4;
+}
+.oe-ban-chip:hover {
+    color: var(--oe-text);
+    border-color: var(--oe-text-dim);
+}
+.oe-ban-chip.selected {
+    background: #4a1c1c;
+    border-color: #8a3030;
+    color: #ffd9d9;
+    text-decoration: line-through;
+}
+/* T-804: shared substring search input for pickers (heroes / spells / units / content). */
+.oe-picker-search {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 4px 0 6px 0;
+    padding: 4px 8px;
+    font-size: 12px;
+    background: var(--oe-bg-input, #1c1c1c);
+    color: var(--oe-text, #ddd);
+    border: 1px solid var(--oe-border, #444);
+    border-radius: 4px;
+}
+.oe-picker-search:focus {
+    outline: none;
+    border-color: var(--oe-text-dim, #888);
+}
+
+/* ── Faction × tier ban grid ────────────────────────────── */
+.oe-faction-section {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--oe-border);
+}
+.oe-faction-section:first-of-type {
+    border-top: none;
+    padding-top: 0;
+}
+.oe-faction-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.oe-faction-name {
+    font-weight: 600;
+    color: var(--oe-text);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.oe-faction-shortcuts {
+    display: inline-flex;
+    gap: 6px;
+    font-size: 11px;
+}
+.oe-tier-row {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    align-items: start;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+.oe-tier-label {
+    font-size: 11px;
+    color: var(--oe-text-dim);
+    line-height: 1.7;
+    text-align: right;
+}
+.oe-legacy-section .oe-faction-name {
+    color: #c47e2c;
+}
+
+/* ── Section panel ──────────────────────────────────────── */
+.oe-section {
+    margin-bottom: 24px;
+}
+.oe-section + .oe-section {
+    border-top: 1px solid var(--oe-border);
+    padding-top: 20px;
+}
+
+.oe-section-header {
+    color: var(--oe-text);
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.oe-section-header .oe-inline-toggle {
+    font-size: 12px;
+    color: var(--oe-text-dim);
+    font-weight: 400;
+}
+
+.oe-subsection-header {
+    color: var(--oe-text);
+    font-weight: 600;
+    font-size: 13px;
+    margin: 12px 0 4px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--oe-border, #2a2a2a);
+}
+
+.oe-hint {
+    color: var(--oe-text-dim);
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 4px 0 8px;
+}
+
+/* ── Form controls ──────────────────────────────────────── */
+.oe-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 56px;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.oe-row.wide-label { grid-template-columns: 230px 1fr 64px; }
+
+.oe-row label.oe-label { color: var(--oe-text-dim); font-size: 13px; }
+
+.oe-row.disabled label.oe-label,
+.oe-row.disabled .oe-slider-value {
+    color: var(--oe-text-mute);
+}
+.oe-row.disabled input[type="range"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Hint paragraph aligned under a wide-label .oe-row's slider track. */
+.oe-row-hint {
+    margin: -4px 0 8px 230px;
+    font-size: 12px;
+    color: var(--oe-text-dim);
+    line-height: 1.4;
+}
+
+.oe-stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.oe-stacked label.oe-label { color: var(--oe-text-dim); font-size: 13px; }
+
+.oe-seed-row {
+    display: flex;
+    gap: 6px;
+    align-items: stretch;
+}
+
+.oe-seed-row input[type="number"] { flex: 1 1 auto; min-width: 0; }
+.oe-seed-row .oe-seed-dice { flex: 0 0 auto; width: auto; padding: 4px 10px; }
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+    background-color: var(--oe-surface-2);
+    color: var(--oe-text);
+    border: 1px solid var(--oe-border);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.4;
+    min-height: 32px;
+    box-sizing: border-box;
+    width: 100%;
+    transition: border-color 80ms ease;
+}
+
+input[type="text"]:hover,
+input[type="number"]:hover,
+select:hover,
+textarea:hover {
+    border-color: var(--oe-border-strong);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--oe-border-strong);
+}
+
+input[type="text"]:focus-visible,
+input[type="number"]:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--oe-accent);
+    outline-offset: 1px;
+    border-color: var(--oe-border-strong);
+}
+
+input[type="text"]:disabled,
+input[type="number"]:disabled,
+select:disabled,
+textarea:disabled {
+    color: var(--oe-text-mute);
+    background-color: var(--oe-surface-1);
+}
+
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    /* Inline SVG caret in --oe-text-dim (#9098A3). */
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%239098A3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px 12px;
+    padding-right: 30px;
+}
+select::-ms-expand { display: none; }
+select option { background: var(--oe-surface-2); color: var(--oe-text); }
+
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 18px;
+    background: transparent;
+    cursor: pointer;
+    /* Amber-fill driven by --value-pct (set inline from Razor). */
+    --value-pct: 0%;
+}
+
+/* WebKit/Blink track */
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 9999px;
+    background:
+        linear-gradient(to right,
+            var(--oe-accent) 0%,
+            var(--oe-accent) var(--value-pct),
+            var(--oe-surface-3) var(--value-pct),
+            var(--oe-surface-3) 100%);
+}
+
+/* Firefox track */
+input[type="range"]::-moz-range-track {
+    height: 4px;
+    border-radius: 9999px;
+    background: var(--oe-surface-3);
+}
+input[type="range"]::-moz-range-progress {
+    height: 4px;
+    border-radius: 9999px;
+    background: var(--oe-accent);
+}
+
+/* WebKit thumb */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--oe-text);
+    border: 1px solid var(--oe-border-strong);
+    margin-top: -5px;            /* (track height 4 - thumb 14) / 2 */
+    cursor: pointer;
+    transition: border-color 80ms ease, transform 80ms ease;
+}
+
+/* Firefox thumb */
+input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--oe-text);
+    border: 1px solid var(--oe-border-strong);
+    cursor: pointer;
+    transition: border-color 80ms ease, transform 80ms ease;
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+    border-color: var(--oe-accent-hi);
+    transform: scale(1.1);
+}
+input[type="range"]:hover::-moz-range-thumb {
+    border-color: var(--oe-accent-hi);
+    transform: scale(1.1);
+}
+
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--oe-accent);
+    outline-offset: 2px;
+}
+input[type="range"]:focus-visible::-moz-range-thumb {
+    outline: 2px solid var(--oe-accent);
+    outline-offset: 2px;
+}
+
+.oe-slider-value {
+    color: var(--oe-text-dim);
+    font-variant-numeric: tabular-nums;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    text-align: right;
+    min-width: 3ch;
+}
+
+.oe-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+    color: var(--oe-text);
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.oe-check input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    background-color: var(--oe-surface-2);
+    border: 1px solid var(--oe-border);
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: background-color 80ms ease, border-color 80ms ease;
+}
+
+.oe-check input[type="checkbox"]:hover {
+    border-color: var(--oe-border-strong);
+}
+
+.oe-check input[type="checkbox"]:checked {
+    background-color: var(--oe-accent);
+    border-color: var(--oe-accent);
+}
+
+.oe-check input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 5px;
+    height: 9px;
+    border: solid var(--oe-on-accent);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.oe-check input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--oe-accent);
+    outline-offset: 2px;
+}
+
+.oe-check input[type="checkbox"]:disabled {
+    background-color: var(--oe-surface-1);
+    border-color: var(--oe-border);
+    cursor: not-allowed;
+}
+.oe-check:has(input[type="checkbox"]:disabled) {
+    color: var(--oe-text-mute);
+    cursor: not-allowed;
+}
+
+/* ── Buttons ────────────────────────────────────────────── */
+.oe-btn {
+    display: inline-block;
+    background: var(--oe-surface-2);
+    color: var(--oe-text);
+    border: 1px solid var(--oe-border);
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    width: 100%;
+    transition: background-color 80ms ease, border-color 80ms ease, color 80ms ease;
+}
+.oe-btn:hover:not(:disabled) {
+    background: var(--oe-surface-3);
+    border-color: var(--oe-border-strong);
+}
+.oe-btn:disabled {
+    background: var(--oe-surface-2);
+    color: var(--oe-text-mute);
+    border-color: var(--oe-border);
+    opacity: 1;
+    cursor: not-allowed;
+}
+.oe-btn:focus-visible {
+    outline: 2px solid var(--oe-accent);
+    outline-offset: 2px;
+}
+.oe-btn.primary {
+    background: var(--oe-accent);
+    color: var(--oe-on-accent);
+    border-color: var(--oe-accent);
+    font-weight: 600;
+}
+.oe-btn.primary:hover:not(:disabled) {
+    background: var(--oe-accent-hi);
+    border-color: var(--oe-accent-hi);
+}
+.oe-btn.primary:disabled {
+    background: var(--oe-surface-3);
+    color: var(--oe-text-mute);
+    border-color: var(--oe-border);
+}
+.oe-btn.ghost {
+    background: transparent;
+    color: var(--oe-text-dim);
+    border: 1px solid transparent;
+    width: auto;
+}
+.oe-btn.ghost:hover:not(:disabled) {
+    color: var(--oe-text);
+    text-decoration: underline;
+}
+.oe-btn.ghost:disabled {
+    color: var(--oe-text-mute);
+    text-decoration: none;
+}
+
+/* Icon-only header buttons (GitHub, Discord, Patch Notes, Share). */
+.oe-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 8px;
+    line-height: 1;
+}
+.oe-icon-btn svg { display: block; }
+
+/* Map size + experimental-sizes checkbox sit on one row. */
+.oe-mapsize-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.oe-mapsize-row .oe-field { flex: 0 1 auto; }
+
+/* ── Preview pane ───────────────────────────────────────── */
+.oe-preview-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.oe-preview-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    font-size: 0.85rem;
+}
+.oe-preview {
+    background: var(--oe-surface-1);
+    border: 2px solid var(--oe-border);
+    border-radius: 4px;
+    padding: 0.4rem;
+    text-align: center;
+    min-height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.oe-preview img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    image-rendering: -webkit-optimize-contrast;
+}
+.oe-preview .placeholder {
+    color: var(--oe-text-dim);
+    font-size: 0.85rem;
+    margin: auto;
+}
+
+.oe-preview-col {
+    position: sticky;
+    top: 16px;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Action bar wraps the Generate button so we can pin it on narrow viewports
+   (T-301) without restyling the button itself. On desktop it's transparent. */
+.oe-action-bar {
+    display: block;
+}
+
+/* The <details> wrapper around the preview is collapsible on mobile.
+   On desktop the summary is hidden and the element stays `open`, so the
+   preview is always rendered as a plain block. */
+.oe-preview-summary {
+    display: none;
+}
+/* Themed focus ring on the mobile-only collapsible summary (T-301 follow-up).
+   Replaces the default browser ring so keyboard users see consistent styling. */
+.oe-preview-summary:focus-visible {
+    outline: 2px solid var(--oe-accent);
+    outline-offset: 2px;
+}
+
+/* ── Blazor error UI ─────────────────────────────────────── */
+.valid.modified:not([type=checkbox]) { outline: 1px solid #6cb867; }
+.invalid { outline: 1px solid var(--oe-error); }
+.validation-message { color: var(--oe-error); }
+
+#blazor-error-ui {
+    color-scheme: dark only;
+    background: var(--oe-warn-bg);
+    color: var(--oe-text);
+    border-top: 2px solid var(--oe-accent);
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.4);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+#blazor-error-ui .dismiss { cursor: pointer; position: absolute; right: 0.75rem; top: 0.5rem; }
+
+.blazor-error-boundary {
+    background: color-mix(in srgb, var(--oe-error) 15%, transparent);
+    padding: 1rem;
+    color: var(--oe-text);
+    border: 1px solid var(--oe-error);
+    border-radius: 3px;
+}
+.blazor-error-boundary::after { content: "An error has occurred."; }
+
+.loading-progress {
+    position: absolute;
+    display: block;
+    width: 8rem;
+    height: 8rem;
+    inset: 20vh 0 auto 0;
+    margin: 0 auto;
+}
+.loading-progress circle {
+    fill: none;
+    stroke: var(--oe-border);
+    stroke-width: 0.6rem;
+    transform-origin: 50% 50%;
+    transform: rotate(-90deg);
+}
+.loading-progress circle:last-child {
+    stroke: var(--oe-accent);
+    stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+    transition: stroke-dasharray 0.05s ease-in-out;
+}
+.loading-progress-text {
+    position: absolute;
+    text-align: center;
+    font-weight: bold;
+    color: var(--oe-text);
+    inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+}
+.loading-progress-text:after { content: var(--blazor-load-percentage-text, "Loading"); }
+
+/* -- Update banner -------------------------------------------------- */
+.oe-update-banner {
+    background: var(--oe-warn-bg);
+    color: var(--oe-text);
+    border: none;
+    border-left: 3px solid var(--oe-accent);
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin: 0 0 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.oe-update-banner a {
+    color: var(--oe-accent);
+}
+.oe-update-banner a:hover {
+    color: var(--oe-accent-hi);
+}
+
+.oe-link-btn {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: var(--oe-text-dim);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+.oe-link-btn:hover {
+    color: var(--oe-text);
+    background: var(--oe-surface-3);
+}
+
+/* Share-link copy confirmation toast (sits inside the header actions). */
+.oe-toast {
+    margin-left: 8px;
+    padding: 4px 8px;
+    background: var(--oe-surface-3);
+    border: 1px solid var(--oe-border);
+    border-radius: 4px;
+    color: var(--oe-text);
+    font-size: 12px;
+    align-self: center;
+}
+
+/* -- Modal ---------------------------------------------------------- */
+.oe-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+}
+
+.oe-modal {
+    background: var(--oe-surface-1);
+    color: var(--oe-text);
+    border: 1px solid var(--oe-border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    max-width: 420px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.oe-modal h2 {
+    margin-top: 0;
+    font-size: 16px;
+}
+
+.oe-modal p {
+    margin: 8px 0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.oe-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.oe-modal-actions .oe-btn {
+    width: auto;
+}
+
+.oe-modal-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+}
+
+/* -- Preset picker modal ----------------------------------------- */
+.oe-preset-list {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0 0;
+}
+.oe-preset-list li {
+    margin-bottom: 8px;
+}
+.oe-preset-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--oe-surface-2, var(--oe-surface-1));
+    color: inherit;
+    border: 1px solid var(--oe-border);
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+}
+.oe-preset-item:hover {
+    background: var(--oe-surface-3);
+    border-color: var(--oe-accent);
+}
+.oe-preset-item:focus-visible {
+    outline: 2px solid var(--oe-accent);
+    outline-offset: 2px;
+}
+.oe-preset-name {
+    font-weight: 600;
+}
+.oe-preset-desc {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-top: 2px;
+}
+.oe-preset-section {
+    margin: 16px 0 4px 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.75;
+}
+.oe-preset-empty {
+    font-size: 12px;
+    opacity: 0.7;
+    margin: 4px 0 0 0;
+}
+.oe-preset-row {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+}
+.oe-preset-row .oe-preset-item {
+    flex: 1;
+}
+.oe-preset-delete {
+    align-self: stretch;
+    padding: 0 10px;
+}
+.oe-preset-save {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+.oe-preset-save input[type="text"] {
+    flex: 1;
+    min-width: 180px;
+    padding: 6px 8px;
+    background: var(--oe-surface-2, var(--oe-surface-1));
+    color: inherit;
+    border: 1px solid var(--oe-border);
+    border-radius: 4px;
+    font: inherit;
+}
+.oe-preset-status {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+/* -- Spinner -------------------------------------------------------- */
+.oe-spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--oe-border);
+    border-top-color: var(--oe-accent);
+    border-radius: 50%;
+    animation: oe-spin 0.8s linear infinite;
+}
+
+@keyframes oe-spin {
+    to { transform: rotate(360deg); }
+}
+
+.oe-footer {
+    margin-top: 2rem;
+    padding: 1rem;
+    border-top: 1px solid var(--oe-border);
+    color: var(--oe-text-dim);
+    font-size: 0.85rem;
+    text-align: center;
+}
+.oe-footer a {
+    color: var(--oe-accent);
+    text-decoration: underline;
+}
+.oe-footer code {
+    background: var(--oe-surface-2);
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    font-size: 0.85em;
+}
+
+/* Topology picker tile grid */
+.oe-topo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.oe-topo-tile {
+    appearance: none;
+    background: var(--oe-surface-2);
+    color: var(--oe-text-dim);
+    border: 1px solid var(--oe-border);
+    border-radius: 6px;
+    padding: 14px 12px 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font: inherit;
+    font-size: 13px;
+    transition: background-color 80ms ease, border-color 80ms ease, color 80ms ease;
+}
+
+.oe-topo-tile:hover {
+    background: var(--oe-surface-3);
+    color: var(--oe-text);
+    border-color: var(--oe-border-strong);
+}
+
+.oe-topo-tile.selected {
+    background: var(--oe-surface-3);
+    border-color: var(--oe-accent);
+    color: var(--oe-text);
+}
+
+.oe-topo-tile:focus-visible {
+    outline: 2px solid var(--oe-accent);
+    outline-offset: 2px;
+}
+
+.oe-topo-svg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+}
+
+.oe-topo-label {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* ── Responsive ─────────────────────────────────────── */
+@media (max-width: 900px) {
+    .oe-shell {
+        grid-template-columns: 1fr;
+    }
+    .oe-nav, .oe-preview-col {
+        position: static;
+        top: auto;
+    }
+    .oe-nav-list {
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 4px;
+        padding: 4px 0 8px;
+        border-bottom: 1px solid var(--oe-border);
+    }
+    .oe-nav-item {
+        border-left: none;
+        border-radius: 6px;
+        padding: 6px 12px;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+    .oe-nav-item.active {
+        background: var(--oe-surface-3);
+        color: var(--oe-text);
+        border-left: none;
+    }
+    .oe-nav-footer {
+        margin-top: 8px;
+    }
+    .oe-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .oe-header-actions {
+        align-self: stretch;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 600px) {
+    .oe-nav-list {
+        display: none;
+    }
+    .oe-nav-select {
+        display: block;
+        width: 100%;
+    }
+
+    /* T-301 — narrow viewport (≤600px, e.g. iPhone-SE 375×667).
+       Restack to single column (already done at 900px), make the preview
+       collapsible via the <details>/<summary> wrapper, and pin the Generate
+       action bar to the bottom of the viewport so it's always reachable. */
+
+    .oe-app {
+        /* Reserve room at the bottom so the pinned action bar can never
+           obscure the footer/last control. Matches the action bar height. */
+        padding-bottom: 80px;
+    }
+
+    .oe-header-actions {
+        flex-wrap: wrap;
+    }
+
+    .oe-preview-col {
+        gap: 8px;
+    }
+
+    .oe-preview-summary {
+        display: block;
+        cursor: pointer;
+        user-select: none;
+        padding: 8px 12px;
+        background: var(--oe-surface-2);
+        border: 1px solid var(--oe-border);
+        border-radius: 4px;
+        color: var(--oe-text);
+        font-size: 13px;
+        font-weight: 600;
+        list-style: none;
+    }
+    .oe-preview-summary::-webkit-details-marker { display: none; }
+    .oe-preview-summary::before {
+        content: "▾ ";
+        color: var(--oe-text-dim);
+        font-size: 11px;
+    }
+    .oe-preview-details:not([open]) .oe-preview-summary::before {
+        content: "▸ ";
+    }
+    .oe-preview-details:not([open]) .oe-preview {
+        display: none;
+    }
+    .oe-preview-details[open] .oe-preview-summary {
+        margin-bottom: 4px;
+    }
+    /* On mobile keep the preview at a sensible height so the page itself stays
+       short enough that the Generate button is reachable in a single thumb
+       scroll. */
+    .oe-preview {
+        min-height: 180px;
+    }
+
+    /* Pin Generate to the viewport bottom. `fixed` (not `sticky`) because the
+       action bar's natural position is inside the preview column at the very
+       bottom of the page — sticky would only engage once the user scrolls
+       past the form, defeating the point. The .oe-app bottom padding above
+       reserves matching whitespace so the bar never obscures real content. */
+    .oe-action-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50;
+        background: var(--oe-bg);
+        padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+        border-top: 1px solid var(--oe-border);
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4);
+    }
+    .oe-action-bar .oe-btn {
+        max-width: 720px;
+        margin: 0 auto;
+        display: block;
+    }
+}
