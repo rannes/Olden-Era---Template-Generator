@@ -335,12 +335,6 @@
                             <RowDefinition Height="Auto"/>   <!-- show preview checkbox -->
                             <RowDefinition Height="8"/>
                             <RowDefinition Height="Auto"/>   <!-- save button -->
-                            <RowDefinition Height="8"/>
-                            <RowDefinition Height="Auto"/>   <!-- T-705 topology stats -->
-                            <RowDefinition Height="8"/>
-                            <RowDefinition Height="Auto"/>   <!-- T-704 fairness audit -->
-                            <RowDefinition Height="8"/>
-                            <RowDefinition Height="Auto"/>   <!-- T-805 preset diff -->
                         </Grid.RowDefinitions>
 
                         <Button Grid.Row="0"
@@ -492,14 +486,6 @@
                                 IsEnabled="False"
                                 Click="BtnSaveGenerated_Click"/>
 
-                        <views:TopologyStatsPanel Grid.Row="12"
-                                                  x:Name="PnlTopologyStats"/>
-
-                        <views:FairnessPanel Grid.Row="14"
-                                             x:Name="PnlFairness"/>
-
-                        <views:PresetDiffPanel Grid.Row="16"
-                                               x:Name="PnlPresetDiff"/>
                     </Grid>
                 </Grid>
 
