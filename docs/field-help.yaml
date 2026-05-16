@@ -40,7 +40,6 @@ connection.defaults.guardRandomization: Template-wide default for connection gua
 # ── Heroes ────────────────────────────────────────────────────────────────
 hero.minMax: Minimum and maximum number of heroes the engine may place per player. Min cannot exceed Max.
 hero.bans: Heroes excluded from random selection. Banning every hero of a faction can leave that faction without a starting hero.
-hero.fixedStarting: Pin a specific hero as the starting hero for a faction. The pinned hero cannot also be in the ban list.
 hero.lighting: Whether each hero illuminates terrain at night. Off matches the original Heroes 3 black-fog behavior; on matches modern Olden Era defaults.
 hero.lightingDay: Whether heroes also illuminate terrain during the day. Most templates leave this on.
 

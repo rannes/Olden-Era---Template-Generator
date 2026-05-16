@@ -336,10 +336,6 @@
                             <RowDefinition Height="8"/>
                             <RowDefinition Height="Auto"/>   <!-- save button -->
                             <RowDefinition Height="8"/>
-                            <RowDefinition Height="Auto"/>   <!-- T-701 value budget -->
-                            <RowDefinition Height="8"/>
-                            <RowDefinition Height="Auto"/>   <!-- T-702 guard chart -->
-                            <RowDefinition Height="8"/>
                             <RowDefinition Height="Auto"/>   <!-- T-705 topology stats -->
                             <RowDefinition Height="8"/>
                             <RowDefinition Height="Auto"/>   <!-- T-704 fairness audit -->
@@ -496,19 +492,13 @@
                                 IsEnabled="False"
                                 Click="BtnSaveGenerated_Click"/>
 
-                        <views:ValueBudgetPanel Grid.Row="12"
-                                                x:Name="PnlValueBudget"/>
-
-                        <views:GuardValueChartPanel Grid.Row="14"
-                                                    x:Name="PnlGuardChart"/>
-
-                        <views:TopologyStatsPanel Grid.Row="16"
+                        <views:TopologyStatsPanel Grid.Row="12"
                                                   x:Name="PnlTopologyStats"/>
 
-                        <views:FairnessPanel Grid.Row="18"
+                        <views:FairnessPanel Grid.Row="14"
                                              x:Name="PnlFairness"/>
 
-                        <views:PresetDiffPanel Grid.Row="20"
+                        <views:PresetDiffPanel Grid.Row="16"
                                                x:Name="PnlPresetDiff"/>
                     </Grid>
                 </Grid>

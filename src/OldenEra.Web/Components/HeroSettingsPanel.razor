@@ -19,42 +19,12 @@
                       FieldKey="@ValidationFieldKeys.HeroMinMax"
                       MessageElementId="hero-minmax-msg" />
     <InlineFieldError Result="Validation"
-                      FieldKey="@ValidationFieldKeys.HeroFixedStarting" />
-    <InlineFieldError Result="Validation"
                       FieldKey="@ValidationFieldKeys.HeroBans" />
 
     <SliderRow Label="Bonus heroes per extra castle"
                Min="0" Max="10" Step="1"
                Value="Settings.HeroSettings.HeroCountIncrement"
                ValueChanged="@(v => { Settings.HeroSettings.HeroCountIncrement = (int)v; NotifyChanged(); })" />
-
-    <details class="oe-stacked" style="margin-top: 12px;">
-        <summary class="oe-label" style="cursor: pointer;">
-            Pin starting hero per faction (@PinnedHeroCount selected)
-        </summary>
-        <div class="oe-hint">
-            When set, every player who picks the listed faction starts with the
-            chosen hero instead of a random pick from that faction's pool.
-            Round-tripped through the settings file; emission to
-            <code>.rmg.json</code> is a future generator task.
-        </div>
-        @foreach (var faction in Catalog.Factions)
-        {
-            var current = Settings.HeroSettings.FixedStartingHeroByFaction.TryGetValue(faction.Id, out var cv) ? cv : null;
-            var heroes = Catalog.HeroesByFaction(faction.Id).OrderBy(h => h.Name).ToList();
-            <div class="oe-stacked">
-                <label class="oe-label">@faction.Name</label>
-                <select value="@current"
-                        @onchange="@(e => SetFixedHero(faction.Id, e.Value?.ToString()))">
-                    <option value="">(no pin — random from faction pool)</option>
-                    @foreach (var hero in heroes)
-                    {
-                        <option value="@hero.Id">@hero.Name</option>
-                    }
-                </select>
-            </div>
-        }
-    </details>
 
     <details class="oe-stacked" style="margin-top: 12px;">
         <summary class="oe-label" style="cursor: pointer;">
@@ -190,16 +160,6 @@
     {
         if (!Settings.HeroSettings.HeroBans.Remove(heroId))
             Settings.HeroSettings.HeroBans.Add(heroId);
-
-        // Clear any pin that points at a now-banned hero so the validator stays clean.
-        if (Settings.HeroSettings.HeroBans.Contains(heroId))
-        {
-            foreach (var key in Settings.HeroSettings.FixedStartingHeroByFaction.Keys.ToList())
-            {
-                if (string.Equals(Settings.HeroSettings.FixedStartingHeroByFaction[key], heroId, StringComparison.OrdinalIgnoreCase))
-                    Settings.HeroSettings.FixedStartingHeroByFaction[key] = null;
-            }
-        }
         await NotifyChanged();
     }
 
@@ -214,24 +174,6 @@
     {
         if (!Settings.HeroSettings.BannedSpells.Remove(spellId))
             Settings.HeroSettings.BannedSpells.Add(spellId);
-        await NotifyChanged();
-    }
-
-    // T-808: editable fixed-starting-hero pin per faction. Empty / "" clears
-    // the pin (entry removed from the dict so the round-tripped JSON stays
-    // minimal). The dict is preserved via SettingsMapper / SettingsFile
-    // even though the generator does not yet emit the pin into .rmg.json.
-    private int PinnedHeroCount =>
-        Settings.HeroSettings.FixedStartingHeroByFaction
-            .Count(kv => !string.IsNullOrWhiteSpace(kv.Value));
-
-    private async Task SetFixedHero(string factionId, string? heroId)
-    {
-        var dict = Settings.HeroSettings.FixedStartingHeroByFaction;
-        if (string.IsNullOrWhiteSpace(heroId))
-            dict.Remove(factionId);
-        else
-            dict[factionId] = heroId;
         await NotifyChanged();
     }
 }

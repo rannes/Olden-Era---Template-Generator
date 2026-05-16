@@ -224,9 +224,6 @@ public static class SettingsMapper
                 HeroCountIncrement = s.HeroCountIncrement,
                 HeroBans = s.HeroBans is null ? new() : new List<string>(s.HeroBans),
                 BannedSpells = s.BannedSpells is null ? new() : new List<string>(s.BannedSpells),
-                FixedStartingHeroByFaction = s.FixedStartingHeroByFaction is null
-                    ? new()
-                    : new Dictionary<string, string?>(s.FixedStartingHeroByFaction),
             },
             Topology = migratedTopology,
             RandomPortals = s.RandomPortals,
@@ -365,7 +362,6 @@ public static class SettingsMapper
             HeroCountIncrement = g.HeroSettings.HeroCountIncrement,
             HeroBans = new List<string>(g.HeroSettings.HeroBans),
             BannedSpells = new List<string>(g.HeroSettings.BannedSpells),
-            FixedStartingHeroByFaction = new Dictionary<string, string?>(g.HeroSettings.FixedStartingHeroByFaction),
             Topology = g.Topology,
             RandomPortals = g.RandomPortals,
             MaxPortalConnections = g.MaxPortalConnections,

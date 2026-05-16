@@ -106,7 +106,6 @@ public class FieldHelpCatalogTests
             ValidationFieldKeys.MinNeutralSeparation,
             ValidationFieldKeys.HeroMinMax,
             ValidationFieldKeys.HeroBans,
-            ValidationFieldKeys.HeroFixedStarting,
             ValidationFieldKeys.BonusPerPlayerOverrides,
             ValidationFieldKeys.ZoneContentPool,
         };

@@ -1022,7 +1022,6 @@ namespace OldenEra.TemplateEditor
             HeroCountMax          = (int)PnlHeroes.SldHeroMax.Value,
             HeroCountIncrement    = (int)PnlHeroes.SldHeroIncrement.Value,
             HeroBans              = PnlHeroes.GetHeroBans(),
-            FixedStartingHeroByFaction = PnlHeroes.GetFixedStartingHeroByFaction(),
             BannedSpells          = PnlHeroes.GetBannedSpells(),
             Topology              = TopologyOptions[PnlTopology.CmbTopology.SelectedIndex].Topology,
             RandomPortals         = PnlZones.ChkRandomPortals.IsChecked == true,
@@ -1330,7 +1329,7 @@ namespace OldenEra.TemplateEditor
             PnlHeroes.SldHeroMin.Value        = s.HeroCountMin;
             PnlHeroes.SldHeroMax.Value        = s.HeroCountMax;
             PnlHeroes.SldHeroIncrement.Value  = s.HeroCountIncrement;
-            PnlHeroes.ApplyHeroSelection(s.HeroBans, s.FixedStartingHeroByFaction);
+            PnlHeroes.ApplyHeroBans(s.HeroBans);
             PnlHeroes.ApplyBannedSpells(s.BannedSpells);
             int topoIdx = Array.FindIndex(TopologyOptions, t => t.Topology == s.Topology);
             if (topoIdx >= 0) PnlTopology.CmbTopology.SelectedIndex = topoIdx;
@@ -1952,8 +1951,6 @@ namespace OldenEra.TemplateEditor
             LblNoPreview.Visibility = Visibility.Collapsed;
             PnlPreviewToolbar.Visibility = Visibility.Visible;
             BtnSaveGenerated.Visibility = Visibility.Visible;
-            PnlValueBudget.Update(_generatedTemplate); // T-701
-            PnlGuardChart.Update(_generatedTemplate); // T-702
             PnlTopologyStats.Update(_generatedTemplate); // T-705
             PnlFairness.Update(_generatedTemplate); // T-704
             PnlMap.TxtSeedUsed.Text = settings.Seed.HasValue
@@ -2065,7 +2062,6 @@ namespace OldenEra.TemplateEditor
                 HeroCountMax = (int)PnlHeroes.SldHeroMax.Value,
                 HeroCountIncrement = (int)PnlHeroes.SldHeroIncrement.Value,
                 HeroBans = PnlHeroes.GetHeroBans(),
-                FixedStartingHeroByFaction = PnlHeroes.GetFixedStartingHeroByFaction(),
                 BannedSpells = PnlHeroes.GetBannedSpells(),
             },
             MapSize = SelectedMapSize(),

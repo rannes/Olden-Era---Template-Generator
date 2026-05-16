@@ -162,23 +162,6 @@ public class SettingsValidatorTests
         Assert.Contains(result.Warnings, w => w.Contains(faction.Name) && w.Contains("banned"));
     }
 
-    [Fact]
-    public void Blocker_WhenFixedStartingHeroIsAlsoBanned()
-    {
-        var s = ValidBaseline();
-        var faction = CommunityCatalog.Default.Factions.First();
-        var hero = CommunityCatalog.Default.HeroesByFaction(faction.Id).First();
-        s.HeroSettings.HeroBans = new List<string> { hero.Id };
-        s.HeroSettings.FixedStartingHeroByFaction = new Dictionary<string, string?>
-        {
-            [faction.Id] = hero.Id,
-        };
-
-        var result = SettingsValidator.Validate(s);
-        Assert.False(result.IsValid);
-        Assert.Contains(result.Blockers, b => b.Contains(hero.Id) && b.Contains("ban"));
-    }
-
     // -- T-303: every issue must carry a non-empty field key --------------
 
     [Fact]

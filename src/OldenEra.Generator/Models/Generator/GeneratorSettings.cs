@@ -60,23 +60,6 @@ namespace OldenEra.Generator.Models
         /// Emitted into <c>globalBans.magics</c>; sibling of <see cref="HeroBans"/>.
         /// </summary>
         public List<string> BannedSpells { get; set; } = new();
-
-        /// <summary>
-        /// Pinned starting hero per faction. Key is the faction id
-        /// (e.g. <c>"temple"</c>), value is a hero id from the catalog,
-        /// or <c>null</c>/missing for "random".
-        /// </summary>
-        /// <remarks>
-        /// NOT SUPPORTED BY TEMPLATE — editor UI is hidden in both Web and
-        /// WPF clients. The .rmg.json schema does not declare a pinned-hero
-        /// shape on player Spawn MainObjects (audit of 232 Spawn entries
-        /// across shipped templates: zero references), so no JSON is
-        /// emitted. The field is retained because existing <c>.oetgs</c>
-        /// files may carry values; we round-trip them so data is not lost
-        /// and the editor can be re-exposed if the schema ever supports it.
-        /// Do not delete without a migration.
-        /// </remarks>
-        public Dictionary<string, string?> FixedStartingHeroByFaction { get; set; } = new();
     }
 
     public class AdvancedSettings

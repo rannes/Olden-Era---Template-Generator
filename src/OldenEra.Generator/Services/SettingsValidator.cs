@@ -170,20 +170,6 @@ namespace OldenEra.Generator.Services
                     }
                 }
 
-                // Pinned-hero-and-banned cross-check: blocker.
-                foreach (var kv in settings.HeroSettings.FixedStartingHeroByFaction)
-                {
-                    var fixedId = kv.Value;
-                    if (string.IsNullOrWhiteSpace(fixedId)) continue;
-                    if (bansSet.Contains(fixedId))
-                    {
-                        var factionName = catalog.Factions
-                            .FirstOrDefault(f => string.Equals(f.Id, kv.Key, StringComparison.OrdinalIgnoreCase))
-                            ?.Name ?? kv.Key;
-                        Block(ValidationFieldKeys.HeroFixedStarting,
-                            $"Pinned starting hero \"{fixedId}\" for faction \"{factionName}\" is also in the hero ban list. Remove it from one of the two.");
-                    }
-                }
             }
 
             // T-206: per-player starting bonus overrides. Warn (don't block) on
@@ -373,7 +359,6 @@ namespace OldenEra.Generator.Services
 
         public const string HeroMinMax = "hero.minMax";
         public const string HeroBans = "hero.bans";
-        public const string HeroFixedStarting = "hero.fixedStarting";
 
         public const string BonusPerPlayerOverrides = "bonuses.perPlayerOverrides";
 
