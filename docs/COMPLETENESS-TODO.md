@@ -294,36 +294,17 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
 ## Phase 7 — Analysis features
 
 ### T-701 — Zone value budget summary
-- **Status:** done (PR #64)
-- **Owner:** Claude
-- **Effort:** M
-- **Files:** New `Components/ValueBudgetPanel.razor`, WPF parity,
-  `Services/TemplateAnalysis.cs` (new).
-- **Scope:** Read `Zone.ResourcesValue/PerArea`,
-  `GuardedContentValue/PerArea`, `UnguardedContentValue/PerArea` off the
-  generated `RmgTemplate`; render per-zone and total cards under the preview.
-  Pure display over generator output — no simulation.
-- **Acceptance:** Summary updates on every regenerate. Numbers match the
-  emitted JSON. Hidden when generation has not run.
+- **Status:** reverted (PR #78)
+- **Resolution:** Originally landed in #64. Removed because the panel
+  rendered inside the settings column and was misread as a map-level
+  *setting* rather than a post-generation diagnostic. If reintroduced,
+  surface it under a dedicated "Analysis" section, not next to map
+  knobs.
 
 ### T-702 — Guard-power vs. zone-value chart
-- **Status:** done (PR #65)
-- **Owner:** Claude
-- **Effort:** M
-- **Files:** `Services/TemplateAnalysis.GuardChart.cs` (new sibling partial),
-  `Components/GuardValueChartPanel.razor` (+ `.razor.css`), WPF
-  `Views/GuardValueChartPanel.xaml` (+ `.xaml.cs`), wired into `Home.razor`
-  and `MainWindow.xaml`/`.xaml.cs` next to the T-701 panel.
-- **Scope:** The most common balance bug is "rich zone with weak guards".
-  Plot per-zone effective `Zone.GuardMultiplier` (already scaled by
-  `BorderGuardStrengthPercent` at emission time) against
-  `Zone.ResourcesValue`; flag outliers in red. Inline SVG (Web) / WPF
-  Canvas with simple shapes — no chart library.
-- **Resolution:** Outlier rule (zone in top quartile of value AND bottom
-  quartile of guard, refusing to flag with fewer than 4 plottable points)
-  is unit-tested in `TemplateAnalysisGuardChartTests`. Panel hidden until
-  generation has run (matches T-701 pattern). Both hosts render the same
-  data with identical hover tooltips.
+- **Status:** reverted (PR #78)
+- **Resolution:** Same fate as T-701 — landed in #65, removed for the
+  same placement reason. Same advice on any reintroduction.
 
 ### T-703 — Content-pool sanity warnings (validator extension)
 - **Status:** done (#68)
@@ -486,16 +467,13 @@ Tasks within a phase can run in parallel unless they declare a `Blocked by:`.
     via `FindOldenEraTemplatesPath()` (with a wrong-folder warning if
     the user navigates elsewhere). Replicating an installer ZIP on WPF
     would be ceremony around a path it already knows. No action taken.
-  - **`FixedStartingHeroByFaction`** — *closed*. Both hosts now expose a
-    "Pin starting hero per faction" expander/details (one ComboBox per
-    faction) that writes directly into the dict. Web edit lives in
-    `Components/HeroSettingsPanel.razor`; WPF edit lives in
-    `Views/HeroesPanel.xaml(.cs)`. Note: emission to `.rmg.json` is a
-    future generator task (the schema currently has no field for it);
-    the editor today exists for round-trip preservation through the
-    settings file. Cross-checked by validator (pinned + banned = blocker)
-    and locked by a new
-    `SettingsMapper_FixedStartingHeroByFaction_RoundTrips` test.
+  - **`FixedStartingHeroByFaction`** — *reverted* (PR #78). The Unfrozen
+    RMG schema has no field for a per-faction pinned starting hero
+    (audit of shipped `*.rmg.json`: zero references), so the UI was
+    collecting data the generator silently dropped. Removed end to end
+    (UI, model, mapper, validator, tests). Do not reintroduce without
+    first finding a shipped template that proves the schema field
+    exists.
 - **Acceptance:** Met. Both hosts expose the same set of editable
   fields for the enumerated items, modulo the documented N/A on
   installer-ZIP. Settings round-trip continues passing (231 WPF + 446

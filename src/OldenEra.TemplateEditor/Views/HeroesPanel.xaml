@@ -59,18 +59,6 @@
                             TickFrequency="1" IsSnapToTickEnabled="True"/>
                 </Grid>
 
-                <Expander x:Name="ExpFixedStartingHeroes" Header="Pin starting hero per faction" Margin="0,8,0,4">
-                    <StackPanel Margin="8,4,0,8">
-                        <TextBlock Style="{StaticResource HintText}">
-                            When set, every player who picks the listed faction starts with the
-                            chosen hero instead of a random pick from that faction's pool.
-                            Round-tripped through the settings file; emission to .rmg.json
-                            is a future generator task.
-                        </TextBlock>
-                        <StackPanel x:Name="PnlFixedStartingHeroes"/>
-                    </StackPanel>
-                </Expander>
-
                 <Expander Header="Ban specific heroes" Margin="0,8,0,4">
                     <StackPanel Margin="8,4,0,8">
                         <TextBlock Style="{StaticResource HintText}">
